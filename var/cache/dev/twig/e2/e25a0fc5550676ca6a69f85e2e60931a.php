@@ -74,7 +74,7 @@ class __TwigTemplate_a78feb4fc1bcaed587cc138519c1720e extends Template
 
         // line 8
         yield "    ";
-        yield from         $this->loadTemplate("backend/session_day/edit.html.twig", "backend/session_day/edit.html.twig", 8, "1161205257")->unwrap()->yield(CoreExtension::arrayMerge($context, ["page_section" => (isset($context["page_section"]) || array_key_exists("page_section", $context) ? $context["page_section"] : (function () { throw new RuntimeError('Variable "page_section" does not exist.', 8, $this->source); })()), "page_title" => (isset($context["page_title"]) || array_key_exists("page_title", $context) ? $context["page_title"] : (function () { throw new RuntimeError('Variable "page_title" does not exist.', 8, $this->source); })())]));
+        yield from         $this->loadTemplate("backend/session_day/edit.html.twig", "backend/session_day/edit.html.twig", 8, "895166904")->unwrap()->yield(CoreExtension::arrayMerge($context, ["page_section" => (isset($context["page_section"]) || array_key_exists("page_section", $context) ? $context["page_section"] : (function () { throw new RuntimeError('Variable "page_section" does not exist.', 8, $this->source); })()), "page_title" => (isset($context["page_title"]) || array_key_exists("page_title", $context) ? $context["page_title"] : (function () { throw new RuntimeError('Variable "page_title" does not exist.', 8, $this->source); })())]));
         
         $__internal_6f47bbe9983af81f1e7450e9a3e3768f->leave($__internal_6f47bbe9983af81f1e7450e9a3e3768f_prof);
 
@@ -205,7 +205,7 @@ class __TwigTemplate_a78feb4fc1bcaed587cc138519c1720e extends Template
 
 
 /* backend/session_day/edit.html.twig */
-class __TwigTemplate_a78feb4fc1bcaed587cc138519c1720e___1161205257 extends Template
+class __TwigTemplate_a78feb4fc1bcaed587cc138519c1720e___895166904 extends Template
 {
     private $source;
     private $macros = [];

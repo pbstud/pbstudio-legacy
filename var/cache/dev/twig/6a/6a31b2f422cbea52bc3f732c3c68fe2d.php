@@ -96,13 +96,13 @@ class __TwigTemplate_4d15d64b38a0cc616c1cc204447a7217 extends Template
             <div class=\"col-md-8 col-xs-12\">
                 ";
         // line 27
-        yield from         $this->loadTemplate("backend/staff/new.html.twig", "backend/staff/new.html.twig", 27, "863172078")->unwrap()->yield(CoreExtension::toArray(["page_title" => "Información", "form" =>         // line 29
+        yield from         $this->loadTemplate("backend/staff/new.html.twig", "backend/staff/new.html.twig", 27, "72632740")->unwrap()->yield(CoreExtension::toArray(["page_title" => "Información", "form" =>         // line 29
 (isset($context["form"]) || array_key_exists("form", $context) ? $context["form"] : (function () { throw new RuntimeError('Variable "form" does not exist.', 29, $this->source); })())]));
         // line 99
         yield "
                 ";
         // line 100
-        yield from         $this->loadTemplate("backend/staff/new.html.twig", "backend/staff/new.html.twig", 100, "1764758387")->unwrap()->yield(CoreExtension::toArray(["page_title" => "Sucursales", "form" =>         // line 102
+        yield from         $this->loadTemplate("backend/staff/new.html.twig", "backend/staff/new.html.twig", 100, "1464605597")->unwrap()->yield(CoreExtension::toArray(["page_title" => "Sucursales", "form" =>         // line 102
 (isset($context["form"]) || array_key_exists("form", $context) ? $context["form"] : (function () { throw new RuntimeError('Variable "form" does not exist.', 102, $this->source); })())]));
         // line 113
         yield "            </div>
@@ -110,7 +110,7 @@ class __TwigTemplate_4d15d64b38a0cc616c1cc204447a7217 extends Template
             <div class=\"col-md-4 col-xs-12\">
                 ";
         // line 116
-        yield from         $this->loadTemplate("backend/staff/new.html.twig", "backend/staff/new.html.twig", 116, "1468083880")->unwrap()->yield(CoreExtension::toArray(["page_title" => "Permisos", "form" =>         // line 118
+        yield from         $this->loadTemplate("backend/staff/new.html.twig", "backend/staff/new.html.twig", 116, "1045661180")->unwrap()->yield(CoreExtension::toArray(["page_title" => "Permisos", "form" =>         // line 118
 (isset($context["form"]) || array_key_exists("form", $context) ? $context["form"] : (function () { throw new RuntimeError('Variable "form" does not exist.', 118, $this->source); })())]));
         // line 126
         yield "            </div>
@@ -316,7 +316,7 @@ class __TwigTemplate_4d15d64b38a0cc616c1cc204447a7217 extends Template
 
 
 /* backend/staff/new.html.twig */
-class __TwigTemplate_4d15d64b38a0cc616c1cc204447a7217___863172078 extends Template
+class __TwigTemplate_4d15d64b38a0cc616c1cc204447a7217___72632740 extends Template
 {
     private $source;
     private $macros = [];
@@ -629,7 +629,7 @@ class __TwigTemplate_4d15d64b38a0cc616c1cc204447a7217___863172078 extends Templa
 
 
 /* backend/staff/new.html.twig */
-class __TwigTemplate_4d15d64b38a0cc616c1cc204447a7217___1764758387 extends Template
+class __TwigTemplate_4d15d64b38a0cc616c1cc204447a7217___1464605597 extends Template
 {
     private $source;
     private $macros = [];
@@ -883,7 +883,7 @@ class __TwigTemplate_4d15d64b38a0cc616c1cc204447a7217___1764758387 extends Templ
 
 
 /* backend/staff/new.html.twig */
-class __TwigTemplate_4d15d64b38a0cc616c1cc204447a7217___1468083880 extends Template
+class __TwigTemplate_4d15d64b38a0cc616c1cc204447a7217___1045661180 extends Template
 {
     private $source;
     private $macros = [];

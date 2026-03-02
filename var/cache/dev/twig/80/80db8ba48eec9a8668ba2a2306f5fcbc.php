@@ -41,7 +41,7 @@ class __TwigTemplate_7fdd74c79faefe0311e52f4ab466066a extends Template
         $__internal_6f47bbe9983af81f1e7450e9a3e3768f->enter($__internal_6f47bbe9983af81f1e7450e9a3e3768f_prof = new \Twig\Profiler\Profile($this->getTemplateName(), "template", "backend/default/_card_dates.html.twig"));
 
         // line 1
-        yield from         $this->loadTemplate("backend/default/_card_dates.html.twig", "backend/default/_card_dates.html.twig", 1, "1341437115")->unwrap()->yield(CoreExtension::arrayMerge($context, ["title" => "Fechas", "col" => ((array_key_exists("col", $context)) ? (Twig\Extension\CoreExtension::defaultFilter((isset($context["col"]) || array_key_exists("col", $context) ? $context["col"] : (function () { throw new RuntimeError('Variable "col" does not exist.', 1, $this->source); })()), null)) : (null))]));
+        yield from         $this->loadTemplate("backend/default/_card_dates.html.twig", "backend/default/_card_dates.html.twig", 1, "1742614254")->unwrap()->yield(CoreExtension::arrayMerge($context, ["title" => "Fechas", "col" => ((array_key_exists("col", $context)) ? (Twig\Extension\CoreExtension::defaultFilter((isset($context["col"]) || array_key_exists("col", $context) ? $context["col"] : (function () { throw new RuntimeError('Variable "col" does not exist.', 1, $this->source); })()), null)) : (null))]));
         
         $__internal_5a27a8ba21ca79b61932376b2fa922d2->leave($__internal_5a27a8ba21ca79b61932376b2fa922d2_prof);
 
@@ -95,7 +95,7 @@ class __TwigTemplate_7fdd74c79faefe0311e52f4ab466066a extends Template
 
 
 /* backend/default/_card_dates.html.twig */
-class __TwigTemplate_7fdd74c79faefe0311e52f4ab466066a___1341437115 extends Template
+class __TwigTemplate_7fdd74c79faefe0311e52f4ab466066a___1742614254 extends Template
 {
     private $source;
     private $macros = [];

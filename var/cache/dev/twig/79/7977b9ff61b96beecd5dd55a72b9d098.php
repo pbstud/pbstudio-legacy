@@ -79,7 +79,7 @@ class __TwigTemplate_7340ee9577e6c9d1271d32cbcc7c3d7b extends Template
         yield "
         ";
         // line 15
-        yield from         $this->loadTemplate("backend/user/new.html.twig", "backend/user/new.html.twig", 15, "1999264341")->unwrap()->yield(CoreExtension::toArray(["page_section" =>         // line 16
+        yield from         $this->loadTemplate("backend/user/new.html.twig", "backend/user/new.html.twig", 15, "1985539706")->unwrap()->yield(CoreExtension::toArray(["page_section" =>         // line 16
 (isset($context["page_section"]) || array_key_exists("page_section", $context) ? $context["page_section"] : (function () { throw new RuntimeError('Variable "page_section" does not exist.', 16, $this->source); })()), "page_title" => "Información de acceso", "return_to" => $this->extensions['Symfony\Bridge\Twig\Extension\RoutingExtension']->getPath("backend_user"), "form" =>         // line 19
 (isset($context["form"]) || array_key_exists("form", $context) ? $context["form"] : (function () { throw new RuntimeError('Variable "form" does not exist.', 19, $this->source); })())]));
         // line 148
@@ -277,7 +277,7 @@ class __TwigTemplate_7340ee9577e6c9d1271d32cbcc7c3d7b extends Template
 
 
 /* backend/user/new.html.twig */
-class __TwigTemplate_7340ee9577e6c9d1271d32cbcc7c3d7b___1999264341 extends Template
+class __TwigTemplate_7340ee9577e6c9d1271d32cbcc7c3d7b___1985539706 extends Template
 {
     private $source;
     private $macros = [];

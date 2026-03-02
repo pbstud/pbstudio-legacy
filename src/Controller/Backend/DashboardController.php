@@ -55,9 +55,16 @@ class DashboardController extends AbstractController
         $currentDate = new \DateTime();
         var_dump('Current: ', $currentDate);
 
-        $dateStart = $session->getDateStart();
+        $dateStartValue = $session->getDateStart();
+        $timeStartValue = $session->getTimeStart();
+
+        if (!$dateStartValue || !$timeStartValue) {
+            throw $this->createNotFoundException('La sesión no tiene fecha u hora de inicio configurada.');
+        }
+
+        $dateStart = \DateTimeImmutable::createFromInterface($dateStartValue);
         var_dump('Date start: ', $dateStart);
-        $dateStart = $dateStart->setTime((int) $session->getTimeStart()->format('H'), (int) $session->getTimeStart()->format('i'));
+        $dateStart = $dateStart->setTime((int) $timeStartValue->format('H'), (int) $timeStartValue->format('i'));
         var_dump('Date start 2: ', $dateStart);
 
         $diffSeconds = $dateStart->getTimestamp() - $currentDate->getTimestamp();

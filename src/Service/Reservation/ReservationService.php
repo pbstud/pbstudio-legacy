@@ -266,11 +266,18 @@ readonly class ReservationService
 
     private function getSecondsToStart(Session $session): int
     {
-        $currentDate = new \DateTime();
-        $dateStart = clone $session->getDateStart();
+        $dateStartValue = $session->getDateStart();
+        $timeStartValue = $session->getTimeStart();
+
+        if (!$dateStartValue || !$timeStartValue) {
+            throw new \RuntimeException('La sesión no tiene fecha u hora de inicio configurada.');
+        }
+
+        $currentDate = new \DateTimeImmutable();
+        $dateStart = \DateTimeImmutable::createFromInterface($dateStartValue);
         $dateStart = $dateStart->setTime(
-            (int) $session->getTimeStart()->format('H'),
-            (int) $session->getTimeStart()->format('i')
+            (int) $timeStartValue->format('H'),
+            (int) $timeStartValue->format('i')
         );
 
         return $dateStart->getTimestamp() - $currentDate->getTimestamp();
