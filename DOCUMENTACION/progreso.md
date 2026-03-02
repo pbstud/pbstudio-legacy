@@ -1,7 +1,7 @@
 # 📋 PROGRESO DEL PROYECTO - PB STUDIO
 
-**Última actualización:** 02/03/2026  
-**Estado General:** 🟢 AVANZADO (50% Completado)  
+**Última actualización:** 02/03/2026 19:30  
+**Estado General:** 🟢 AVANZADO (52% Completado)  
 **Equipo:** Desarrollo + Technical Documentation  
 
 ---
@@ -426,22 +426,32 @@ STATUS: 15,000+ PALABRAS | 60+ EJEMPLOS | 20+ DIAGRAMAS (✅ 40% COMPLETO)
 ```
 🔴 ERRORES CRÍTICOS ENCONTRADOS (PRIORITY: HIGH):
 
-1️⃣ Session.php::getDateTimeStart() - DateTime Immutability Issue
-   ├─ Síntoma: "Undefined method 'setTime' on DateTimeImmutable"
+1️⃣ Session.php::getDateTimeStart() - DateTime Type Safety Issue ✅ RESUELTO
+   ├─ Síntoma: "Undefined method 'setTime'" en DateTimeInterface
    ├─ Causa Raíz: 
-   │  • $this->dateStart es DateTimeImmutable (no DateTime mutable)
-   │  • clone preserva la immutabilidad
-   │  • setTime() retorna nueva instancia, no modifica en-place
+   │  • DateTimeInterface no declara setTime(), solo clases concretas
+   │  • clone sobre DateTimeInterface mantiene el tipo interface
+   │  • Analizador estático no puede garantizar disponibilidad del método
    ├─ Impacto: 
-   │  • Bloquea toda operación que requiere combinar date + time
-   │  • Afecta: SessionRepository::getCalendar(), views del calendario
-   │  • Rutina: Usuario no puede ver calendario ni hacer reserva
-   ├─ Solución Técnica:
-   │  └─ Cambiar: $dateStart->setTime(...)
-   │     Por: $dateStart = $dateStart->setTime(...)
-   │     Razón: Capturar el retorno (nueva instancia)
-   ├─ Status: 🔴 CRÍTICO - Bloquea flujo principal
-   └─ Acción: Aplicar fix + validar con doctrine:schema:validate
+   │  • Errores en IDE/analizador en 4 archivos críticos
+   │  • Afecta: Session entity, ReservationService, WaitingListService, DashboardController
+   │  • Riesgo: comportamiento inconsistente entre DateTime/DateTimeImmutable
+   ├─ Solución Aplicada:
+   │  └─ Patrón type-safe implementado:
+   │     1. Validación null antes de operar
+   │     2. DateTimeImmutable::createFromInterface() para conversión segura
+   │     3. Captura explícita del resultado de setTime()
+   ├─ Archivos corregidos (4):
+   │  • src/Entity/Session.php (getDateTimeStart)
+   │  • src/Service/Reservation/ReservationService.php (getSecondsToStart)
+   │  • src/Controller/Backend/DashboardController.php (backTest)
+   │  • src/Service/WaitingList/WaitingListService.php (add validation)
+   ├─ Validación realizada:
+   │  • Barrido global: 7 ocurrencias de setTime() revisadas
+   │  • get_errors: 0 errores en análisis estático
+   │  • Archivos validados: TransactionController, SessionDayController OK
+   ├─ Status: ✅ COMPLETADO
+   └─ Documentación: DOCUMENTACION/FIXES/DATETIME_IMMUTABILITY_FIX.md
 
 2️⃣ Template Registro No Sale - Registration Form Missing
    ├─ Síntoma: 

@@ -102,11 +102,23 @@ readonly class WaitingListService
 
         // Valida aun queda tiempo para registrarse en la lista, tomando en cuenta
         // el limite de tiempo para poder cancelar una reservación.
-        $currentDate = new \DateTime();
+        $currentDate = new \DateTimeImmutable();
 
-        /** @var \DateTime $dateStart */
-        $dateStart = $session->getDateStart();
-        $dateStart->setTime((int) $session->getTimeStart()->format('H'), (int) $session->getTimeStart()->format('i'));
+        $dateStartInterface = $session->getDateStart();
+        if (!$dateStartInterface) {
+            throw new WaitingListException('Session dateStart is not set.');
+        }
+        
+        $timeStartInterface = $session->getTimeStart();
+        if (!$timeStartInterface) {
+            throw new WaitingListException('Session timeStart is not set.');
+        }
+        
+        $dateStart = \DateTimeImmutable::createFromInterface($dateStartInterface);
+        $dateStart = $dateStart->setTime(
+            (int) $timeStartInterface->format('H'),
+            (int) $timeStartInterface->format('i')
+        );
 
         $diffSeconds = $dateStart->getTimestamp() - $currentDate->getTimestamp();
 

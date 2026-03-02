@@ -1,2 +1,4 @@
 75cce5,127.0.0.1,GET,http://127.0.0.1:8000/_fragment?_path=_format%3Dhtml%26_locale%3Des%26_controller%3DApp%255CController%255CBranchOfficeController%253A%253Aall,1772466222,629e79,200,request
 629e79,127.0.0.1,GET,http://127.0.0.1:8000/,1772466222,,200,request
+9058ba,127.0.0.1,GET,http://127.0.0.1:8000/backend/session/,1772495608,,200,request
+e2113e,127.0.0.1,GET,http://127.0.0.1:8000/backend/session/?filters%5Binstructor%5D=&filters%5Bstatus%5D=&filters%5Bdate_start%5D=14%2F11%2F2025&filters%5Bdate_end%5D=31%2F03%2F2026&filters%5BbranchOffice%5D=&filters%5BexerciseRoom%5D=&filters%5Bschedule%5D=,1772495617,,200,request

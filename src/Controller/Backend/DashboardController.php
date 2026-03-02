@@ -51,13 +51,30 @@ class DashboardController extends AbstractController
     public function backTest(Request $request, SessionRepository $sessionRepository, TimeToCancel $sessionTimeToCancel)
     {
         $session = $sessionRepository->find($request->query->get('id'));
+        if (!$session) {
+            throw $this->createNotFoundException('Session not found');
+        }
 
-        $currentDate = new \DateTime();
+        $currentDate = new \DateTimeImmutable();
         var_dump('Current: ', $currentDate);
 
-        $dateStart = $session->getDateStart();
-        var_dump('Date start: ', $dateStart);
-        $dateStart->setTime((int) $session->getTimeStart()->format('H'), (int) $session->getTimeStart()->format('i'));
+        $dateStartInterface = $session->getDateStart();
+        if (!$dateStartInterface) {
+            throw $this->createNotFoundException('Session dateStart is not set');
+        }
+        
+        $timeStartInterface = $session->getTimeStart();
+        if (!$timeStartInterface) {
+            throw $this->createNotFoundException('Session timeStart is not set');
+        }
+        
+        var_dump('Date start: ', $dateStartInterface);
+        
+        $dateStart = \DateTimeImmutable::createFromInterface($dateStartInterface);
+        $dateStart = $dateStart->setTime(
+            (int) $timeStartInterface->format('H'),
+            (int) $timeStartInterface->format('i')
+        );
         var_dump('Date start 2: ', $dateStart);
 
         $diffSeconds = $dateStart->getTimestamp() - $currentDate->getTimestamp();
