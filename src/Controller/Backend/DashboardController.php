@@ -57,7 +57,7 @@ class DashboardController extends AbstractController
 
         $dateStart = $session->getDateStart();
         var_dump('Date start: ', $dateStart);
-        $dateStart->setTime((int) $session->getTimeStart()->format('H'), (int) $session->getTimeStart()->format('i'));
+        $dateStart = $dateStart->setTime((int) $session->getTimeStart()->format('H'), (int) $session->getTimeStart()->format('i'));
         var_dump('Date start 2: ', $dateStart);
 
         $diffSeconds = $dateStart->getTimestamp() - $currentDate->getTimestamp();

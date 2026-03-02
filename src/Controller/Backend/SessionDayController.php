@@ -87,7 +87,7 @@ class SessionDayController extends AbstractController
                 foreach ($schedules as $time => $schedule) {
                     $hour = $time;
                     [$timeHour, $timeMinute] = explode(':', $time);
-                    $newDate->setTime((int) $timeHour, (int) $timeMinute);
+                    $newDate = $newDate->setTime((int) $timeHour, (int) $timeMinute);
 
                     foreach ($schedule as $exerciseRoom => $instructor) {
                         $info = !empty($information[$hour][$exerciseRoom]) ? $information[$hour][$exerciseRoom] : null;
@@ -206,7 +206,7 @@ class SessionDayController extends AbstractController
 
             foreach ($schedules as $schedule => $exerciseRooms) {
                 [$timeHour, $timeMinute] = explode(':', $schedule);
-                $editDate->setTime((int) $timeHour, (int) $timeMinute);
+                $editDate = $editDate->setTime((int) $timeHour, (int) $timeMinute);
 
                 foreach ($exerciseRooms as $exerciseRoom => $session) {
                     $instructor = (int) $session['instructor'];

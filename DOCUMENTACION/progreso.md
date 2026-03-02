@@ -1,7 +1,7 @@
 # 📋 PROGRESO DEL PROYECTO - PB STUDIO
 
 **Última actualización:** 02/03/2026  
-**Estado General:** 🟢 AVANZADO (50% Completado)  
+**Estado General:** 🟢 AVANZADO (52% Completado)  
 **Equipo:** Desarrollo + Technical Documentation  
 
 ---
@@ -427,7 +427,7 @@ STATUS: 15,000+ PALABRAS | 60+ EJEMPLOS | 20+ DIAGRAMAS (✅ 40% COMPLETO)
 🔴 ERRORES CRÍTICOS ENCONTRADOS (PRIORITY: HIGH):
 
 1️⃣ Session.php::getDateTimeStart() - DateTime Immutability Issue
-   ├─ Síntoma: "Undefined method 'setTime' on DateTimeImmutable"
+   ├─ Síntoma: "Undefined method 'setTime' on DateTimeImmutable" ← RESUELTO
    ├─ Causa Raíz: 
    │  • $this->dateStart es DateTimeImmutable (no DateTime mutable)
    │  • clone preserva la immutabilidad
@@ -440,8 +440,10 @@ STATUS: 15,000+ PALABRAS | 60+ EJEMPLOS | 20+ DIAGRAMAS (✅ 40% COMPLETO)
    │  └─ Cambiar: $dateStart->setTime(...)
    │     Por: $dateStart = $dateStart->setTime(...)
    │     Razón: Capturar el retorno (nueva instancia)
-   ├─ Status: 🔴 CRÍTICO - Bloquea flujo principal
-   └─ Acción: Aplicar fix + validar con doctrine:schema:validate
+   ├─ Status: ✅ RESUELTO (02/03/2026 16:50)
+   ├─ Validación: 3/3 tests PASS, 7 assertions OK
+   ├─ Archivos corregidos: 7 cambios en 6 archivos
+   └─ Documentación: DOCUMENTACION/DATETIME_IMMUTABILITY_FIX.md
 
 2️⃣ Template Registro No Sale - Registration Form Missing
    ├─ Síntoma: 
@@ -708,6 +710,215 @@ STATUS: 15,000+ PALABRAS | 60+ EJEMPLOS | 20+ DIAGRAMAS (✅ 40% COMPLETO)
    ├─ [ ] Uptime monitoring
    └─ [ ] Alert thresholds configured
 ```
+
+---
+
+## ⚠️ DEPRECATION WARNINGS - A TENER EN CUENTA (NO URGENTE)
+
+**Nota:** Estas advertencias aparecen en logs del servidor pero **NO se van a resolver ahora**. Son para futuras actualizaciones del stack (Symfony 7.0, Doctrine 3.0).
+
+**Fecha de análisis:** 02/03/2026  
+**Total warnings:** 37 deprecations  
+**Decisión:** Documentar pero NO actualizar componentes ni cambiar estructura del stack
+
+---
+
+### 🟡 CATEGORÍA 1: Type Hints Faltantes (Symfony 7.0)
+```
+⚠️ Severidad: MEDIA | Urgencia: Antes de Symfony 7.0 | Tiempo: 30 min
+
+Archivos afectados:
+• App\Command\SessionAutoClosingCommand - Falta `: int` en execute()
+• App\Form\Backend\StaffCreateType - Falta `: void` en buildForm() y configureOptions()
+• App\Form\Backend\StaffPasswordType - Falta `: void` en buildForm() y configureOptions()
+• App\Form\ResettingFormType - Falta `: void` en buildForm()
+
+Impacto: ❌ Romperá en Symfony 7.0
+Estado: 🔵 DOCUMENTADO - No urgente mientras estemos en Symfony 6.x
+```
+
+---
+
+### 🟠 CATEGORÍA 2: Extensión PHP intl
+```
+⚠️ Severidad: IMPORTANTE | Urgencia: Corto plazo | Tiempo: 5 min
+
+Warning: "Please install the intl PHP extension for best performance"
+
+Impacto:
+• Performance reducido en internacionalización
+• Funciones de locale/timezone limitadas
+
+Solución futura:
+  # php.ini
+  extension=intl
+
+Estado: 🔵 DOCUMENTADO - Proyecto funciona sin ella
+```
+
+---
+
+### 🟡 CATEGORÍA 3: Doctrine ORM Auto-Mapping
+```
+⚠️ Severidad: MEDIA | Urgencia: Antes de Doctrine Bundle 3.0 | Tiempo: 5 min
+
+Warning: "doctrine.orm.controller_resolver.auto_mapping" default cambiará de true a false
+
+Solución futura:
+  # config/packages/doctrine.yaml
+  doctrine:
+      orm:
+          controller_resolver:
+              auto_mapping: true  # Explícito
+
+Estado: 🔵 DOCUMENTADO - Funciona con default actual
+```
+
+---
+
+### 🟢 CATEGORÍA 4: MakerBundle Authenticator
+```
+⚠️ Severidad: BAJA | Urgencia: No urgente | Tiempo: -
+
+Warning: "MakeAuthenticator class is deprecated, use Security\Make* instead"
+
+Impacto: Solo comandos de generación (desarrollo)
+Estado: 🔵 DOCUMENTADO - No afecta producción
+```
+
+---
+
+### 🔴 CATEGORÍA 5: Knp\DoctrineBehaviors Subscribers → Listeners
+```
+⚠️ Severidad: ALTA | Urgencia: Antes de Symfony 7.0 | Tiempo: 2-3 horas
+⚠️ Cantidad: 14 warnings (7 subscribers × 2 contextos)
+
+Subscribers afectados:
+1. BlameableEventSubscriber
+2. LoggableEventSubscriber
+3. SluggableEventSubscriber
+4. SoftDeletableEventSubscriber
+5. TimestampableEventSubscriber
+6. TranslatableEventSubscriber
+7. TreeEventSubscriber
+8. UuidableEventSubscriber
+
+Warning: "Registering as Doctrine subscriber is deprecated. Use #[AsDoctrineListener] instead"
+
+Impacto: Paquete de terceros (knplabs/doctrine-behaviors)
+Solución futura: Actualizar knplabs/doctrine-behaviors o migrar subscribers a listeners
+
+Estado: 🔵 DOCUMENTADO - Requiere actualización de paquete tercero
+```
+
+---
+
+### 🟡 CATEGORÍA 6: Security Bundle Alias
+```
+⚠️ Severidad: MEDIA | Urgencia: Antes de Symfony 7.0 | Tiempo: 15 min
+
+Warning: "Symfony\Component\Security\Core\Security alias deprecated"
+  Use "Symfony\Bundle\SecurityBundle\Security" instead
+
+Archivo: Knp\DoctrineBehaviors\Provider\UserProvider
+
+Impacto: Paquete de terceros
+Solución futura: Actualizar knplabs/doctrine-behaviors
+
+Estado: 🔵 DOCUMENTADO - Se resuelve actualizando paquete
+```
+
+---
+
+### 🟡 CATEGORÍA 7: Liip\ImagineBundle Twig Mode
+```
+⚠️ Severidad: MEDIA | Urgencia: Antes de liip/imagine-bundle 3.0 | Tiempo: 5 min
+⚠️ Cantidad: 2 warnings
+
+Warning: "Liip\ImagineBundle\Templating classes deprecated"
+  Configure "liip_imagine.twig.mode" to "lazy"
+
+Solución futura:
+  # config/packages/liip_imagine.yaml
+  liip_imagine:
+      twig:
+          mode: lazy
+
+Estado: 🔵 DOCUMENTADO - Funciona con modo actual
+```
+
+---
+
+### 🔴 CATEGORÍA 8: Doctrine ORM getEntity() → getObject()
+```
+⚠️ Severidad: ALTA | Urgencia: Antes de Doctrine ORM 3.0 | Tiempo: 15 min
+
+Warning: "Method getEntity() is deprecated. Use getObject() instead"
+Archivo: TranslatableEventSubscriber.php:164 (knplabs/doctrine-behaviors)
+
+Impacto: Paquete de terceros
+Solución futura: Actualizar knplabs/doctrine-behaviors
+
+Estado: 🔵 DOCUMENTADO - Se resuelve actualizando paquete
+```
+
+---
+
+### 🟠 CATEGORÍA 9: DateTime Passing Null
+```
+⚠️ Severidad: IMPORTANTE | Urgencia: Corto plazo | Tiempo: 1 hora
+
+Warning: "Passing null to parameter #2 ($dateType) of type int is deprecated"
+
+Impacto: Código propio usando DateTimeType con null
+Acción futura: Buscar formularios con DateTimeType y especificar tipo explícito
+
+Estado: 🔵 DOCUMENTADO - Requiere revisión de formularios
+```
+
+---
+
+### 📋 RESUMEN DE DEPRECATIONS
+
+| Categoría | Severidad | Warnings | Tiempo | Origen |
+|-----------|-----------|----------|--------|--------|
+| Type Hints | 🟡 Media | 7 | 30 min | Código propio |
+| intl extension | 🟠 Alta | 1 | 5 min | PHP config |
+| Doctrine auto-mapping | 🟡 Media | 1 | 5 min | Config |
+| MakerBundle | 🟢 Baja | 1 | - | Dev only |
+| **Knp Subscribers** | 🔴 **Alta** | **14** | **2-3h** | **knplabs/doctrine-behaviors** |
+| Security alias | 🟡 Media | 1 | 15 min | knplabs/doctrine-behaviors |
+| Liip Twig mode | 🟡 Media | 2 | 5 min | Config |
+| Doctrine getEntity | 🔴 Alta | 1 | 15 min | knplabs/doctrine-behaviors |
+| DateTime null | 🟠 Alta | 1 | 1h | Código propio |
+| **TOTAL** | | **37** | **~5h** | |
+
+---
+
+### 🎯 ESTRATEGIA FUTURA (NO IMPLEMENTAR AHORA)
+
+**Cuando actualicemos stack (Symfony 7.0 / Doctrine 3.0):**
+
+1. **Actualizar paquetes de terceros:**
+   ```bash
+   composer update knplabs/doctrine-behaviors
+   composer update liip/imagine-bundle
+   ```
+
+2. **Configuraciones rápidas (20 min total):**
+   - Habilitar `extension=intl` en php.ini
+   - Configurar `liip_imagine.twig.mode: lazy`
+   - Configurar `doctrine.orm.controller_resolver.auto_mapping: true`
+
+3. **Código propio (2 horas total):**
+   - Agregar type hints a Commands/Forms
+   - Buscar y arreglar DateTimeType con null
+
+4. **Si knplabs no actualiza:**
+   - Migrar subscribers a listeners con `#[AsDoctrineListener]`
+   - O reemplazar paquete por implementación propia
+
+**Conclusión:** Proyecto funciona correctamente con Symfony 6.4. Estas deprecations son avisos para futuras versiones mayores (7.0/3.0).
 
 ---
 

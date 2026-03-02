@@ -268,7 +268,7 @@ readonly class ReservationService
     {
         $currentDate = new \DateTime();
         $dateStart = clone $session->getDateStart();
-        $dateStart->setTime(
+        $dateStart = $dateStart->setTime(
             (int) $session->getTimeStart()->format('H'),
             (int) $session->getTimeStart()->format('i')
         );

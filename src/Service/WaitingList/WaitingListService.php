@@ -106,7 +106,7 @@ readonly class WaitingListService
 
         /** @var \DateTime $dateStart */
         $dateStart = $session->getDateStart();
-        $dateStart->setTime((int) $session->getTimeStart()->format('H'), (int) $session->getTimeStart()->format('i'));
+        $dateStart = $dateStart->setTime((int) $session->getTimeStart()->format('H'), (int) $session->getTimeStart()->format('i'));
 
         $diffSeconds = $dateStart->getTimestamp() - $currentDate->getTimestamp();
 

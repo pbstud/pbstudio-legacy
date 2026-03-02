@@ -127,7 +127,7 @@ class Session implements TimestampableInterface
     public function getDateTimeStart(): \DateTimeInterface
     {   
         $dateStart = clone $this->dateStart;
-        $dateStart->setTime(
+        $dateStart = $dateStart->setTime(
             (int) $this->timeStart->format('H'),
             (int) $this->timeStart->format('i')
         );
