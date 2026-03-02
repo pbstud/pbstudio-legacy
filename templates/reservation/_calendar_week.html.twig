@@ -1,0 +1,88 @@
+<div class="date">
+    {% if weekPrev %}
+        <a href="{{ path('reservation_calendar', {
+            'slug': branchOffice.slug,
+            'weekno': weekPrev.weekOfYear,
+            'year': weekPrev.yearIso
+        }) }}" id="lwprev" title="{{ branchOffice.name }} | Semana {{ weekPrev.weekOfYear }} {{ weekPrev.yearIso }}">
+            <span class="icon-flecha-izq"></span>
+        </a>
+    {% endif %}
+
+    <h4>{{ period.start.day }} - {{ period.end.day }} de {{ period.end.monthName }}</h4>
+
+    {% if weekNext %}
+        <a href="{{ path('reservation_calendar', {
+            'slug': branchOffice.slug,
+            'weekno': weekNext.weekOfYear,
+            'year': weekNext.yearIso
+        }) }}" id="lwnext" title="{{ branchOffice.name }} | Semana {{ weekNext.weekOfYear }} {{ weekNext.yearIso }}">
+            <span class="icon-flecha-der"></span>
+        </a>
+    {% endif %}
+</div>
+
+<div class="example">
+    <div>
+        <span class="pilates"></span>
+        <p>Pilates</p>
+    </div>
+    <div>
+        <span class="barra"></span>
+        <p>Barra/Silla</p>
+    </div>
+    <div>
+        <span class="disabled"></span>
+        <p>Clase agotada</p>
+    </div>
+    <div>
+        <span class="icon-individual"></span>
+        <p>Clase individual</p>
+    </div>
+    <div>
+        <span class="icon-group"></span>
+        <p>Clase grupal</p>
+    </div>
+</div>
+
+<div class="private-class-warning">
+    <p>Para reservar clases individuales por favor comunicate al tel: 55 5292 0036</p>
+</div>
+
+<hr />
+
+<div class="clearfix" id="day-content">
+    <div class="wrapper">
+        {% for day in period %}
+            <div class="day">
+                <h6><small>{{ day.dayName[:3] ~ ' ' ~ day.day }}</small></h6>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+<div class="calendar clearfix">
+    {% for day in period %}
+        {# day \Carbon\Carbon #}
+        <div class="day">
+            <h6><small>{{ day.dayName[:3] ~ ' ' ~ day.day }}</small></h6>
+            {% for session in sessions[day.toDateString] ?? [] %}
+                {# session \App\Entity\Session #}
+                {% set class_full = session.full ? 'disabled' : '' %}
+                <a href="#" data-url="{{ path('reservation_confirm', { 'id': session.id }) }}"
+                   class="class {{ class_full }} {{ session.discipline|slug|lower }}"
+                   data-remodal
+                   data-event data-event-type="{{ session.type }}"
+                   data-event-discipline="{{ session.discipline }}"
+                   data-event-instructor="{{ session.instructor.profile.firstname }}">
+
+                    <span class="icon-{{  session.individual ? 'individual' : 'group' }}"></span>
+                    <h6>{{ session.discipline }}</h6>
+                    <p>{{ session.timeStart|date('h:i a') }}</p>
+                    <p>{{ session.instructor.profile.firstname }}</p>
+                    <p><small>{{ session.information }}</small></p>
+                </a>
+            {% endfor %}
+        </div>
+    {% endfor %}
+</div>

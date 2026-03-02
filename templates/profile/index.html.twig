@@ -1,0 +1,34 @@
+{% extends 'profile/layout.html.twig' %}
+
+{% block page_title %}Mi Cuenta | {% endblock %}
+
+{% block account_content %}
+    {# user \App\Entity\User #}
+
+    {{ include('package/_aside.html.twig') }}
+
+    {{ include('profile/_transactions.html.twig') }}
+
+    <div class="row">
+        <div class="content general">
+            <h4 id="perfil"><small>Datos de usuario</small></h4>
+            <div id="profile_container">
+                <div>
+                    <p> <span class="icon-individual"></span>{{ user }}</p>
+                </div>
+                <div>
+                    <p><span class="icon-email"></span>{{ user.email }}</p>
+                </div>
+                <div>
+                    <p> <span class="icon-phone"></span>{{ user.phone | default('-----') }}</p>
+                </div>
+
+                <h6><small>Contacto de emergencia</small></h6>
+                <p>Nombre: {{ user.emergencyContactName | default('-----') }}</p>
+                <p>Teléfono: {{ user.emergencyContactPhone | default('-----') }}</p>
+
+                <a href="{{ path('profile_edit', {'_fragment': 'section-content'}) }}" class="link">Editar</a>
+            </div>
+        </div>
+    </div>
+{% endblock account_content %}

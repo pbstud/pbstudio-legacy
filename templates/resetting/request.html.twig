@@ -1,0 +1,18 @@
+<section class="box-form">
+    {{ include('resetting/_flash.html.twig') }}
+
+    <div class="gradient">
+        <a data-remodal-action="close" class="nav-toggle close"><span class="iconMenu"></span></a>
+        <div class="row">
+            <h2>Recuperar contraseña</h2>
+            <div>
+                <form id="resetting-request" action="{{ path('resetting_send_email') }}" method="post" class="m-fjx">
+                    <input type="email" id="username" name="username" required="required" placeholder="Correo">
+                    <label for="username">Te enviaremos un correo con las instrucciones para restablecer tu contraseña.</label>
+
+                    <button type="submit" class="btn-submit">RESTABLECER CONTRASEÑA</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>

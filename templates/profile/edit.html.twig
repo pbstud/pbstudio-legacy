@@ -1,0 +1,84 @@
+{% extends 'profile/layout.html.twig' %}
+
+{% block page_title %}Mi Cuenta | {% endblock %}
+
+{% block account_content %}
+    <div class="row">
+        <div class="content general">
+            <h4><small>Datos de usuario</small></h4>
+            <div id="profile_container">
+                {{ form_start(form, {
+                    'action': path('profile_edit'),
+                    'attr': {
+                        'id': 'profile_form_edit',
+                    }
+                }) }}
+                    <fieldset>
+                        {{ form_widget(form.name, {
+                            'attr': {
+                                'placeholder': 'Nombre',
+                                'autofocus': 'autofocus'
+                            }
+                        }) }}
+                        {{ form_errors(form.name) }}
+
+                        {{ form_widget(form.lastname, {
+                            'attr': {
+                                'placeholder': 'Apellidos',
+                            }
+                        }) }}
+                        {{ form_errors(form.lastname) }}
+
+                        {{ form_widget(form.email, {
+                            'attr': {
+                                'placeholder': 'Correo',
+                            }
+                        }) }}
+                        {{ form_errors(form.email) }}
+
+                        {{ form_widget(form.phone, {
+                            'attr': {
+                                'placeholder': 'Teléfono',
+                            }
+                        }) }}
+                        {{ form_errors(form.phone) }}
+
+                        {{ form_widget(form.birthday, {
+                            'attr': {
+                                'placeholder': 'Fecha de cumpleaños (dd/mm)',
+                            }
+                        }) }}
+                        {{ form_errors(form.birthday) }}
+                    </fieldset>
+
+                    <fieldset>
+                        <h4><small>Contacto de emergencia</small></h4>
+
+                        {{ form_widget(form.emergencyContactName, {
+                            'attr': {
+                                'placeholder': 'Nombre',
+                            }
+                        }) }}
+                        {{ form_errors(form.emergencyContactName) }}
+
+                        {{ form_widget(form.emergencyContactPhone, {
+                            'attr': {
+                                'placeholder': 'Teléfono',
+                            }
+                        }) }}
+                        {{ form_errors(form.emergencyContactPhone) }}
+                    </fieldset>
+
+                    <button type="submit">Actualizar</button>
+                    <a href="{{ path('profile') }}">Cancelar</a>
+
+                    {{ form_rest(form) }}
+                {{ form_end(form) }}
+            </div>
+        </div>
+    </div>
+
+    {{ include('profile/_transactions.html.twig') }}
+
+    {{ include('package/_aside.html.twig') }}
+{% endblock account_content %}

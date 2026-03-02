@@ -1,0 +1,28 @@
+<div class="row">
+    {{ form_row(form.profile.firstname, {'row_attr': {'class': 'col-md-6'}}) }}
+    {{ form_row(form.profile.paternalSurname, {'row_attr': {'class': 'col-md-6'}}) }}
+</div>
+
+<div class="row">
+    {{ form_row(form.profile.maternalSurname, {'row_attr': {'class': 'col-md-6'}}) }}
+    {{ form_row(form.email, {'row_attr': {'class': 'col-md-6'}}) }}
+</div>
+
+<div class="row">
+    {{ form_row(form.profile.telephone, {'row_attr': {'class': 'col-md-6'}}) }}
+    {{ form_row(form.profile.admissionAt, {'row_attr': {'class': 'col-md-6'}}) }}
+</div>
+
+<div class="row">
+    {{ form_row(form.disciplines, {'row_attr': {'class': 'col-md-6'}}) }}
+    {{ form_row(form.profile.photoFile, {'row_attr': {'class': 'col-md-6'}}) }}
+</div>
+
+<div class="row">
+    {{ form_row(form.profile.description, {'row_attr': {'class': 'col-md-6'}}) }}
+    {{ form_row(form.profile.address, {'row_attr': {'class': 'col-md-6'}}) }}
+</div>
+
+<div class="row">
+    {{ form_row(form.isActive, {'row_attr': {'class': 'col-md-6'}}) }}
+</div>

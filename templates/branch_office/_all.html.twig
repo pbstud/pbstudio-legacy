@@ -1,0 +1,9 @@
+{% for branch_office in branch_offices %}
+    {# branch_office \App\Entity\BranchOffice #}
+    <div>
+        <a href="{{ path('reservation_calendar', {'slug': branch_office.slug}) }}">
+            <h1>{{ branch_office.place }}</h1>
+            <h5>{{ branch_office.name }}</h5>
+        </a>
+    </div>
+{% endfor %}

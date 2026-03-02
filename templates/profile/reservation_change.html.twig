@@ -1,0 +1,101 @@
+{% extends 'profile/layout.html.twig' %}
+
+{% block page_title %}Cambiar Reservación | {% endblock %}
+
+{% block account_content %}
+    <div class="row session-change">
+        <div class="content">
+            {{ include('default/_flash.html.twig') }}
+
+            <h3>Reservación Actual</h3>
+            <br>
+
+            <div class="clearfix">
+                {% set session = reservation.session %}
+                {# session \App\Entity\Session #}
+                <div class="reserv_class clearfix">
+                    <div class="class {{ session.discipline|replace({' ': '-'})|lower }}">
+                        <span class="icon-{{  session.individual ? 'individual' : 'group' }}"></span>
+                        <h6>{{ session.discipline }}</h6>
+                        <p>{{ session.timeStart|date('h:i a') }}</p>
+                        <p>{{ session.instructor.profile.firstname }}</p>
+                    </div>
+                    <div class="detail">
+                        <p><b>Día: </b>{{ session.dateStart()|format_date(null, "EEEE d 'de' MMMM") }}</p>
+                        <p><b>Sucursal: </b>{{ session.branchOffice.place }}</p>
+                        <p><b>Salón: </b>{{ session.exerciseRoom }}</p>
+                        {% if not session.individual %}
+                            <p><b>Camilla/Silla: </b>{{ reservation.placeNumber }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <ul class="branch-office">
+                {% for studio in branchOffices %}
+                    <li><a href="#" class="btn little studio-filter" data-value="{{ studio.id }}">{{ studio.name }}</a></li>
+                {% endfor %}
+            </ul>
+            <form class="filters" autocomplete="off">
+                <select data-filter="type">
+                    <option value="">- Tipo -</option>
+                    <option value="g">Grupal</option>
+                    <option value="i">Individual</option>
+                </select>
+                <select data-filter="discipline">
+                    <option value="">- Disciplina -</option>
+                    {% for discipline in disciplines %}
+                        <option value="{{ discipline.id }}">{{ discipline.name }}</option>
+                    {% endfor %}
+                </select>
+                <select data-filter="instructor">
+                    <option value="">- Instructor -</option>
+                    {% for instructor in instructors %}
+                        <option value="{{ instructor.id }}">{{ instructor.profile.firstname }}</option>
+                    {% endfor %}
+                </select>
+            </form>
+
+            <br>
+            <br>
+            <h3>Cambiar Reservación</h3>
+            <br>
+
+            <div class="clearfix">
+                {% for session in sessions %}
+                    {# session \App\Entity\Session #}
+                    <div class="reserv_class clearfix session-item"
+                         data-studio="{{ session.branchOffice.id }}"
+                         data-type="{{ session.type }}"
+                         data-discipline="{{ session.discipline.id }}"
+                         data-instructor="{{ session.instructor.id }}"
+                    >
+                        <div class="class {{ session.discipline|replace({' ': '-'})|lower }}">
+                            <span class="icon-{{  session.individual ? 'individual' : 'group' }}"></span>
+                            <h6>{{ session.discipline }}</h6>
+                            <p>{{ session.timeStart|date('h:i a') }}</p>
+                            <p>{{ session.instructor.profile.firstname }}</p>
+                        </div>
+                        <div class="detail">
+                            <p><b>Día: </b>{{ session.dateStart()|format_date(null, "EEEE d 'de' MMMM") }}</p>
+                            <p><b>Sucursal: </b>{{ session.branchOffice.place }}</p>
+                            <p><b>Salón: </b>{{ session.exerciseRoom }}</p>
+                            <p><b>Instructor: </b>{{ session.instructor.profile.firstname }}</p>
+
+                            <a href="#" data-url="{{ path('reservation_change_session', {
+                                'id': reservation.id,
+                                'sessionId': session.id
+                            }) }}" class="link" data-remodal>
+                                Cambiar reservación
+                            </a>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="reserv_class clearfix">
+                        <p>Sin registros por mostrar</p>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,15 @@
+<div>
+    <p>
+        Regístrate
+        <small>¿Ya tienes cuenta? <a href="#" class="load-modal" data-url="{{ path('app_login', {'_modaltarget': app.request.get('_modaltarget')}) }}">¡Inicia sesión!</a></small>
+    </p>
+    <form id="frmCheckoutRegister" action="{{ path('register') }}" method="post">
+        {{ include('registration/_fields.html.twig') }}
+
+        <input type="hidden" name="_modaltarget" value="{{ app.request.get('_modaltarget') }}" />
+    </form>
+</div>
+
+<script type="text/javascript">
+    checkoutNotLogged();
+</script>

@@ -1,0 +1,47 @@
+{% extends 'profile/layout.html.twig' %}
+
+{% block page_title %}Mis clases tomadas | {% endblock %}
+
+{% block account_content %}
+    <div class="row">
+        <div class="content">
+            <h2>Clases tomadas</h2>
+
+            <div class="clearfix">
+                {% for reservation in reservations %}
+                    {% set session = reservation.session %}
+                    <div class="reserv_class clearfix">
+                        <div class="class disabled">
+                            <span class="icon-{{  session.individual ? 'individual' : 'group' }}"></span>
+                            <h6>{{ session.discipline }}</h6>
+                            <p>{{ session.timeStart|date('h:i a') }}</p>
+                            <p>{{ session.instructor.profile.firstname }}</p>
+                        </div>
+                        <div class="detail">
+                            <p><b>Día: </b>{{ session.dateStart()|format_date(null, "EEEE d 'de' MMMM") }}</p>
+                            <p><b>Salón: </b>{{ session.exerciseRoom }}</p>
+                            <p><b>Instructor: </b>{{ session.instructor }}</p>
+                            {% if not session.individual %}
+                                <p><b>Camilla/Silla: </b>{{ reservation.placeNumber }}</p>
+                            {% endif %}
+
+                            {% if not reservation.isAvailable %}
+                                <p><i>*Clase cancelada: {{ reservation.cancellationAt|date('d/m/Y h.i a') }}</i></p>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="no_class clearfix">
+                        <p>Sin registros por mostrar</p>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <a href="{{ path('reservation_calendar') }}" class="btn reserve-class-toggle">Reservar clase</a>
+        </div>
+    </div>
+{% endblock %}
+
+{% block account_aside_content %}
+    {{ include('package/_aside.html.twig') }}
+{% endblock %}

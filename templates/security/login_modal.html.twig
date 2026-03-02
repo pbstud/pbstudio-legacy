@@ -1,0 +1,31 @@
+<div>
+    <p>
+        Iniciar sesión
+        <small>
+            ¿Aún no tienes cuenta?
+            <a href="#" data-url="{{ path('register', {'_modaltarget': app.request.get('_modaltarget')}) }}" class="load-modal">¡Regístrate ahora!</a>
+        </small>
+    </p>
+
+    <form id="frmCheckoutLogin" action="{{ path("app_login") }}" method="post">
+        <input type="email" class="form-control" id="username" name="username" value="{{ last_username }}" placeholder="Correo" required>
+        <input type="password" class="form-control" id="password" name="password" placeholder="Contraseña" required>
+
+        <a href="#" data-url="{{ path('resetting_request',  {'_modaltarget': app.request.get('_modaltarget')}) }}" class="load-modal">¿Olvidaste tu contraseña?</a>
+
+        <button type="submit" class="btn-submit">Entrar</button>
+
+        <div class="remember-me">
+            <label>
+                <input type="checkbox" name="_remember_me" checked> Recordarme
+            </label>
+        </div>
+
+        <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+        <input type="hidden" name="_modaltarget" value="{{ app.request.get('_modaltarget') }}">
+    </form>
+</div>
+
+<script type="text/javascript">
+    checkoutNotLogged();
+</script>

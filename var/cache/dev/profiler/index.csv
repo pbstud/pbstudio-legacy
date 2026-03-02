@@ -1,0 +1,2 @@
+75cce5,127.0.0.1,GET,http://127.0.0.1:8000/_fragment?_path=_format%3Dhtml%26_locale%3Des%26_controller%3DApp%255CController%255CBranchOfficeController%253A%253Aall,1772466222,629e79,200,request
+629e79,127.0.0.1,GET,http://127.0.0.1:8000/,1772466222,,200,request

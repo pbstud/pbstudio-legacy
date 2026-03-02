@@ -1,0 +1,114 @@
+<?php //572eab898c8a47c6416fe37a46814ee1
+
+return [PHP_INT_MAX, static fn () => \Symfony\Component\VarExporter\Internal\Hydrator::hydrate(
+    $o = [
+        clone (($p = &\Symfony\Component\VarExporter\Internal\Registry::$prototypes)['Doctrine\\ORM\\Query\\ParserResult'] ?? \Symfony\Component\VarExporter\Internal\Registry::p('Doctrine\\ORM\\Query\\ParserResult')),
+        clone ($p['Doctrine\\ORM\\Query\\Exec\\SingleSelectExecutor'] ?? \Symfony\Component\VarExporter\Internal\Registry::p('Doctrine\\ORM\\Query\\Exec\\SingleSelectExecutor')),
+        clone ($p['Doctrine\\ORM\\Query\\ResultSetMapping'] ?? \Symfony\Component\VarExporter\Internal\Registry::p('Doctrine\\ORM\\Query\\ResultSetMapping')),
+    ],
+    null,
+    [
+        'Doctrine\\ORM\\Query\\Exec\\AbstractSqlExecutor' => [
+            'sqlStatements' => [
+                1 => 'SELECT s0_.id AS id_0, s0_.date_start AS date_start_1, s0_.time_start AS time_start_2, s0_.exercise_room_capacity AS exercise_room_capacity_3, s0_.type AS type_4, s0_.status AS status_5, s0_.information AS information_6, s0_.places_not_available AS places_not_available_7, s0_.available_capacity AS available_capacity_8, s0_.created_at AS created_at_9, s0_.updated_at AS updated_at_10, s0_.exercise_room_id AS exercise_room_id_11, s0_.discipline_id AS discipline_id_12, s0_.instructor_id AS instructor_id_13, s0_.branch_office_id AS branch_office_id_14 FROM `session` s0_ WHERE s0_.status IN (?) AND (((s0_.date_start < ?) OR (s0_.date_start = ? AND DATE_ADD(s0_.time_start, INTERVAL 1 HOUR) <= ?)))',
+            ],
+        ],
+        'stdClass' => [
+            'aliasMap' => [
+                2 => [
+                    's' => 'App\\Entity\\Session',
+                ],
+            ],
+            'fieldMappings' => [
+                2 => [
+                    'id_0' => 'id',
+                    'date_start_1' => 'dateStart',
+                    'time_start_2' => 'timeStart',
+                    'exercise_room_capacity_3' => 'exerciseRoomCapacity',
+                    'type_4' => 'type',
+                    'status_5' => 'status',
+                    'information_6' => 'information',
+                    'places_not_available_7' => 'placesNotAvailable',
+                    'available_capacity_8' => 'availableCapacity',
+                    'created_at_9' => 'createdAt',
+                    'updated_at_10' => 'updatedAt',
+                ],
+            ],
+            'typeMappings' => [
+                2 => [
+                    'exercise_room_id_11' => 'integer',
+                    'discipline_id_12' => 'integer',
+                    'instructor_id_13' => 'integer',
+                    'branch_office_id_14' => 'integer',
+                ],
+            ],
+            'entityMappings' => [
+                2 => [
+                    's' => null,
+                ],
+            ],
+            'metaMappings' => [
+                2 => [
+                    'exercise_room_id_11' => 'exercise_room_id',
+                    'discipline_id_12' => 'discipline_id',
+                    'instructor_id_13' => 'instructor_id',
+                    'branch_office_id_14' => 'branch_office_id',
+                ],
+            ],
+            'columnOwnerMap' => [
+                2 => [
+                    'id_0' => 's',
+                    'date_start_1' => 's',
+                    'time_start_2' => 's',
+                    'exercise_room_capacity_3' => 's',
+                    'type_4' => 's',
+                    'status_5' => 's',
+                    'information_6' => 's',
+                    'places_not_available_7' => 's',
+                    'available_capacity_8' => 's',
+                    'created_at_9' => 's',
+                    'updated_at_10' => 's',
+                    'exercise_room_id_11' => 's',
+                    'discipline_id_12' => 's',
+                    'instructor_id_13' => 's',
+                    'branch_office_id_14' => 's',
+                ],
+            ],
+            'declaringClasses' => [
+                2 => [
+                    'id_0' => 'App\\Entity\\Session',
+                    'date_start_1' => 'App\\Entity\\Session',
+                    'time_start_2' => 'App\\Entity\\Session',
+                    'exercise_room_capacity_3' => 'App\\Entity\\Session',
+                    'type_4' => 'App\\Entity\\Session',
+                    'status_5' => 'App\\Entity\\Session',
+                    'information_6' => 'App\\Entity\\Session',
+                    'places_not_available_7' => 'App\\Entity\\Session',
+                    'available_capacity_8' => 'App\\Entity\\Session',
+                    'created_at_9' => 'App\\Entity\\Session',
+                    'updated_at_10' => 'App\\Entity\\Session',
+                ],
+            ],
+        ],
+    ],
+    $o[0],
+    [
+        [
+            "\0".'Doctrine\\ORM\\Query\\ParserResult'."\0".'sqlExecutor' => $o[1],
+            "\0".'Doctrine\\ORM\\Query\\ParserResult'."\0".'resultSetMapping' => $o[2],
+            "\0".'Doctrine\\ORM\\Query\\ParserResult'."\0".'parameterMappings' => [
+                'status' => [
+                    0,
+                ],
+                'current_date' => [
+                    1,
+                    2,
+                ],
+                'current_time' => [
+                    3,
+                ],
+            ],
+        ],
+        1,
+    ]
+)];

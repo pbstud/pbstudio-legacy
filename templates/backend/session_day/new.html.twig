@@ -1,0 +1,79 @@
+{% extends 'backend/layout.html.twig' %}
+
+{% set page_section = 'Clases x día' %}
+{% set page_title = 'Programar día: ' ~ branchOffice.name %}
+{% set return_to = path('backend_session_day_new_branch_office') %}
+
+{% block content %}
+    {% embed 'backend/default/embed/form_common.html.twig' with { 'page_section': page_section, 'page_title': page_title } %}
+        {% block body %}
+            <form action="{{ path('backend_session_day_new', {'branch_office': branchOffice.id }) }}" method="post">
+                <div class="row">
+                    <div class="col-md-6 col-xs-12 form-group has-feedback">
+                        <label for="session_dateStart" class="required">Día:</label>
+
+                        <input type="text" id="session_dateStart" name="session[dateStart]" autocomplete="off" value="{{ data.dateStart|default() }}" required="required" class="form-control datepicker has-feedback-right">
+                        <span class="form-control-feedback right" aria-hidden="true">
+                            <i class="fa fa-calendar" aria-hidden="true"></i>
+                        </span>
+                    </div>
+                </div>
+
+                <div class="dataTables_wrapper">
+                    <div class="row">
+                        <div class="col-md-12 col-xs-12">
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Hora</th>
+                                            {% for exerciseRoom in exerciseRooms %}
+                                                <th>{{ exerciseRoom }} / Información</th>
+                                            {% endfor %}
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for schedule in schedules %}
+                                            <tr>
+                                                <td>{{ schedule }}</td>
+                                                {% for exerciseRoom in exerciseRooms %}
+                                                    <td>
+                                                        <select class="form-control" name="session[schedules][{{ schedule }}][{{ exerciseRoom.id }}]"
+                                                            required {% if data['schedules'][schedule][exerciseRoom.id] is defined and (data['schedules'][schedule][exerciseRoom.id]|number_format) > 0 %}data-current="{{ data['schedules'][schedule][exerciseRoom.id] }}"{% endif %}
+                                                        >
+                                                            <option>- Instructor -</option>
+                                                            {% for instructor in exerciseRoom.discipline.instructors|filter(v=> v.enabled and not v.deleted) %}
+                                                                <option value="{{ instructor.id }}">
+                                                                    {{ instructor.profile.firstname }}
+                                                                </option>
+                                                            {% endfor %}
+                                                        </select>
+                                                        <br>
+                                                        <input type="text" class="form-control" name="session[information][{{ schedule }}][{{ exerciseRoom.id }}]" placeholder="Información Adicional">
+                                                    </td>
+                                                {% endfor %}
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ln_solid"></div>
+
+                <div class="form-group">
+                    <div class="col-xs-12">
+                        <div class="pull-right">
+                            <button type="submit" class="btn btn-primary">
+                                Guardar
+                            </button>
+                        </div>
+                        <div class="clearfix"></div>
+                    </div>
+                </div>
+            </form>
+        {% endblock %}
+    {% endembed %}
+{% endblock %}

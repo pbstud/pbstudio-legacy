@@ -1,0 +1,55 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Deployer;
+
+require 'recipe/symfony.php';
+require 'contrib/yarn.php';
+require 'contrib/slack.php';
+
+// Config
+set('application', 'pbstudio.mx');
+set('repository', getenv('GIT_REPOSITORY'));
+
+add('shared_files', []);
+add('shared_dirs', [
+    'public/media/uploads',
+    'public/media/cache',
+]);
+add('writable_dirs', [
+    'public/media/uploads',
+    'public/media/cache',
+]);
+
+// Hosts
+
+host(getenv('HOST'))
+    ->set('remote_user', getenv('DEPLOYER_USER'))
+    ->set('deploy_path', getenv('DEPLOY_PATH'))
+    ->set('branch', 'master')
+;
+
+// Install yarn.
+after('deploy:update_code', 'yarn:install');
+
+// Compile assets.
+desc('Compile assets');
+task('yarn:encore', function () {
+    run('cd {{release_path}} && yarn build');
+});
+
+after('deploy:vendors', 'yarn:encore');
+
+// Migrate database before symlink new release.
+// before('deploy:symlink', 'database:migrate');
+
+// Hooks
+
+after('deploy:failed', 'deploy:unlock');
+
+// Slack
+set('slack_webhook', getenv('SLACK_WEBHOOK'));
+before('deploy', 'slack:notify');
+after('success', 'slack:notify:success');
+after('deploy:failed', 'slack:notify:failure');

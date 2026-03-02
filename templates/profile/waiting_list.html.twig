@@ -1,0 +1,40 @@
+{% extends 'profile/layout.html.twig' %}
+
+{% block page_title %}Lista de espera | {% endblock %}
+
+{% block account_content %}
+    <div class="row">
+        <div class="content wait">
+            <h2>Clases en lista de espera</h2>
+
+            {% for entity in waitingList %}
+                {# entity \App\Entity\WaitingList #}
+                {% set session = entity.session %}
+
+                <div class="clearfix">
+                    <div class="reserv_class clearfix">
+                        <div class="class">
+                            <img src="{{ asset('images/wait.png') }}">
+                            <p>En lista de espera</p>
+                        </div>
+                        <div class="detail">
+                            <p><b>Clase: </b>{{ session.discipline }} {{ session.type|PackageSessionType }}</p>
+                            <p><b>Día: </b>{{ session.dateStart()|format_date(null, "EEEE d 'de' MMMM") }}</p>
+                            <p><b>Hora: </b>{{ session.timeStart|date('h:i a') }}</p>
+                            <p><b>Instructor: </b>{{ session.instructor.profile.firstname }}</p>
+                            <a href="{{ path('waiting_list_remove', { 'sessionId': session.id }) }}" class="link waiting-list-remove">
+                                Borrar de lista de espera
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <div class="reserv_class clearfix">
+                    <p>Sin registros por mostrar</p>
+                </div>
+            {% endfor %}
+
+            <a href="{{ path('reservation_calendar', {'slug': app.user.branchOffice.slug}) }}" class="btn">Reservar clase</a>
+        </div>
+    </div>
+{% endblock %}

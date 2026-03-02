@@ -1,0 +1,76 @@
+<section class="pop_box">
+    <div class="row clearfix">
+        <a data-remodal-action="close" class="nav-toggle close"><span class="iconMenu"></span></a>
+
+        <div class="center">
+            {% if not userReservations and session.open %}
+                <h4>¡Tu clase te espera!</h4>
+                <small>Selecciona un lugar</small>
+            {% elseif userReservations %}
+                <h4>¡Ya estás suscrito a esta clase!</h4>
+                <small>Tu lugar seleccionado</small>
+            {% elseif show_waitinglist or msg_no_classes_available %}
+                <small>
+                    <strong>¡Ups, ya no hay lugares disponibles!</strong>
+                    Pero no te preocupes, regístrate en la lista de espera y si se libera un lugar se te asignará a ti automáticamente.
+                </small>
+            {% endif %}
+        </div>
+
+        <div class="clearfix class_pop {{ session.type|PackageSessionType|lower }}">
+            <div class="grid-1-6 right reserve-{{ grid_class }}">
+                <div id="place_container">
+                    {% for place in 1..session.exerciseRoomCapacity %}
+                        {% set place_not_available = place in session.placesNotAvailable %}
+                        {% set user_reserved_place = place in userReservations %}
+                        {% set is_reserved = reservations[place] is defined %}
+
+                        {% set html_element = is_reserved or place_not_available ? 'span' : 'a' %}
+                        {% set class_active = user_reserved_place  ? 'active' : '' %}
+                        {% set class_engaged = is_reserved and not user_reserved_place ? 'engaged' : '' %}
+                        {% set class_not_available = place_not_available ? 'not-available' : '' %}
+
+                        <{{ html_element }} class="place {{ class_active }} {{ class_engaged }} {{ class_not_available }}" data-place="{{ place }}">
+                            <p>{{ place }}</p>
+                        </{{ html_element }}>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="grid-1-6 right reserve-{{ grid_class }}">
+                <div class="class {{ discipline|replace({' ': '-'})|lower }}">
+                    <span class="icon-{{  session.individual ? 'individual' : 'group' }}"></span>
+                    <h6>{{ discipline }}</h6>
+                    <p>{{ session.timeStart|date('h:i a') }}</p>
+                    <p><strong>{{ session.instructor.profile.firstname }}</strong></p>
+                </div>
+                <p>
+                    <small><b>Día:</b> {{ session.dateStart|date('d/m/y') }}</small>
+                </p>
+                <p>
+                    <small><b>Sucursal:</b> {{ session.branchOffice.place }}</small>
+                </p>
+            </div>
+        </div>
+
+        {% if session.open %}
+            <a href="#" class="btn btn-confirm btn-submit">Confirmar reservación</a>
+
+            <form id="frmReservation" action="{{ path('reservation_confirm', { 'id': session.id }) }}" method="post" class="m-fjx">
+                <input type="hidden" name="place_number" value="" />
+            </form>
+        {% elseif not userReservations and show_waitinglist and not on_waitinglist %}
+            <a href="#" class="btn btn-waitinglist btn-submit">Suscribirme a la lista de espera</a>
+
+            <form id="frmWaitingList" action="{{ path('reservation_waitinglist', { 'id': session.id }) }}" method="post" class="m-fjx">
+            </form>
+        {% elseif msg_no_classes_available %}
+            ¡No cuentas con clases disponibles! Pero no te preocupes, adquiere más clases
+            para poder registrarte en la lista de espera de esta clase.
+        {% endif %}
+    </div>
+</section>
+
+<script>
+    reservationInit();
+</script>

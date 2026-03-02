@@ -1,0 +1,90 @@
+/* remodal
+   ========================================================================== */
+
+.remodal-wrapper .remodal {
+   max-width: 600px;
+   padding: 0;
+}
+
+.remodal-wrapper .remodal.checkout {
+   max-width: 900px;
+}
+
+.remodal-wrapper .remodal .box-form {
+   margin: 0;
+}
+
+.pop_box {
+   padding: 0 !important;
+}
+
+@media only screen and (min-width: 641px) {
+    .remodal {
+        max-width: 900px;
+    }
+}
+
+.loader [data-remodal-action="close"] {
+    display: none;
+}
+
+
+/* misc
+   ========================================================================== */
+
+.hide {
+    display: none;
+}
+.branch-office li {
+  display: inline-block;
+}
+
+.branch-office a.active {
+    background: #67ccbb;
+    border: 1px solid #67ccbb;
+    color: #fff;
+}
+
+i.discount {
+    position: absolute;
+    left: -35px;
+    background: red;
+    padding: 5px;
+    box-shadow: 2px 2px 2px rgba(0,0,0,0.3);
+    top: -20px;
+    color: white;
+}
+
+.price h6.old-price {
+    text-decoration: line-through;
+    color: red;
+    font-weight: 400;
+}
+
+h5.new-price,
+h6.old-price small {
+    color: #181818;
+}
+
+#coupon-valid {
+    display: none;
+}
+
+.flash-success {
+    background: #67ccbb;
+    color: #fff;
+    padding: 15px;
+    margin-bottom: 20px;
+    font-weight: 400;
+}
+.flash-danger {
+    background: #f8d7da;
+    color: #f0506e;
+    padding: 15px;
+    margin-bottom: 20px;
+    font-weight: 400;
+}
+
+.hidden {
+    visibility: hidden !important;
+}

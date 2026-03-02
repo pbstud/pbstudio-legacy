@@ -1,0 +1,89 @@
+{% extends 'backend/layout.html.twig' %}
+
+{% set page_section = 'Clases x día' %}
+{% set page_title = 'Editar día: ' ~ data.branchOffice.name %}
+{% set return_to = path('backend_session_day') %}
+
+{% block content %}
+    {% embed 'backend/default/embed/form_common.html.twig' with { 'page_section': page_section, 'page_title': page_title } %}
+        {% block body %}
+            <form action="{{ path('backend_session_day_edit', { 'editDate': data.dateStart|date('d-m-Y'), 'branchOfficeId': data.branchOffice.id }) }}" method="post">
+                <div class="row">
+                    <div class="col-md-6 col-xs-12 form-group has-feedback">
+                        <label>Día:</label>
+
+                        <input type="text" required="required" class="form-control has-feedback-right" value="{{ data.dateStart|date('d/m/Y') }}" readonly>
+                        <span class="form-control-feedback right" aria-hidden="true">
+                            <i class="fa fa-calendar" aria-hidden="true"></i>
+                        </span>
+                    </div>
+                </div>
+
+                <div class="dataTables_wrapper">
+                    <div class="row">
+                        <div class="col-md-12 col-xs-12">
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Hora</th>
+                                            {% for exerciseRoom in exerciseRooms %}
+                                                <th>{{ exerciseRoom }} / Información</th>
+                                            {% endfor %}
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for schedule in schedules %}
+                                            <tr>
+                                                <td>{{ schedule }}</td>
+                                                {% for exerciseRoom in exerciseRooms %}
+                                                    {% set current = null %}
+                                                    {% if data['schedules'][schedule][exerciseRoom.id] is defined and (data['schedules'][schedule][exerciseRoom.id]|number_format) > 0 %}
+                                                        {% set current = data['schedules'][schedule][exerciseRoom.id] %}
+                                                    {% endif %}
+
+                                                    <td>
+                                                        {% if current %}
+                                                            <input type="hidden" name="session[schedules][{{ schedule }}][{{ exerciseRoom.id }}][session]" value="{{ current['session'] }}">
+                                                            <input type="hidden" name="session[schedules][{{ schedule }}][{{ exerciseRoom.id }}][hash]" value="{{ current['hash'] }}">
+                                                        {% endif %}
+
+                                                        <select class="form-control" name="session[schedules][{{ schedule }}][{{ exerciseRoom.id }}][instructor]" required {% if current %}data-current="{{ current['instructor'] }}"{% endif %}>
+                                                            <option>- Instructor -</option>
+                                                            {% for instructor in exerciseRoom.discipline.instructors|filter(v=> v.enabled and not v.deleted) %}
+                                                                <option value="{{ instructor.id }}">
+                                                                    {{ instructor.profile.firstname }}
+                                                                </option>
+                                                            {% endfor %}
+                                                        </select>
+                                                        <br>
+                                                        <input type="text" class="form-control" name="session[information][{{ schedule }}][{{ exerciseRoom.id }}]" placeholder="Información Adicional" value="{{ current ? current['information'] : '' }}">
+                                                        <br>
+                                                        <input type="text" class="form-control" name="session[capacity][{{ schedule }}][{{ exerciseRoom.id }}]" placeholder="Capacidad" value="{{ current ? current['capacity'] : '' }}">
+                                                    </td>
+                                                {% endfor %}
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ln_solid"></div>
+
+                <div class="form-group">
+                    <div class="col-xs-12">
+                        <div class="pull-right">
+                            <button type="submit" class="btn btn-primary">
+                                Guardar
+                            </button>
+                        </div>
+                        <div class="clearfix"></div>
+                    </div>
+                </div>
+            </form>
+        {% endblock %}
+    {% endembed %}
+{% endblock %}

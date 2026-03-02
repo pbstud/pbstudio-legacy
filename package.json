@@ -1,0 +1,42 @@
+{
+    "devDependencies": {
+        "@babel/core": "^7.17.0",
+        "@babel/preset-env": "^7.16.0",
+        "@popperjs/core": "^2.11.8",
+        "@symfony/webpack-encore": "^4.0.0",
+        "animate.css": "^4.1.1",
+        "blockui": "^1.0.0",
+        "bootstrap": "^3.4.1",
+        "bootstrap-daterangepicker": "^3.1.0",
+        "bootstrap-tagsinput": "^0.7.1",
+        "core-js": "^3.23.0",
+        "fastclick": "^1.0.6",
+        "font-awesome": "^4.7.0",
+        "gentelella": "^1.4.0",
+        "icheck": "^1.0.2",
+        "jQuery-Smart-Wizard": "https://github.com/mstratman/jQuery-Smart-Wizard#3.3.1",
+        "jquery-validation": "^1.20.0",
+        "js-cookie": "^3.0.5",
+        "node-sass": "^9.0.0",
+        "parsleyjs": "^2.9.2",
+        "pnotify": "^3.0.0",
+        "process": "^0.11.10",
+        "regenerator-runtime": "^0.13.9",
+        "remodal": "^1.1.1",
+        "sass-loader": "^13.3.2",
+        "select2": "^4.1.0-rc.0",
+        "summernote": "0.8.18",
+        "switchery": "^0.0.2",
+        "webpack": "^5.74.0",
+        "webpack-cli": "^4.10.0",
+        "webpack-notifier": "^1.15.0"
+    },
+    "license": "UNLICENSED",
+    "private": true,
+    "scripts": {
+        "dev-server": "encore dev-server",
+        "dev": "encore dev",
+        "watch": "encore dev --watch",
+        "build": "encore production --progress"
+    }
+}

@@ -1,0 +1,44 @@
+{% set reserveClass = discipline|replace({' ': '-'})|lower %}
+
+<section class="pop_box">
+    <div class="row clearfix">
+        <a data-remodal-action="close" class="nav-toggle close"><span class="iconMenu"></span></a>
+
+        <div class="center">
+            <h4>¿Deseas cancelar esta clase?</h4>
+            <small>*Recuerda cancelar máximo {{ time_to_cancel }} horas antes de la clase reservada</small>
+        </div>
+
+        <div class="clearfix class_pop {{ session.type|PackageSessionType|lower }}">
+            <div class="grid-1-6 right reserve-{{ reserveClass }}">
+                <div id="place_container">
+                    {% for place in 1..session.exerciseRoomCapacity %}
+                        {% set class_active = reservation.placeNumber == place  ? 'active' : '' %}
+                        {% set class_engaged = reservations[place] is defined and reservation.placeNumber != place  ? 'engaged' : '' %}
+                        {% set class_not_available = place in session.placesNotAvailable ? 'not-available' : '' %}
+
+                        <span class="place {{ class_active }} {{ class_engaged }} {{ class_not_available }}" data-place="{{ place }}">
+                            <p>{{ place }}</p>
+                        </span>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="grid-1-6 right reserve-{{ reserveClass }}">
+                <div class="class {{ reserveClass }}">
+                    <span class="icon-{{  session.individual ? 'individual' : 'group' }}"></span>
+                    <h6>{{ discipline }}</h6>
+                    <p>{{ session.timeStart|date('h:i a') }}</p>
+                    <p><strong>{{ session.instructor.profile.firstname }}</strong></p>
+                </div>
+                <p><small><b>Día:</b> {{ session.dateStart|date('d/m/y') }}</small></p>
+            </div>
+        </div>
+
+        <a id="btn-reservation-cancel" href="#" data-url="{{ path('reservation_cancel', { 'id': reservation.id }) }}" class="btn btn-submit">Cancelar reservación</a>
+    </div>
+</section>
+
+<script>
+    reservationCancelInit();
+</script>

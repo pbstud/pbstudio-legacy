@@ -1,0 +1,35 @@
+{% extends 'layout.html.twig' %}
+
+{% block page_title %}Instructores | {% endblock %}
+
+{% block content %}
+    <section class="page">
+        <div class="row">
+            <div class="content">
+                <div class="title">
+                    <h1>Instructores</h1>
+                </div>
+                <div class="coach">
+                    {% for instructor in instructors %}
+                        <div class="clearfix">
+                            <div class="grid-1-4 left">
+                                {% if instructor.profile.photo %}
+                                    <div>
+                                        <img src="{{ vich_uploader_asset(instructor.profile) }}" alt="{{ instructor.profile.firstname }} - Instructor P&amp;B">
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="grid-1-8 left">
+                                <h4>{{ instructor.profile.firstname }}</h4>
+
+                                <p>{{ instructor.profile.description }}</p>
+
+                                <a href="#" class="btn reserve-class-toggle">Reservar clase</a>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}
