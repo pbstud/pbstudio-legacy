@@ -862,8 +862,8 @@ npm run build
 # 6. Cache
 php bin/console cache:clear
 
-# 7. Servidor
-php -S 127.0.0.1:8000 -t public
+# 7. Servidor (con 512M de memoria para evitar errores)
+php -d memory_limit=512M -S 127.0.0.1:8000 -t public
 # Acceder: http://127.0.0.1:8000
 ```
 

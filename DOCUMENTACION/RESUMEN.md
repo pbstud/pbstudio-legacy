@@ -1,6 +1,6 @@
-# ✅ RESUMEN EJECUTIVO - AUDITORÍA PBStudio
+# ✅ RESUMEN - AUDITORÍA PBStudio
 
-**Fecha:** 27 Febrero 2026  
+**Fecha:** 02 Marzo 2026  
 **Estado General:** 7/10 - PRODUCCIÓN CONDICIONAL  
 **Análisis:** Auditoría de startup, código, validaciones, seguridad y flujos  
 
@@ -15,7 +15,7 @@
 | **SQL Injection** | ✅ IMPOSIBLE | Doctrine QueryBuilder 100% seguro, sin raw SQL |
 | **Herencia Código** | ✅ LIMPIA | AbstractCommand, traits, no legacy problemas |
 | **BD Startup** | ✅ CORRECTO | 5/5 migraciones, schema sincronizado |
-| **CSRF Tokens** | ✅ HABILITADO | Todos los formularios protegidos |
+| **CSRF Tokens** | ⚠️ PARCIAL | Hay endpoints POST/GET sin token |
 | **Password Hashing** | ✅ BCRYPT | Algoritmo seguro cost=auto |
 | **User Checker** | ✅ IMPLEMENTADO | Valida enabled/isActive antes login |
 | **Integridad Datos** | ✅ CORRECTA | 488K+ registros, relaciones OK |
@@ -37,6 +37,20 @@
 
 ---
 
+### 🟠 NUEVOS PENDIENTES - AGREGAR DESPUES DE CRITICOS
+
+| Issue | Impacto | Dificultad | Tiempo |
+|-------|---------|-----------|--------|
+| **Subir horario masivo del dia** | Operacion diaria lenta | Media | 2-4 h |
+| **Cambiar o cancelar clase hasta 2h antes con devolucion** | Experiencia y confianza | Alta | 4-8 h |
+| **Editar foto en backend** | Operacion interna | Media | 2-3 h |
+| **Correo por cambios en clase** | Comunicacion con asistentes | Media | 2-4 h |
+| **Buscar usuario con errores** | Soporte y ventas | Media | 2-4 h |
+| **Correo en lista de espera** | Conversion y asistencia | Media | 2-4 h |
+| **Crear horario por hora** | Datos correctos | Media | 2-4 h |
+
+---
+
 ### 🟡 IMPORTANTE - Esta Semana
 
 | Issue | Impacto | Dificultad | Tiempo |
@@ -44,6 +58,44 @@
 | **Missing DB Indices** | -70% speed /mi-cuenta | Fácil | 5 min |
 | **No Rate Limiting** | Brute-force login posible | Media | 2 horas |
 | **Phone sin encripción** | GDPR non-compliance | Fácil | 2 horas |
+| **Riesgo doble reservación** | Overbooking por concurrencia | Media | 2-4 horas |
+| **Mutación de dateStart en waiting list** | Estado sucio en request | Fácil | 15 min |
+| **DATEADD en DQL** | Posible error en MySQL/Doctrine | Media | 30-60 min |
+| **Backend sin acceso** | Acceso no autorizado a rutas internas | Media | 1-2 horas |
+| **Ruta debug expuesta** | Fuga de info (phpinfo) | Fácil | 15 min |
+| **Reuso DateTime en sesiones** | Horas incorrectas en sesiones masivas | Media | 30 min |
+| **ADDTIME en DQL (waiting list)** | Error potencial en MySQL/Doctrine | Media | 30-60 min |
+| **getFirstPublic null** | Falla si no hay sucursales publicas | Fácil | 15 min |
+| **Validacion Type('digit')** | Tel; validacion inconsistente | Fácil | 15 min |
+| **IFELSE en DQL** | Error potencial en stats | Media | 30 min |
+| **WaitingList sin auth** | Acceso anonimo / null user | Media | 15 min |
+| **Contacto sin config** | Error si falta config general | Fácil | 15 min |
+| **WaitingList duplicada** | Excepcion de BD / UX | Fácil | 20 min |
+| **DATE/DAYNAME en DQL** | Error potencial en stats/reportes | Media | 30-60 min |
+| **FormView faltante** | Error Twig en backend | Fácil | 10 min |
+| **Nullable + NotBlank** | Validacion inconsistente | Fácil | 20 min |
+| **WaitingList remove por GET** | CSRF / side-effects | Media | 20 min |
+| **POST sin CSRF** | Reservas/cancelaciones/asistencia vulnerables | Media | 30-45 min |
+| **Reset password por GET** | Side-effects/CSRF en admin | Media | 20 min |
+| **Sin tests automatizados** | Regresiones sin deteccion | Media | 4-8 horas |
+| **N+1 en listados** | Lentitud en vistas clave | Media | 1-2 horas |
+| **Checkout sin auth** | Error 500 en POST anonimo | Media | 30 min |
+| **Reset password enum** | Enumeracion por email | Media | 30 min |
+| **Config sin CSRF** | Cambios via CSRF en settings | Media | 30-45 min |
+| **Uploads sin validacion** | Archivos no deseados | Media | 30 min |
+| **TokenGenerator debil** | Tokens predecibles | Media | 15 min |
+| **Fecha invalida config** | Error 500 en settings | Media | 15 min |
+| **Fechas invalidas filtros** | Error 500 en filtros | Media | 15 min |
+| **Excepciones silenciadas** | Errores ocultos en email | Media | 30 min |
+| **Doble asiento** | Lugar duplicado en clase | Media | 1-2 horas |
+| **Expiracion sin hora** | Ventana extra en transacciones | Media | 15 min |
+| **Reservas en sesiones cerradas** | Inconsistencia por POST directo | Media | 20-30 min |
+| **Cancelacion reabre sesiones** | Status incorrecto y reabre CLOSED/CANCEL | Media | 30-45 min |
+| **Update capacity silencioso** | Cambios sin aplicar ni alertas | Media | 20-30 min |
+| **Sesion HOY omitida** | Admin no muestra sesiones del dia | Media | 15-20 min |
+| **SessionDay solo OPEN** | No se editan sesiones FULL | Media | 20-30 min |
+| **SessionDay sin acceso** | Ruta backend expuesta | Media | 10-15 min |
+| **Cupon sin incremento** | Uso no contabilizado en backend | Media | 20-30 min |
 
 ---
 
@@ -59,7 +111,7 @@ Se crearon 3 documentos detallados:
 - Flujo de usuario completo
 - Scorecard de estado: 7.1/10
 
-### 2. [PLAN_ACCION_EJECUTIVO.md](PLAN_ACCION_EJECUTIVO.md)
+### 2. [PLAN_ACCION.md](PLAN_ACCION.md)
 - Issues prioritizadas
 - Scripts de fix listos para usar
 - Timeline de ejecución
@@ -88,17 +140,17 @@ Aplicación
 Base de Datos
 ├─ BD: MySQL 5.7 (pbstudio)
 ├─ Registros: 488,789 total
-│  ├─ Users: 14,221 (enabled)
+│  ├─ Users: 14,566
 │  ├─ Sessions: 69,982
 │  ├─ Reservations: 336,768
-│  └─ Transactions: 169 (PAID)
+│  └─ Transactions: 62,929
 ├─ Migraciones: 5/5 executed
 ├─ Schema: ✅ SYNCED
-└─ Indices: ⚠️ Parcial (falta 4)
+└─ Indices: ✅ Verificado (reservation/transaction/waiting_list)
 
 Seguridad
 ├─ SQL Injection: ✅ IMPOSIBLE (QueryBuilder)
-├─ CSRF: ✅ ENABLED
+├─ CSRF: ⚠️ PARCIAL
 ├─ Password: ✅ BCRYPT
 ├─ Rate Limiting: ❌ MISSING
 ├─ Encryption: ⚠️ Parcial (phone)

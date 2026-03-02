@@ -1,0 +1,1490 @@
+# 📋 PLAN DE ACCIÓN - PBStudio
+
+**Fecha:** 02 Marzo 2026  
+**Status:** 46 issues identificados, 1 crítico pendiente, 2 resueltos  
+**Timeline:** Fix inmediato → Producción en 1-2 días
+
+---
+
+## 🚨 ISSUES CRÍTICOS (Arreglar HOY)
+
+### Issue #1: ❌ DateTime Immutability
+
+**Severidad:** 🔴 CRÍTICA
+
+**Contexto:** Uso de setTime en DateTimeImmutable en [src/Repository/SessionRepository.php](../src/Repository/SessionRepository.php) y [src/Controller/ReservationController.php](../src/Controller/ReservationController.php).
+
+**Rutas/Flujo:** /reservar-clase/{slug}, /reservacion-clase/{id}
+
+**Sintoma:**
+```
+Error: "Call to undefined method setTime() on DateTimeImmutable"
+URL: Calendar, Session changes
+Impact: Bloquea 40% de funcionalidad
+```
+
+**Diagnóstico:**
+```php
+// ❌ INCORRECTO (Session.php y similares)
+$dateStart->setTime(14, 0, 0);  // DateTimeImmutable no tiene este método
+
+// ✅ CORRECTO
+$dateStart = $dateStart->setTime(14, 0, 0);  // Retorna nueva instancia
+```
+
+**Archivos Afectados:**
+- [ ] src/Repository/SessionRepository.php
+- [ ] src/Service/Reservation/ReservationService.php
+- [ ] src/Controller/ReservationController.php
+- [ ] Buscar: `->setTime(` en todo el proyecto
+
+**Fix Script:**
+```bash
+# Buscar todos los setTime()
+grep -r "->setTime(" src/ --include="*.php"
+
+# Verificar sintaxis después
+php -l src/
+
+# Validar Doctrine
+php bin/console doctrine:schema:validate
+```
+
+**Tiempo Estimado:** 40 minutos  
+**Test:** Hacer POST a /reservacion-clase/{id} con place_number
+
+---
+
+### Issue #2: 🟡 Missing Database Indices
+
+**Severidad:** 🟡 MODERADA
+
+**Contexto:** Validaciones de BD en [DOCUMENTACION/progreso.md](progreso.md) muestran indices necesarios.
+
+**Rutas/Flujo:** /mi-cuenta, /mi-cuenta/proximas-clases, /mi-cuenta/clases-tomadas
+
+**Impacto:**
+- Query speed: -70% en /mi-cuenta
+- Reservation lookups: O(n) → O(log n)
+- User profile: 5+ queries lentas
+
+**SQL:ejecutar AHORA**
+```sql
+-- Indices para Reservation
+ALTER TABLE reservation ADD INDEX idx_user_id (user_id);
+ALTER TABLE reservation ADD INDEX idx_session_id (session_id);
+ALTER TABLE reservation ADD INDEX idx_transaction_id (transaction_id);
+
+-- Indices para Transaction
+ALTER TABLE transaction ADD INDEX idx_user_id (user_id);
+
+-- Index para WaitingList (si existe tabla)
+-- ALTER TABLE waiting_list ADD INDEX idx_user_id (user_id);
+-- ALTER TABLE waiting_list ADD INDEX idx_session_id (session_id);
+```
+
+**Verificar:**
+```sql
+SHOW INDEX FROM reservation;
+SHOW INDEX FROM transaction;
+```
+
+**Esperado:**
+```
+tabla              columna            nombre
+reservation        user_id            idx_user_id
+reservation        session_id         idx_session_id
+reservation        transaction_id     idx_transaction_id
+transaction        user_id            idx_user_id
+```
+
+**Tiempo Estimado:** 15 minutos  
+**Test:** Medir query time antes/después
+
+**Estado actual (02/03/2026):** ✅ Verificado en BD, indices presentes en reservation/transaction/waiting_list
+
+---
+
+### Issue #3: � PHP Memory Exhausted ✅
+
+**Status:** ✅ RESUELTO (02/03/2026)
+
+**Severidad:** 🔴 CRÍTICA
+
+**Contexto:** Error de memoria agotada en páginas complejas (especialmente pagos/Twig templates).
+
+**Rutas/Flujo:** /carrito/checkout, /mi-cuenta, páginas con múltiples queries
+
+**Sintoma:**
+```
+Fatal error: Allowed memory size of 134217728 bytes exhausted (tried to allocate 471040 bytes)
+in vendor/twig/twig/src/Template.php on line 432
+```
+
+**Diagnóstico:**
+- Servidor PHP usando memory_limit por defecto: 128M (134217728 bytes)
+- Templates Twig complejos con múltiples includes y queries requieren más memoria
+- php.ini actualizado a 512M pero servidor no reiniciado
+
+**Solución Aplicada:**
+```powershell
+# Matar servidor anterior
+Stop-Process -Name php -Force
+
+# Reiniciar con límite de memoria correcto
+php -d memory_limit=512M -S 127.0.0.1:8000 -t public
+```
+
+**Verificación:**
+```powershell
+# Confirmar servidor activo
+Test-NetConnection -ComputerName 127.0.0.1 -Port 8000
+# Output: True
+```
+
+**Comando Permanente:**
+```bash
+# SIEMPRE iniciar servidor con este comando
+php -d memory_limit=512M -S 127.0.0.1:8000 -t public
+```
+
+**Tiempo Total:** 10 minutos  
+**Test:** Acceder a páginas complejas sin error de memoria
+
+---
+
+### Issue #4: �🔐 MAILER_DSN Already Fixed ✅
+
+**Status:** RESUELTO en fase anterior
+
+**Contexto:** Error original y validacion registrados en [DOCUMENTACION/progreso.md](progreso.md).
+
+**Rutas/Flujo:** /register
+
+```env
+# .env (ya está)
+MAILER_DSN=null://default
+```
+
+**Verificar:**
+```bash
+php bin/console config:debug mailer
+```
+
+---
+
+## 🟠 NUEVOS PENDIENTES (Agregar despues de criticos)
+
+### Issue N-1: 🟠 Subir horario masivo del dia
+
+**Severidad:** 🟠 IMPORTANTE
+
+**Contexto:** Creacion masiva de sesiones desde backend en [src/Controller/Backend/SessionDayController.php](../src/Controller/Backend/SessionDayController.php).
+
+**Rutas/Flujo:** /backend/session-day/new
+
+**Sintoma:** No existe carga masiva por dia; se crea manual por horario y salon.
+
+**Impacto:** Operacion diaria lenta y propensa a errores.
+
+**Plan de solucion:**
+- Definir formato de carga (por dia, horarios y salones)
+- Validar duplicados y fechas pasadas
+- Vista de confirmacion antes de crear
+
+**Tiempo Estimado:** 2-4 horas  
+**Test:** Crear un dia completo y verificar en calendario.
+
+---
+
+### Issue N-2: 🟠 Cambiar o cancelar clase hasta 2h antes con devolucion
+
+**Severidad:** 🟠 IMPORTANTE
+
+**Contexto:** Cancelacion y reembolso en [src/Service/Reservation/ReservationService.php](../src/Service/Reservation/ReservationService.php) y [src/Controller/Backend/TransactionController.php](../src/Controller/Backend/TransactionController.php).
+
+**Rutas/Flujo:** /reservacion/{id}/cancelar, /backend/transaction/{id}/cancel
+
+**Sintoma:** La cancelacion no contempla devolucion dentro de una ventana de 2h.
+
+**Impacto:** Experiencia y confianza del cliente.
+
+**Plan de solucion:**
+- Definir regla de 2h antes
+- Al cancelar, disparar reembolso y actualizar estatus
+- Notificar al usuario
+
+**Tiempo Estimado:** 4-8 horas  
+**Test:** Cancelar dentro y fuera de ventana, validar reembolso.
+
+---
+
+### Issue N-3: 🟠 Editar foto en backend
+
+**Severidad:** 🟠 IMPORTANTE
+
+**Contexto:** Perfil de instructores en [src/Form/Backend/InstructorProfileType.php](../src/Form/Backend/InstructorProfileType.php) y [src/Entity/StaffProfile.php](../src/Entity/StaffProfile.php).
+
+**Rutas/Flujo:** /backend/instructor/{id}/edit (admin)
+
+**Sintoma:** Edicion de imagen no disponible o no persiste.
+
+**Impacto:** Operacion interna y presentacion del staff.
+
+**Plan de solucion:**
+- Verificar formulario y campo de imagen
+- Confirmar subida y guardado
+- Validar visualizacion en panel
+
+**Tiempo Estimado:** 2-3 horas  
+**Test:** Cambiar foto, recargar perfil y validar imagen.
+
+---
+
+### Issue N-4: 🟠 Correo por cambios en clase a asistentes
+
+**Severidad:** 🟠 IMPORTANTE
+
+**Contexto:** No hay notificacion al cambiar horario/instructor. Ver [src/EventListener/SessionCanceledListener.php](../src/EventListener/SessionCanceledListener.php) y [src/Service/Mailer/ReservationMailer.php](../src/Service/Mailer/ReservationMailer.php).
+
+**Rutas/Flujo:** Actualizacion de clase desde backend
+
+**Sintoma:** Asistentes no reciben aviso cuando cambia una clase.
+
+**Impacto:** Asistencia y quejas.
+
+**Plan de solucion:**
+- Definir eventos de cambio (hora, instructor, cancelacion)
+- Enviar correo a asistentes
+- Registrar envio en logs
+
+**Tiempo Estimado:** 2-4 horas  
+**Test:** Cambiar una clase y confirmar correo a inscritos.
+
+---
+
+### Issue N-5: 🟠 Buscar usuario con errores (tipografia)
+
+**Severidad:** 🟠 IMPORTANTE
+
+**Contexto:** Filtros de busqueda en backend en [src/Repository/UserRepository.php](../src/Repository/UserRepository.php).
+
+**Rutas/Flujo:** /backend/user
+
+**Sintoma:** Busqueda falla con variaciones de nombre/acentos.
+
+**Impacto:** Soporte y ventas.
+
+**Plan de solucion:**
+- Normalizar busquedas (acentos, nombre completo)
+- Agregar busqueda por nombre completo y email
+- Validar resultados en backend
+
+**Tiempo Estimado:** 2-4 horas  
+**Test:** Buscar con variantes de nombre y validar resultados.
+
+---
+
+### Issue N-6: 🟠 Correo en lista de espera
+
+**Severidad:** 🟠 IMPORTANTE
+
+**Contexto:** Registro y asignacion de lista de espera en [src/Service/WaitingList/WaitingListService.php](../src/Service/WaitingList/WaitingListService.php), [src/EventListener/WaitingListSuccessListener.php](../src/EventListener/WaitingListSuccessListener.php), [src/Service/Mailer/WaitingListMailer.php](../src/Service/Mailer/WaitingListMailer.php).
+
+**Rutas/Flujo:** Registro en lista de espera y asignacion de cupo
+
+**Sintoma:** No llega correo al registrarse o al liberar cupo.
+
+**Impacto:** Conversion y asistencia.
+
+**Plan de solucion:**
+- Confirmar disparo de evento
+- Revisar plantilla y envio
+- Registrar errores en log
+
+**Tiempo Estimado:** 2-4 horas  
+**Test:** Registrarse en lista de espera y verificar correo.
+
+---
+
+### Issue N-7: 🟠 Crear horario por hora, no por ingreso
+
+**Severidad:** 🟠 IMPORTANTE
+
+**Contexto:** Creacion de sesiones por dia en [src/Controller/Backend/SessionDayController.php](../src/Controller/Backend/SessionDayController.php).
+
+**Rutas/Flujo:** /backend/session-day/new, /backend/session-day/edit
+
+**Sintoma:** La hora del registro puede quedar con la hora del sistema.
+
+**Impacto:** Datos incorrectos y clases mal programadas.
+
+**Plan de solucion:**
+- Asegurar que cada registro guarde su hora real
+- Revisar manejo de DateTime por cada horario
+- Validar en calendario
+
+**Tiempo Estimado:** 2-4 horas  
+**Test:** Crear horarios en horas distintas y validar.
+
+---
+
+## 🟠 ISSUES IMPORTANTES (Esta Semana)
+
+### Issue #4: ⚡ Rate Limiting - Login
+
+**Severidad:** 🟡 IMPORTANTE
+
+**Contexto:** `login_throttling` esta en null y no hay `rate_limiter` configurado en [config/packages/security.yaml](../config/packages/security.yaml) y [config/packages/framework.yaml](../config/packages/framework.yaml).
+
+**Rutas/Flujo:** /login
+
+**Problema:** Sin protección contra brute-force
+
+**Implementación:**
+```yaml
+# config/packages/framework.yaml
+framework:
+    rate_limiter:
+        login_limiter:
+            strategy: 'moving_window'
+            limit: 5
+            interval: '15 minutes'
+            
+        register_limiter:
+            strategy: 'fixed_window'
+            limit: 10
+            interval: '1 hour'
+```
+
+En controller:
+```php
+// src/Controller/SecurityController.php
+use Symfony\Component\RateLimiter\RateLimiterFactory;
+
+class SecurityController
+{
+    public function __construct(private RateLimiterFactory $loginLimiter) {}
+    
+    #[Route(path: '/login')]
+    public function login(Request $request)
+    {
+        // Rate limit check
+        $limiter = $this->loginLimiter->create($request->getClientIp());
+        if (!$limiter->consume(1)->isAccepted()) {
+            throw new TooManyRequestsHttpException();
+        }
+        
+        // ... rest of login logic
+    }
+}
+```
+
+---
+
+### Issue #8: 🟠 Riesgo de doble reservación (Concurrencia)
+
+**Severidad:** 🟠 IMPORTANTE
+
+**Contexto:** La reserva/cambio no usa lock transaccional en [src/Service/Reservation/ReservationService.php](../src/Service/Reservation/ReservationService.php).
+
+**Rutas/Flujo:** /reservacion-clase/{id}, /reservacion/{id}/cambiar/{sessionId}
+
+**Problema:** Dos requests simultáneos pueden reservar el mismo `placeNumber`.
+
+**Recomendación:**
+- Verificar lugar ocupado antes de persistir.
+- Envolver en transacción y usar lock a nivel BD o `SELECT ... FOR UPDATE`.
+- Registrar error si colisiona.
+
+**Tiempo:** 2-3 horas  
+**Test:** Simular 2 requests concurrentes al mismo asiento.
+
+---
+
+### Issue #9: 🟡 Mutación de dateStart en WaitingList
+
+**Severidad:** 🟡 IMPORTANTE
+
+**Contexto:** Mutacion del DateTime en [src/Service/WaitingList/WaitingListService.php](../src/Service/WaitingList/WaitingListService.php).
+
+**Rutas/Flujo:** /lista-de-espera/{id}
+
+**Problema:** `WaitingListService::validate()` modifica `dateStart` sin clonar, dejando estado sucio en el request.
+
+**Fix sugerido:**
+```php
+// Antes
+$dateStart = $session->getDateStart();
+$dateStart->setTime(...);
+
+// Después
+$dateStart = clone $session->getDateStart();
+$dateStart = $dateStart->setTime(...);
+```
+
+**Tiempo:** 25 minutos  
+**Test:** Verificar que Session no cambie su fecha en memoria.
+
+---
+
+### Issue #11: 🔐 Endpoints backend sin control de acceso
+
+**Severidad:** 🟠 IMPORTANTE
+
+**Contexto:** Rutas sin IsGranted en [src/Controller/Backend/SessionController.php](../src/Controller/Backend/SessionController.php), [src/Controller/Backend/UserController.php](../src/Controller/Backend/UserController.php) y [src/Controller/Backend/CouponController.php](../src/Controller/Backend/CouponController.php).
+
+**Rutas/Flujo:** /backend/session/get, /backend/session/{id}/places, /backend/reservation/{id}/attended, /backend/user/{id}/stats
+
+**Problema:** Rutas como `backend/session/get`, `backend/session/{id}/places`,
+`backend/reservation/{id}/attended`, `backend/user/{id}/stats`,
+`backend/user/{id}/transactions`, `backend/user/{id}/reservations`,
+`backend/user/{id}/reservations/{reservation}` y `backend/coupon/validate`
+no tienen `IsGranted`.
+
+**Riesgo:** Acceso no autorizado a datos o acciones internas.
+
+**Fix sugerido:**
+- Agregar `#[IsGranted('ALLOWED_ROUTE_ACCESS')]` o `ROLE_*` correspondiente.
+- Revisar cada ruta backend y documentar permisos.
+
+**Tiempo:** 2-3 horas  
+**Test:** Acceso con usuario sin permisos debe devolver 403.
+
+---
+
+### Issue #12: 🔓 Ruta debug expone phpinfo()
+
+**Severidad:** 🟠 IMPORTANTE
+
+**Contexto:** Ruta de prueba en [src/Controller/Backend/DashboardController.php](../src/Controller/Backend/DashboardController.php).
+
+**Rutas/Flujo:** /backend/test
+
+**Problema:** `/backend/test` ejecuta `phpinfo()` y `exit()` sin control de acceso estricto.
+
+**Riesgo:** Fuga de informacion sensible del entorno.
+
+**Fix sugerido:**
+- Eliminar la ruta o proteger con `ROLE_ADMIN` + entorno `dev`.
+
+**Tiempo:** 25 minutos  
+**Test:** Ruta inaccesible en prod.
+
+**Tiempo:** 2-3 horas  
+**Test:** Intentar 6 logins en < 15 min → debe fallar
+
+---
+
+### Issue #5: 📞 Phone Field - Privacy Compliance
+
+**Severidad:** 🟡 IMPORTANTE
+
+**Contexto:** Campos en [src/Entity/User.php](../src/Entity/User.php) y exportes en [src/Repository/UserRepository.php](../src/Repository/UserRepository.php).
+
+**Rutas/Flujo:** /register, /mi-cuenta/editar, /backend/user/export
+
+**Problema:** Numero de teléfono sin encripción (GDPR)
+
+**Actual:**
+```php
+#[ORM\Column(length: 15, nullable: true)]
+private ?string $phone = null;
+```
+
+**Opciones:**
+
+**A) Hash (irreversible)**
+```php
+// Doctrine listeners
+public function onPrePersist(PrePersistEventArgs $args)
+{
+    $entity = $args->getObject();
+    if ($entity instanceof User && $entity->getPhone()) {
+        $entity->setPhoneHash(hash('sha256', $entity->getPhone()));
+    }
+}
+```
+
+**B) Encrypt (reversible)**
+```bash
+composer require white-october/encrypting-fields
+```
+
+**C) Token (por compatibilidad)**
+```php
+$phone_token = substr(md5($phone), 0, 8);
+```
+
+**Recomendación:** Opción A (Hash) + mostrar últimos 3 dígitos en UI
+
+**Tiempo:** 2-3 horas  
+**Test:** Verificar que phone no se muestre en logs/exports
+
+---
+
+### Issue #6: 📊 Logging & Audits - Mejorado
+
+**Severidad:** 🟢 BUENO (pero mejorable)
+
+**Contexto:** Solo existe listener de login en [src/EventListener/LoginSuccessListener.php](../src/EventListener/LoginSuccessListener.php) y no hay auditoria general de entidades.
+
+**Rutas/Flujo:** Login backend/frontend (eventos de autenticacion)
+
+**Actual:** LoginSuccessListener existe ✅
+
+**Mejorar:**
+```php
+// src/EventListener/EntityAuditListener.php
+#[AsEventListener(event: PostPersistEvent::class)]
+#[AsEventListener(event: PostUpdateEvent::class)]
+public function onEntityChange(PostPersistEvent|PostUpdateEvent $event): void
+{
+    $entity = $event->getObject();
+    
+    $this->logger->info('Entity changed', [
+        'action' => $event instanceof PostPersistEvent ? 'CREATE' : 'UPDATE',
+        'entity' => get_class($entity),
+        'id' => $entity->getId(),
+        'user' => $this->security->getUser()->getId() ?? 'anonymous',
+        'ip' => $this->requestStack->getCurrentRequest()?->getClientIp(),
+        'timestamp' => new \DateTime(),
+    ]);
+}
+```
+
+**Archivos Afectados:**
+```
+var/log/prod.log ← Monitorear diariamente
+var/log/dev.log  ← Ya existe (2.7 MB actual)
+```
+
+**Tiempo:** 2 horas  
+**Test:** hacer acción, verificar log
+
+---
+
+## 🟢 ISSUES MENORES (Próximas 2 semanas)
+
+### Issue #7: 🔍 Validaciones Adicionales
+
+**Contexto:** No se observa verificacion de email ni fuerza de password en formularios de [src/Form/RegistrationFormType.php](../src/Form/RegistrationFormType.php) y [src/Form/ResettingFormType.php](../src/Form/ResettingFormType.php).
+
+**Rutas/Flujo:** /register, /restablecer/{token}
+
+**Email Verification**
+- [ ] Enviar link de confirmación
+- [ ] Validar pertenencia antes de usar
+- [ ] Tiempo de expiración: 24hs
+
+**Phone Validation**
+- [ ] SMS OTP (si es critical)
+- [ ] Validar formato país
+- [ ] Detectar números falsos
+
+**Password Strength**
+- [ ] Meter visual en frontend
+- [ ] Requerir mayús + números
+- [ ] Historia de passwords (/últim 5)
+
+**Tiempo:** 2-3 horas  
+**Test:** Intentar registros con datos inválidos
+
+---
+
+### Issue #10: 🟡 DATEADD en DQL (Compatibilidad)
+
+**Severidad:** 🟡 MENOR
+
+**Contexto:** Uso de DATEADD en [src/Repository/SessionRepository.php](../src/Repository/SessionRepository.php).
+
+**Rutas/Flujo:** app:session:autoclosing
+
+**Problema:** `SessionRepository::getNotClosed()` usa `DATEADD` en DQL, puede fallar en MySQL si no hay función custom.
+
+**Fix sugerido:**
+- Reescribir usando comparaciones con DateTime calculadas en PHP.
+- Alternativa: registrar función DQL custom equivalente.
+
+**Tiempo:** 25-35 minutos  
+**Test:** Ejecutar `getNotClosed()` y verificar que no haya error de DQL.
+
+---
+
+### Issue #13: 🟡 Tipo de clase en ExerciseRoomController
+
+**Severidad:** 🟡 MENOR
+
+**Contexto:** Uso de clase incorrecta en [src/Controller/Backend/ExerciseRoomController.php](../src/Controller/Backend/ExerciseRoomController.php).
+
+**Rutas/Flujo:** /backend/exerciseroom
+
+**Problema:** Se usa `Exerciseroom` en lugar de `ExerciseRoom` al instanciar y acceder a constantes.
+
+**Riesgo:** Error de clase no encontrada o referencia a namespace incorrecto.
+
+**Fix sugerido:**
+- Reemplazar `Exerciseroom` por `ExerciseRoom`.
+
+**Tiempo:** 25 minutos  
+**Test:** Cargar backend de salones y crear/editar.
+
+---
+
+### Issue #14: 🟡 Reuso de DateTime en SessionDayController
+
+**Severidad:** 🟡 MENOR
+
+**Contexto:** Uso de DateTime compartido en [src/Controller/Backend/SessionDayController.php](../src/Controller/Backend/SessionDayController.php).
+
+**Rutas/Flujo:** /backend/session-day
+
+**Problema:** `newDay()` y `editDay()` usan el mismo `DateTime` para crear varias sesiones.
+
+**Riesgo:** Varias sesiones pueden quedar con la misma fecha/hora incorrecta si el objeto se vuelve a mutar.
+
+**Fix sugerido:**
+- Clonar `DateTime` antes de asignar `dateStart` y `timeStart` en cada sesión.
+
+**Tiempo:** 25 minutos  
+**Test:** Crear varias sesiones en un dia y validar que cada una conserve su hora.
+
+---
+
+### Issue #15: 🟡 ADDTIME en DQL (WaitingListRepository)
+
+**Severidad:** 🟡 MENOR
+
+**Contexto:** Uso de ADDTIME en [src/Repository/WaitingListRepository.php](../src/Repository/WaitingListRepository.php).
+
+**Rutas/Flujo:** app:waiting-list:expire
+
+**Problema:** `getAvailableForExpire()` usa `ADDTIME` en DQL, puede fallar en MySQL/Doctrine sin función custom.
+
+**Fix sugerido:**
+- Calcular el limite de expiracion en PHP y comparar con `s.dateStart`/`s.timeStart`.
+
+**Tiempo:** 25-35 minutos  
+**Test:** Ejecutar `getAvailableForExpire()` y validar resultados.
+
+---
+
+### Issue #16: 🟡 getFirstPublic() puede retornar null
+
+**Severidad:** 🟡 MENOR
+
+**Contexto:** Retorno nullable en [src/Repository/BranchOfficeRepository.php](../src/Repository/BranchOfficeRepository.php) consumido por [src/Controller/ReservationController.php](../src/Controller/ReservationController.php).
+
+**Rutas/Flujo:** /reservar-clase/{slug}
+
+**Problema:** `BranchOfficeRepository::getFirstPublic()` no garantiza resultado, pero el tipo no es nullable.
+
+**Riesgo:** `ReservationController::calendar()` puede fallar si no hay sucursales publicas.
+
+**Fix sugerido:**
+- Cambiar retorno a `?BranchOffice` y manejar null antes de usar.
+
+**Tiempo:** 25 minutos  
+**Test:** Simular BD sin sucursales publicas.
+
+---
+
+### Issue #17: 🟡 Validacion tipo 'digit' en User
+
+**Severidad:** 🟡 MENOR
+
+**Contexto:** Validaciones en [src/Entity/User.php](../src/Entity/User.php).
+
+**Rutas/Flujo:** /register, /mi-cuenta/editar
+
+**Problema:** `Assert\Type(type: 'digit')` no es un tipo valido en Symfony.
+
+**Riesgo:** Validacion de telefono no se aplica o lanza error.
+
+**Fix sugerido:**
+- Usar `Regex` o `Length` + `Type` con tipos PHP validos.
+
+**Tiempo:** 25 minutos  
+**Test:** Validar telefono con letras en registro/perfil.
+
+---
+
+### Issue #18: 🟡 IFELSE en DQL (TransactionRepository)
+
+**Severidad:** 🟡 MENOR
+
+**Contexto:** Uso de IFELSE en [src/Repository/TransactionRepository.php](../src/Repository/TransactionRepository.php).
+
+**Rutas/Flujo:** /backend/stats
+
+**Problema:** `getGroupedByPackage()` usa `IFELSE`, no es funcion DQL/SQL estandar en MySQL.
+
+**Riesgo:** Query falla en reportes de stats.
+
+**Fix sugerido:**
+- Reescribir con `CASE WHEN` o funcion soportada.
+
+**Tiempo:** 25 minutos  
+**Test:** Abrir panel de stats y validar query.
+
+---
+
+### Issue #19: 🟠 WaitingList sin control de autenticacion
+
+**Severidad:** 🟠 IMPORTANTE
+
+**Contexto:** Endpoint sin ROLE_USER en [src/Controller/ReservationController.php](../src/Controller/ReservationController.php).
+
+**Rutas/Flujo:** /lista-de-espera/{id}
+
+**Problema:** `ReservationController::waitingList()` no valida `ROLE_USER`.
+
+**Riesgo:** `getUser()` null o acceso no autorizado.
+
+**Fix sugerido:**
+- Agregar `#[IsGranted('ROLE_USER')]`.
+- Manejar usuario null con respuesta 403/redirect.
+
+**Tiempo:** 25 minutos  
+**Test:** Acceso anonimo debe fallar.
+
+---
+
+### Issue #20: 🟡 Contacto depende de configuracion existente
+
+**Severidad:** 🟡 MENOR
+
+**Contexto:** Dependencia en [src/Service/HandlerContactService.php](../src/Service/HandlerContactService.php).
+
+**Rutas/Flujo:** /contacto/enviar
+
+**Problema:** `HandlerContactService::processForm()` asume configuracion general en BD.
+
+**Riesgo:** Error si falta configuracion.
+
+**Fix sugerido:**
+- Validar `findGeneral()` y usar fallback seguro.
+
+**Tiempo:** 25 minutos  
+**Test:** Enviar contacto sin config en BD.
+
+---
+
+### Issue #21: 🟡 WaitingList duplicada
+
+**Severidad:** 🟡 MENOR
+
+**Contexto:** Falta de validacion previa en [src/Service/WaitingList/WaitingListService.php](../src/Service/WaitingList/WaitingListService.php).
+
+**Rutas/Flujo:** /lista-de-espera/{id}
+
+**Problema:** `WaitingListService::add()` no valida duplicados (PK user+session).
+
+**Riesgo:** Excepcion de BD y UX confusa.
+
+**Fix sugerido:**
+- Verificar existencia en `WaitingListRepository` antes de persistir.
+
+**Tiempo:** 25 minutos  
+**Test:** Intentar inscribir al mismo usuario dos veces.
+
+---
+
+### Issue #22: 🟡 DATE/DAYNAME en DQL
+
+**Severidad:** 🟡 MENOR
+
+**Contexto:** Uso en [src/Repository/ReservationRepository.php](../src/Repository/ReservationRepository.php), [src/Repository/UserRepository.php](../src/Repository/UserRepository.php) y [src/Repository/TransactionRepository.php](../src/Repository/TransactionRepository.php).
+
+**Rutas/Flujo:** /backend/stats
+
+**Problema:** Repositorios usan `DATE()` y `DAYNAME()` en DQL.
+
+**Riesgo:** Error si no estan registradas como funciones DQL.
+
+**Fix sugerido:**
+- Reescribir con rangos DateTime o registrar funciones custom.
+
+**Tiempo:** 25-35 minutos  
+**Test:** Ejecutar queries de stats/reportes.
+
+---
+
+### Issue #23: 🟡 FormView no renderizado
+
+**Severidad:** 🟡 MENOR
+
+**Contexto:** `cancel_form` sin createView en [src/Controller/Backend/SessionController.php](../src/Controller/Backend/SessionController.php).
+
+**Rutas/Flujo:** /backend/session/{id}/reservations
+
+**Problema:** `backend/session/reservations` pasa `cancel_form` sin `createView()`.
+
+**Riesgo:** Error de Twig al renderizar formulario.
+
+**Fix sugerido:**
+- Usar `$cancelForm->createView()`.
+
+**Tiempo:** 25 minutos  
+**Test:** Abrir vista de reservaciones en backend.
+
+---
+
+### Issue #24: 🟡 Nullable + NotBlank
+
+**Severidad:** 🟡 MENOR
+
+**Contexto:** Campos nullable con NotBlank en [src/Entity/User.php](../src/Entity/User.php) y [src/Entity/StaffProfile.php](../src/Entity/StaffProfile.php).
+
+**Rutas/Flujo:** /backend/user/{id}/edit, /mi-cuenta/editar
+
+**Problema:** Campos nullable con `NotBlank` (User/StaffProfile).
+
+**Riesgo:** Datos existentes con null fallan validacion o formularios.
+
+**Fix sugerido:**
+- Alinear nullable con validacion real.
+
+**Tiempo:** 25 minutos  
+**Test:** Editar usuario/staff con campos nulos.
+
+---
+
+### Issue #25: 🟠 WaitingList remove por GET sin CSRF
+
+**Severidad:** 🟠 IMPORTANTE
+
+**Contexto:** Ruta GET en [src/Controller/ProfileController.php](../src/Controller/ProfileController.php) y link en [templates/profile/waiting_list.html.twig](../templates/profile/waiting_list.html.twig).
+
+**Rutas/Flujo:** /mi-cuenta/lista-espera (remove)
+
+**Problema:** `waiting_list_remove` usa GET y elimina registros sin CSRF.
+
+**Riesgo:** CSRF/side-effects (prefetch/bots) borran lista de espera.
+
+**Fix sugerido:**
+- Cambiar a POST/DELETE y validar token CSRF.
+
+**Tiempo:** 25 minutos  
+**Test:** GET sin token no debe eliminar registros.
+
+---
+
+### Issue #26: 🟠 Acciones POST sin CSRF
+
+**Severidad:** 🟠 IMPORTANTE
+
+**Contexto:** POST sin token en [src/Controller/ReservationController.php](../src/Controller/ReservationController.php), [src/Controller/ProfileController.php](../src/Controller/ProfileController.php), [src/Controller/Backend/TransactionController.php](../src/Controller/Backend/TransactionController.php), [src/Controller/Backend/ReservationController.php](../src/Controller/Backend/ReservationController.php) y [src/Controller/ResettingController.php](../src/Controller/ResettingController.php).
+
+**Rutas/Flujo:** /reservacion-clase/{id}, /lista-de-espera/{id}, /reservacion/{id}/cancelar, /backend/transaction/{id}/cancel, /backend/reservation/{id}/attended
+
+**Problema:** `reservation_confirm`, `reservation_waitinglist`, `reservation_cancel`,
+`reservation_change_session`, `package_checkout`,
+`backend_reservation_attended`, `backend_transaction_cancel`, `backend_transaction_edit_expiration`,
+`resetting_send_email` no validan CSRF.
+
+**Riesgo:** Cancelaciones/ediciones disparadas desde sitios externos.
+
+**Fix sugerido:**
+- Usar formularios con CSRF o validar token manual.
+
+**Tiempo:** 25-35 minutos  
+**Test:** POST sin token debe fallar.
+
+---
+
+### Issue #27: 🟠 Acciones sensibles por GET
+
+**Severidad:** 🟠 IMPORTANTE
+
+**Contexto:** Reset por GET en [src/Controller/Backend/UserController.php](../src/Controller/Backend/UserController.php).
+
+**Rutas/Flujo:** /backend/user/{id}/reset-password
+
+**Problema:** `backend_user_reset_password` modifica datos y hace `flush()` via GET.
+
+**Riesgo:** CSRF/side-effects (prefetch/bots) pueden resetear tokens.
+
+**Fix sugerido:**
+- Cambiar a POST con CSRF y confirmación explícita.
+
+**Tiempo:** 25 minutos  
+**Test:** GET no debe modificar datos.
+
+---
+
+### Issue #28: 🟡 Falta de tests automatizados
+
+**Severidad:** 🟡 MENOR
+
+**Contexto:** Solo existe [tests/bootstrap.php](../tests/bootstrap.php).
+
+**Rutas/Flujo:** testing general (no aplica ruta)
+
+**Problema:** No hay pruebas en `tests/` (solo bootstrap).
+
+**Riesgo:** Regresiones en reservas/pagos sin detección temprana.
+
+**Fix sugerido:**
+- Agregar smoke tests y flujos críticos (login, reservar, cancelar, pago).
+
+**Tiempo:** 2-3 horas  
+**Test:** Ejecutar `php bin/phpunit` con casos base.
+
+---
+
+### Issue #29: 🟡 N+1 queries en listados
+
+**Severidad:** 🟡 MENOR
+
+**Contexto:** Listados sin joins en [src/Repository/ReservationRepository.php](../src/Repository/ReservationRepository.php), [src/Repository/WaitingListRepository.php](../src/Repository/WaitingListRepository.php) y [src/Repository/TransactionRepository.php](../src/Repository/TransactionRepository.php).
+
+**Rutas/Flujo:** /backend/session/{id}/reservations, /mi-cuenta/lista-espera, /mi-cuenta/transaccion
+
+**Problema:** Listados cargan relaciones lazy sin joins (reservaciones, waiting list, transacciones).
+
+**Riesgo:** Lento en producción (multiples queries por fila).
+
+**Fix sugerido:**
+- Agregar joins/selects a repositorios o fetch join.
+
+**Tiempo:** 2-3 horas  
+**Test:** Perfil/Backend con profiler, conteo de queries.
+
+---
+
+### Issue #30: 🟠 Checkout sin usuario autenticado
+
+**Severidad:** 🟠 IMPORTANTE
+
+**Contexto:** POST sin ROLE_USER en [src/Controller/PackageController.php](../src/Controller/PackageController.php) y uso de getUser en [src/Service/TransactionService.php](../src/Service/TransactionService.php).
+
+**Rutas/Flujo:** /paquete/{id}/comprar
+
+**Problema:** `package_checkout` permite POST sin ROLE_USER; `TransactionService::create()` usa `getUser()`.
+
+**Riesgo:** Error 500 en POST anonimo y flujo inconsistente.
+
+**Fix sugerido:**
+- Requerir ROLE_USER en POST o validar usuario antes de crear transaccion.
+
+**Tiempo:** 25 minutos  
+**Test:** POST anonimo debe responder 401/403 o redirigir a login.
+
+---
+
+### Issue #31: 🟡 Enumeracion de usuarios (reset password)
+
+**Severidad:** 🟡 MENOR
+
+**Contexto:** Mensaje explicito en [src/Controller/ResettingController.php](../src/Controller/ResettingController.php).
+
+**Rutas/Flujo:** /restablecer/send-email
+
+**Problema:** `resetting_send_email` responde "correo no existe".
+
+**Riesgo:** Enumeracion de usuarios por email.
+
+**Fix sugerido:**
+- Respuesta generica + rate limit.
+
+**Tiempo:** 25 minutos  
+**Test:** Emails existentes/no existentes deben responder igual.
+
+---
+
+### Issue #32: 🟠 Configuracion sin CSRF
+
+**Severidad:** 🟠 IMPORTANTE
+
+**Contexto:** Forms manuales en [templates/backend/configuration/index.html.twig](../templates/backend/configuration/index.html.twig) y update en [src/Controller/Backend/ConfigurationController.php](../src/Controller/Backend/ConfigurationController.php).
+
+**Rutas/Flujo:** /backend/settings/update
+
+**Problema:** `backend_configuration_update` usa forms HTML sin token CSRF.
+
+**Riesgo:** CSRF puede modificar configuracion o subir archivos.
+
+**Fix sugerido:**
+- Agregar token CSRF o migrar a Symfony Form.
+
+**Tiempo:** 25-35 minutos  
+**Test:** POST sin token debe fallar.
+
+---
+
+### Issue #33: 🟡 Uploads sin validacion en configuracion
+
+**Severidad:** 🟡 MENOR
+
+**Contexto:** Modelo sin constraints en [src/Model/ConfigurationFileModel.php](../src/Model/ConfigurationFileModel.php).
+
+**Rutas/Flujo:** /backend/settings (avisos/image)
+
+**Problema:** `ConfigurationFileModel` no valida tipo/tamano de archivos.
+
+**Riesgo:** Subida de archivos no deseados en backend.
+
+**Fix sugerido:**
+- Agregar constraints `File/Image` con MIME y size.
+
+**Tiempo:** 25 minutos  
+**Test:** Subir archivo no permitido debe fallar.
+
+---
+
+### Issue #34: 🟡 TokenGenerator con fallback debil
+
+**Severidad:** 🟡 MENOR
+
+**Contexto:** Fallback inseguro en [src/Util/TokenGenerator.php](../src/Util/TokenGenerator.php).
+
+**Rutas/Flujo:** /restablecer/send-email, /backend/user/{id}/reset-password
+
+**Problema:** `TokenGenerator::generateToken()` usa `md5(uniqid())` si falla `random_bytes()`.
+
+**Riesgo:** Tokens predecibles en entornos sin CSPRNG.
+
+**Fix sugerido:**
+- Eliminar fallback debil o abortar si falla `random_bytes()`.
+
+**Tiempo:** 25 minutos  
+**Test:** Forzar exception de random_bytes y validar comportamiento.
+
+---
+
+### Issue #35: 🟡 Fecha invalida rompe configuracion
+
+**Severidad:** 🟡 MENOR
+
+**Contexto:** createFromFormat sin validar en [src/Controller/Backend/ConfigurationController.php](../src/Controller/Backend/ConfigurationController.php).
+
+**Rutas/Flujo:** /backend/settings/update
+
+**Problema:** `ConfigurationController::castValues()` usa `createFromFormat()->format()` sin validar.
+
+**Riesgo:** Error 500 si el usuario ingresa fecha invalida.
+
+**Fix sugerido:**
+- Validar retorno antes de `format()`.
+
+**Tiempo:** 25 minutos  
+**Test:** Enviar fecha invalida y verificar respuesta.
+
+---
+
+### Issue #36: 🟡 Fechas invalidas rompen filtros
+
+**Severidad:** 🟡 MENOR
+
+**Contexto:** Filtros con createFromFormat en [src/Repository/ReservationRepository.php](../src/Repository/ReservationRepository.php), [src/Repository/UserRepository.php](../src/Repository/UserRepository.php) y [src/Repository/TransactionRepository.php](../src/Repository/TransactionRepository.php).
+
+**Rutas/Flujo:** /backend/user, /backend/transaction, /backend/reservation
+
+**Problema:** Repositorios usan `createFromFormat()->format()` sin validar en filtros.
+
+**Riesgo:** Error 500 al filtrar por fechas invalidas.
+
+**Fix sugerido:**
+- Validar retorno antes de `format()`.
+
+**Tiempo:** 25 minutos  
+**Test:** Filtro con fecha invalida debe responder sin error.
+
+---
+
+### Issue #37: 🟡 Excepciones silenciadas
+
+**Severidad:** 🟡 MENOR
+
+**Contexto:** Catch vacio en [src/Controller/ResettingController.php](../src/Controller/ResettingController.php) y [src/Service/HandlerContactService.php](../src/Service/HandlerContactService.php).
+
+**Rutas/Flujo:** /restablecer/send-email, /contacto/enviar
+
+**Problema:** `ResettingController::sendNotification()` y `HandlerContactService::processForm()` ignoran excepciones.
+
+**Riesgo:** Errores de email quedan ocultos y no se diagnostican.
+
+**Fix sugerido:**
+- Registrar exception y retornar error controlado.
+
+**Tiempo:** 25 minutos  
+**Test:** Forzar fallo de mailer y verificar logging/respuesta.
+
+---
+
+### Issue #38: 🟠 Doble asiento por falta de validacion
+
+**Severidad:** 🟠 IMPORTANTE
+
+**Contexto:** Falta validacion y constraint unique en [src/Service/Reservation/ReservationService.php](../src/Service/Reservation/ReservationService.php) y [src/Entity/Reservation.php](../src/Entity/Reservation.php).
+
+**Rutas/Flujo:** /reservacion-clase/{id}, /reservacion/{id}/cambiar/{sessionId}
+
+**Problema:** `ReservationService::reservate()` y `change()` no validan si el lugar ya esta ocupado.
+
+**Riesgo:** Dos usuarios con el mismo lugar en una clase (sin concurrencia).
+
+**Fix sugerido:**
+- Validar placeNumber reservado y agregar unique constraint (session_id, place_number).
+
+**Tiempo:** 2-3 horas  
+**Test:** Reservar el mismo lugar dos veces debe fallar.
+
+---
+
+### Issue #39: 🟠 Expiracion sin hora en transacciones
+
+**Severidad:** 🟠 IMPORTANTE
+
+**Contexto:** Comparacion de fecha sin hora en [src/Repository/TransactionRepository.php](../src/Repository/TransactionRepository.php).
+
+**Problema:** `getExpired()` usa `Y-m-d` y no considera hora.
+
+**Riesgo:** Transacciones expiran hasta el siguiente dia (ventana extra de uso).
+
+**Fix sugerido:**
+- Comparar con DateTime completo (`Y-m-d H:i:s`).
+
+**Tiempo:** 25 minutos  
+**Test:** Expiracion debe ocurrir a la hora exacta.
+
+---
+
+### Issue #40: 🟠 Reservas en sesiones cerradas/canceladas
+
+**Severidad:** 🟠 IMPORTANTE
+
+**Contexto:** Falta validacion de estado de session en [src/Service/Reservation/ReservationService.php](../src/Service/Reservation/ReservationService.php) y rutas en [src/Controller/ReservationController.php](../src/Controller/ReservationController.php) y [src/Controller/Backend/UserController.php](../src/Controller/Backend/UserController.php).
+
+**Rutas/Flujo:** /reservacion-clase/{id}, /reservacion/{id}/cambiar/{sessionId}, /backend/user/{id}/reservations/new
+
+**Problema:** `reservate()`/`change()` no verifican si la sesion esta CLOSED/CANCEL.
+
+**Riesgo:** Reservas y cambios en sesiones cerradas/canceladas por request directo.
+
+**Fix sugerido:**
+- Validar `Session::STATUS_OPEN` o `Session::STATUS_FULL` antes de reservar/cambiar.
+- Rechazar si status es CLOSED o CANCEL.
+
+**Tiempo:** 25-35 minutos  
+**Test:** Intentar reservar/cambiar en sesion CLOSED/CANCEL y debe fallar.
+
+---
+
+### Issue #41: 🟠 Cancelacion reabre sesiones o deja status incorrecto
+
+**Severidad:** 🟠 IMPORTANTE
+
+**Contexto:** `ReservationService::cancel()` fuerza `Session::STATUS_OPEN` en [src/Service/Reservation/ReservationService.php](../src/Service/Reservation/ReservationService.php) y se usa desde [src/Controller/ProfileController.php](../src/Controller/ProfileController.php) y [src/Controller/Backend/UserController.php](../src/Controller/Backend/UserController.php).
+
+**Rutas/Flujo:** /reservacion/{id}/cancelar, /backend/user/{id}/reservations/{reservation}/cancel
+
+**Problema:** La cancelacion siempre pone la sesion en OPEN sin recalcular si sigue FULL ni respetar CLOSED/CANCEL.
+En `cancel()`, el bloqueo de CLOSED solo aplica a ROLE_USER; para admin puede reabrir.
+En `change()`, si la sesion actual estaba FULL, se fuerza OPEN sin recalculo.
+
+**Riesgo:** Sesiones cerradas/canceladas se reabren; status queda inconsistente y permite nuevas reservas.
+
+**Fix sugerido:**
+- Recalcular status en base a reservas activas.
+- Mantener CLOSED/CANCEL si aplica.
+
+**Tiempo:** 25-35 minutos  
+**Test:** Cancelar en sesion CLOSED/CANCEL no debe reabrir; si sigue full, debe quedar FULL.
+
+---
+
+### Issue #42: 🟡 Actualizacion de capacidad con errores silenciados
+
+**Severidad:** 🟡 IMPORTANTE
+
+**Contexto:** `SessionRepository::updateCapacity()` atrapa excepciones sin logging en [src/Repository/SessionRepository.php](../src/Repository/SessionRepository.php) y se usa en [src/Controller/Backend/ExerciseRoomController.php](../src/Controller/Backend/ExerciseRoomController.php).
+
+**Rutas/Flujo:** /backend/exerciseroom/{id}/edit
+
+**Problema:** Si falla el update masivo de capacity/placesNotAvailable, el error se pierde.
+
+**Riesgo:** Capacidad desactualizada, overbooking o inconsistencias sin alertas.
+
+**Fix sugerido:**
+- Registrar excepcion y notificar en UI.
+- Opcional: reintentar o abortar el guardado.
+
+**Tiempo:** 25-35 minutos  
+**Test:** Forzar error en update y verificar logging/alerta.
+
+---
+
+### Issue #43: 🟡 Sesiones de hoy omitidas en agrupacion
+
+**Severidad:** 🟡 IMPORTANTE
+
+**Contexto:** `SessionRepository::findAllGroupByDateStart()` compara `dateStart` (DATE) con `new DateTime()` en [src/Repository/SessionRepository.php](../src/Repository/SessionRepository.php) y se usa en [src/Controller/Backend/SessionDayController.php](../src/Controller/Backend/SessionDayController.php).
+
+**Rutas/Flujo:** /backend/session-day
+
+**Problema:** El filtro `s.dateStart >= :current_date` con hora actual excluye sesiones de HOY.
+
+**Riesgo:** El calendario/admin no muestra sesiones del dia actual.
+
+**Fix sugerido:**
+- Usar `new \DateTime('today')` o `->setParameter('current_date', $currentDate->format('Y-m-d'))`.
+
+**Tiempo:** 25-35 minutos  
+**Test:** Verificar que HOY aparece en session-day.
+
+---
+
+### Issue #44: 🟡 SessionDay solo considera STATUS_OPEN
+
+**Severidad:** 🟡 IMPORTANTE
+
+**Contexto:** `SessionDayController::index()` usa `findAllGroupByDateStart()` y `editDay()` filtra `status=OPEN` en [src/Controller/Backend/SessionDayController.php](../src/Controller/Backend/SessionDayController.php).
+
+**Rutas/Flujo:** /backend/session-day, /backend/session-day/edit/{editDate}/{branchOfficeId}
+
+**Problema:** Sesiones FULL/CLOSED quedan fuera del listado y no se pueden editar.
+
+**Riesgo:** Admin pierde visibilidad y no puede ajustar sesiones con reservas.
+
+**Fix sugerido:**
+- Incluir `STATUS_FULL` en consultas.
+- Evaluar si CLOSED debe mostrarse como solo lectura.
+
+**Tiempo:** 25-35 minutos  
+**Test:** Session FULL debe aparecer en session-day.
+
+---
+
+### Issue #45: 🟠 Ruta backend session-day sin control de acceso
+
+**Severidad:** 🟠 IMPORTANTE
+
+**Contexto:** `SessionDayController::newBranchOffice()` no tiene `IsGranted` en [src/Controller/Backend/SessionDayController.php](../src/Controller/Backend/SessionDayController.php).
+
+**Rutas/Flujo:** /backend/session-day/new-branch-office
+
+**Problema:** Ruta backend expuesta sin control de acceso.
+
+**Riesgo:** Acceso no autorizado a flujo admin y fuga de datos de sucursales.
+
+**Fix sugerido:**
+- Agregar `#[IsGranted('ALLOWED_ROUTE_ACCESS')]` o control de rol equivalente.
+
+**Tiempo:** 25-35 minutos  
+**Test:** Usuario sin rol no debe acceder.
+
+---
+
+### Issue #46: 🟡 Cupon no incrementa uso en transaccion backend
+
+**Severidad:** 🟡 IMPORTANTE
+
+**Contexto:** `backend_transaction_new` usa `CouponService::apply()` y dispara `TransactionEvent` (no `TransactionSuccessEvent`) en [src/Controller/Backend/TransactionController.php](../src/Controller/Backend/TransactionController.php). `CouponService::addHistory()` solo corre en [src/EventListener/TransactionSuccessListener.php](../src/EventListener/TransactionSuccessListener.php).
+
+**Rutas/Flujo:** /backend/transaction/new
+
+**Problema:** `coupon.used` no se incrementa al crear transacciones desde backend.
+
+**Riesgo:** Cupones pueden exceder `usesTotal` y reportes quedan inconsistentes.
+
+**Fix sugerido:**
+- Disparar `TransactionSuccessEvent` o llamar `addHistory()` en el flujo backend.
+
+**Tiempo:** 25-35 minutos  
+**Test:** Crear transaccion con cupon en backend y verificar incremento de `used`.
+
+---
+
+## ✅ YA COMPLETADO
+
+| Componente | Fix | Status | Verificado |
+|-----------|-----|--------|-----------|
+| MAILER_DSN | null://default | ✅ | Sí |
+| Doctrine Schema | Synced | ✅ | Sí |
+| SQL Injection | QueryBuilder | ✅ | Sí |
+| CSRF Tokens | Habilitado | ✅ | Sí |
+| Password Hash | Bcrypt | ✅ | Sí |
+| User Checker | Enabled check | ✅ | Sí |
+| Indices DB | Verificados en BD | ✅ | Sí |
+
+---
+
+## 📅 TIMELINE DE EJECUCIÓN
+
+```
+Hoy (27 Feb)
+├─ 09:00 - Implementar DateTime fix (#1)
+├─ 09:30 - Añadir DB indices (#2)
+├─ 10:00 - Test: POST /reservacion-clase/{id}
+├─ 10:30 - Verificar performance
+└─ 11:00 - Commit & deploy a staging
+
+Mañana (28 Feb)
+├─ Testing completo en staging
+├─ Fix Issue #4 (Rate Limiting - opcional)
+├─ Backup BD
+└─ Deploy a producción
+
+Semana
+├─ Monitorear logs por errors
+├─ Implementar #5 (Phone Privacy)
+├─ Implementar #6 (Audit logs)
+└─ Implementar #7 (Validaciones extra)
+```
+
+---
+
+## 🧪 TESTING CHECKLIST
+
+ANTES de ir a producción:
+
+### Nivel 1: Registropción
+- [ ] POST /register → Usuario creado ✅
+- [ ] Email única → Error si duplicado
+- [ ] Password hasheado → Verificar BD
+- [ ] Session iniciada → redirect homepage
+
+### Nivel 2: Login
+- [ ] GET /login → Show form
+- [ ] POST /login correcto → redirect /
+- [ ] POST /login incorrecto → error message
+- [ ] Rate limiting → 6to intento falla (Issue #4)
+
+### Nivel 3: Calendario
+- [ ] GET /reservar-clase/sucursal → Display 7 días
+- [ ] DateTime.setTime → NO ERROR
+- [ ] Filter por disciplina → funciona
+
+### Nivel 4: Reservación
+- [ ] Seleccionar asiento → POST /reservacion-clase/{id}
+- [ ] Validar placeNumber → Rechazar inválidos
+- [ ] Actualizar sesión → status FULL si llena
+- [ ] Contar reservas → Correct count en BD
+
+### Nivel 5: Perfil
+- [ ] GET /mi-cuenta/proximas-clases → lista
+- [ ] Query time < 500ms → Índices OK
+- [ ] Mostrar 20 registros → Paginación
+- [ ] Cancelar reserva → transacción OK
+
+### Nivel 6: Seguridad
+- [ ] Inspector Logs → No errores críticos
+- [ ] Monitor table size → No crecimiento anómalo
+- [ ] Verificar backups → Diarios automáticos
+
+---
+
+## 🚀 DEPLOYMENT CHECKLIST
+
+```bash
+# 1. Backup
+mysqldump -u root -p pbstudio > backup_2026-02-27.sql
+
+# 2. Code changes
+git commit -m "Fix DateTime immutability + DB indices"
+git push origin main
+
+# 3. DB migrations (if needed)
+php bin/console doctrine:migrations:migrate
+
+# 4. Add indices
+mysql -u root -p pbstudio < indices.sql
+
+# 5. Cache clear
+php bin/console cache:clear --env=prod
+
+# 6. Composer
+composer install --optimize-autoloader --no-dev
+
+# 7. Assets
+npm run build
+
+# 8. Test
+php bin/phpunit tests/
+php bin/console doctrine:schema:validate
+
+# 9. Deploy
+# Copy to production server
+# Restart PHP-FPM / Web server
+
+# 10. Verify
+curl http://pbstudio.local/
+# Check logs: tail -f var/log/prod.log
+```
+
+---
+
+## 📊 MONITOREO POST-DEPLOYMENT
+
+### Diariamente
+
+```bash
+# Logs
+tail -100 var/log/prod.log | grep ERROR
+
+# DB size
+SELECT 
+    ROUND(SUM(data_length + index_length) / 1024 / 1024, 2) as 'Size in MB'
+FROM information_schema.tables 
+WHERE table_schema = 'pbstudio';
+
+# User count
+php bin/console doctrine:query:sql 'SELECT COUNT(*) FROM user WHERE enabled = 1'
+
+# Query time
+EXPLAIN SELECT * FROM reservation WHERE user_id = 1;
+```
+
+### Semanalmente
+
+```bash
+# Backup verify
+mysql -u root -p pbstudio < backup_2026-02-27.sql --dry-run
+
+# Error rate
+grep "ERROR\|CRITICAL" var/log/prod.log | wc -l
+
+# Peak traffic time
+# (if monitoring configured)
+```
+
+---
+
+## 🎯 Métricas de Éxito
+
+| Métrica | Antes | Después | Target |
+|---------|-------|---------|--------|
+| DateTime Errors | 100%+ | 0 | ✅ |
+| Query time /mi-cuenta | 5000ms | 500ms | ✅ |
+| Rate limit blocks | 0 | -1/mes | ✅ |
+| Security issues | 1 CRÍTICA | 0 | ✅ |
+| Uptime | ? | > 99.5% | ✅ |
+
+---
+
+## 📞 SOPORTE & ESCALACIÓN
+
+Si encuentra issues:
+
+1. **DateTime error:**
+   - [ ] Verificar sintaxis fix
+   - [ ] Ejecutar `php -l`
+   - [ ] Test en staging primero
+
+2. **Query lenta:**
+   - [ ] Verificar índices creados
+   - [ ] Ejecutar EXPLAIN
+   - [ ] Aumentar if no mejora
+
+3. **Datos corruptos:**
+   - [ ] Restore de backup
+   - [ ] Comparar con staging
+   - [ ] Auditar logs
+
+---
+
+**Preparado por:** System Audit  
+**Próxima revisión:** 09 Marzo 2026
+

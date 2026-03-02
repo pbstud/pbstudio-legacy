@@ -1,6 +1,6 @@
 # 🔍 AUDITORÍA TÉCNICA INTEGRAL - PBStudio 
 
-**Fecha:** 27 Febrero 2026  
+**Fecha:** 02 Marzo 2026  
 **Objetivo:** Validar estado del código, datos, seguridad y flujos de usuario  
 **Estado:** ✅ PRODUCCIÓN LISTA CON RESERVAS
 
@@ -23,7 +23,7 @@
 
 ### 🎯 Kernel.php (Punto de Entrada)
 
-**Ubicación:** [src/Kernel.php](src/Kernel.php)
+**Ubicación:** [src/Kernel.php](../src/Kernel.php)
 
 ```php
 class Kernel extends BaseKernel
@@ -83,7 +83,7 @@ class Kernel extends BaseKernel
 
 #### 1. AbstractCommand (Commands)
 
-**Ubicación:** [src/Command/AbstractCommand.php](src/Command/AbstractCommand.php)
+**Ubicación:** [src/Command/AbstractCommand.php](../src/Command/AbstractCommand.php)
 
 ```php
 abstract class AbstractCommand extends Command
@@ -109,7 +109,7 @@ abstract class AbstractCommand extends Command
 
 #### 2. BaseDescription (Utilidades de Descripción)
 
-**Ubicación:** [src/Util/BaseDescription.php](src/Util/)
+**Ubicación:** [src/Util/BaseDescription.php](../src/Util/BaseDescription.php)
 
 ```php
 class PackageSessionType extends BaseDescription
@@ -185,7 +185,7 @@ BaseDescription (Utils)
 
 #### User Entity
 
-[src/Entity/User.php](src/Entity/User.php#L30-L80)
+[src/Entity/User.php](../src/Entity/User.php#L30-L80)
 
 ```php
 class User implements UserInterface, PasswordAuthenticatedUserInterface
@@ -219,7 +219,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
 #### Reservation Entity
 
-[src/Entity/Reservation.php](src/Entity/Reservation.php)
+[src/Entity/Reservation.php](../src/Entity/Reservation.php)
 
 ```php
 class Reservation implements TimestampableInterface
@@ -244,7 +244,7 @@ class Reservation implements TimestampableInterface
 
 #### Session Entity
 
-[src/Entity/Session.php](src/Entity/Session.php#L50-L80)
+[src/Entity/Session.php](../src/Entity/Session.php#L50-L80)
 
 ```php
 #[ORM\Entity(repositoryClass: SessionRepository::class)]
@@ -288,7 +288,7 @@ $dateStart = $dateStart->setTime(...) // ✅ CORRECTO
 
 #### RegistrationFormType
 
-[src/Form/RegistrationFormType.php](src/Form/RegistrationFormType.php)
+[src/Form/RegistrationFormType.php](../src/Form/RegistrationFormType.php)
 
 ```php
 public function buildForm(FormBuilderInterface $builder, array $options): void
@@ -328,7 +328,7 @@ public function configureOptions(OptionsResolver $resolver): void
 
 #### ProfileFormType
 
-[src/Form/ProfileFormType.php](src/Form/ProfileFormType.php)
+[src/Form/ProfileFormType.php](../src/Form/ProfileFormType.php)
 
 ```php
 $builder
@@ -368,7 +368,7 @@ $builder
 
 ### 🔒 Rutas Protegidas (Requieren ROLE_USER)
 
-[config/packages/security.yaml](config/packages/security.yaml#L70-L85)
+[config/packages/security.yaml](../config/packages/security.yaml#L70-L85)
 
 ```yaml
 access_control:
@@ -402,7 +402,7 @@ public function success(Request $request): Response
 
 ### 🧪 Endpoint Crítico: Reservación
 
-**Controller:** [src/Controller/ReservationController.php](src/Controller/ReservationController.php#L95-L140)
+**Controller:** [src/Controller/ReservationController.php](../src/Controller/ReservationController.php#L95-L140)
 
 **Flujo:**
 ```
@@ -436,7 +436,7 @@ if (1 > $placeNumber || $session->getExerciseRoomCapacity() < $placeNumber) {
 
 ### 📊 Endpoint Crítico: Profile
 
-**Controller:** [src/Controller/ProfileController.php](src/Controller/ProfileController.php#L95-L140)
+**Controller:** [src/Controller/ProfileController.php](../src/Controller/ProfileController.php#L95-L140)
 
 **Subrutas:**
 
@@ -517,7 +517,7 @@ Reservation
 
 ### 🗄️ Índices de Performance
 
-[src/Entity/Reservation.php](src/Entity/Reservation.php#L15)
+[src/Entity/Reservation.php](../src/Entity/Reservation.php#L15)
 
 ```php
 #[ORM\Entity(repositoryClass: ReservationRepository::class)]
@@ -545,7 +545,7 @@ ALTER TABLE transaction ADD INDEX idx_user_id (user_id);
 
 #### Patrón: Doctrine QueryBuilder (RECOMENDADO)
 
-**Ubicación:** [src/Repository/ReservationRepository.php](src/Repository/ReservationRepository.php#L30-L45)
+**Ubicación:** [src/Repository/ReservationRepository.php](../src/Repository/ReservationRepository.php#L30-L45)
 
 ```php
 public function getTotalReservationsForSession(Session $session): int
@@ -568,7 +568,7 @@ public function getTotalReservationsForSession(Session $session): int
 
 #### Patrón: LIKE Queries (RIESGO)
 
-[src/Repository/UserRepository.php](src/Repository/UserRepository.php#L45-L60)
+[src/Repository/UserRepository.php](../src/Repository/UserRepository.php#L45-L60)
 
 ```php
 if (!empty($filters['name'])) {
@@ -590,7 +590,7 @@ if (!empty($filters['name'])) {
 
 #### Patrón: Entrada de Usuario (Form Fields)
 
-[src/Controller/ReservationController.php](src/Controller/ReservationController.php#L95-L100)
+[src/Controller/ReservationController.php](../src/Controller/ReservationController.php#L95-L100)
 
 ```php
 if ($request->isMethod('POST') && $request->request->has('place_number')) {
@@ -607,7 +607,7 @@ if ($request->isMethod('POST') && $request->request->has('place_number')) {
 
 ### 🔐 Hashing de Passwords
 
-[config/packages/security.yaml](config/packages/security.yaml#L6-L8)
+[config/packages/security.yaml](../config/packages/security.yaml#L6-L8)
 
 ```yaml
 password_hashers:
@@ -616,7 +616,7 @@ password_hashers:
 
 **Status:** ✅ CORRECTO - Bcrypt cost: auto (default)
 
-[src/Controller/RegistrationController.php](src/Controller/RegistrationController.php#L30-L35)
+[src/Controller/RegistrationController.php](../src/Controller/RegistrationController.php#L30-L35)
 
 ```php
 $plainPassword = $form->get('plainPassword')->getData();
@@ -629,7 +629,7 @@ $user->setPassword($passwordHasher->hashPassword($user, $plainPassword));
 
 ### 🚫 Protección contra CSRF
 
-[config/packages/security.yaml](config/packages/security.yaml#L45-L50)
+[config/packages/security.yaml](../config/packages/security.yaml#L45-L50)
 
 ```yaml
 form_login:
@@ -651,7 +651,7 @@ En formularios Twig:
 
 ### 🔍 User Checker (Validación de Estado)
 
-[src/Security/UserChecker.php](src/Security/UserChecker.php)
+[src/Security/UserChecker.php](../src/Security/UserChecker.php)
 
 ```php
 class UserChecker implements UserCheckerInterface
@@ -680,7 +680,7 @@ class UserChecker implements UserCheckerInterface
 
 ### 🎎 Autenticación & Session Management
 
-[config/packages/security.yaml](config/packages/security.yaml#L58-L70)
+[config/packages/security.yaml](../config/packages/security.yaml#L58-L70)
 
 ```yaml
 firewalls:
@@ -708,7 +708,7 @@ firewalls:
 - ✅ Remember me cookie segura (7 días)
 - ✅ Session lazy loading
 
-[src/EventListener/LoginSuccessListener.php](src/EventListener/LoginSuccessListener.php)
+[src/EventListener/LoginSuccessListener.php](../src/EventListener/LoginSuccessListener.php)
 
 ```php
 #[AsEventListener(event: LoginSuccessEvent::class)]
@@ -980,6 +980,7 @@ SQL: Usuario → Reservation → 336,768 registros
 Beneficio: -90% en tiempo de queries
 Impact: Visible en /mi-cuenta/proximas-clases
 ```
+**Nota (02/03/2026):** Verificado en BD, estos índices ya existen.
 
 #### 3. Phone Field Encryption (Normativa)
 ```
@@ -1006,6 +1007,282 @@ Verificar:
   - ¿X-Requested-With validation?
   
 Estado: ReservationController::confirm() valida XML
+```
+
+#### 6. Riesgo de doble reservación (Concurrencia)
+```
+Caso: Dos requests simultáneos pueden ocupar el mismo placeNumber
+Causa: No hay bloqueo/validación atómica en reservate()
+Impacto: Overbooking en clases y datos inconsistentes
+Mitigación: Lock/transaction + verificación de lugar ocupado
+```
+
+#### 7. Mutación silenciosa de fecha en WaitingList
+```
+Caso: validate() modifica dateStart con setTime() sin clonar
+Impacto: Estado sucio en Session dentro del request actual
+Mitigación: Clonar dateStart y asignar retorno de setTime()
+```
+
+#### 8. DATEADD en DQL (Compatibilidad)
+```
+Caso: SessionRepository::getNotClosed() usa DATEADD en DQL
+Impacto: Puede fallar en MySQL/Doctrine sin función custom
+Mitigación: Calcular DateTime en PHP o usar DQL compatible
+```
+
+#### 9. Endpoints backend sin control de acceso
+```
+Caso: backend/session/get, backend/session/{id}/places, backend/reservation/{id}/attended,
+      backend/user/{id}/stats, backend/user/{id}/transactions,
+      backend/user/{id}/reservations, backend/user/{id}/reservations/{reservation},
+      backend/coupon/validate
+Impacto: Acceso no autorizado a datos/acciones internas
+Mitigación: Agregar IsGranted o controles por rol en rutas backend
+```
+
+#### 10. Ruta debug expone phpinfo()
+```
+Caso: backend/test ejecuta phpinfo() y exit()
+Impacto: Fuga de informacion sensible en produccion
+Mitigación: Eliminar ruta o restringir a ROLE_ADMIN y APP_ENV=dev
+```
+
+#### 11. Reuso de DateTime mutable en SessionDayController
+```
+Caso: newDay/editDay usan el mismo DateTime para multiples sesiones
+Impacto: Cambios de hora pueden afectar sesiones ya creadas
+Mitigación: Clonar DateTime antes de asignar dateStart/timeStart
+```
+
+#### 12. ADDTIME en DQL (WaitingListRepository)
+```
+Caso: getAvailableForExpire() usa ADDTIME en DQL
+Impacto: Puede fallar en MySQL/Doctrine sin función custom
+Mitigación: Calcular fecha en PHP o registrar función DQL
+```
+
+#### 13. getFirstPublic() sin manejo de null
+```
+Caso: BranchOfficeRepository::getFirstPublic() puede retornar null
+Impacto: ReservationController::calendar() puede fallar sin sucursales publicas
+Mitigación: Retorno nullable + validacion previa
+```
+
+#### 14. Validacion Type('digit') en User
+```
+Caso: Assert\Type(type: 'digit') en phone/emergencyContactPhone
+Impacto: Validacion puede no aplicar o fallar
+Mitigación: Usar Regex o Type con tipos PHP validos
+```
+
+#### 15. IFELSE en DQL (TransactionRepository)
+```
+Caso: getGroupedByPackage() usa IFELSE
+Impacto: Query puede fallar en stats
+Mitigación: Reescribir con CASE WHEN o funcion soportada
+```
+
+#### 16. WaitingList sin control de autenticacion
+```
+Caso: ReservationController::waitingList() no valida ROLE_USER
+Impacto: getUser() null o accesos no autorizados
+Mitigación: IsGranted('ROLE_USER') y manejo de usuario null
+```
+
+#### 17. Contacto depende de configuracion existente
+```
+Caso: HandlerContactService::processForm() asume config general
+Impacto: Null dereference si no existe configuracion en BD
+Mitigación: Validar config y fallback seguro
+```
+
+#### 18. WaitingList duplicada
+```
+Caso: WaitingListService::add() no valida duplicado (PK user+session)
+Impacto: Excepcion de BD y UX inconsistente
+Mitigación: Verificar existencia antes de persistir
+```
+
+#### 19. Funciones DATE/DAYNAME en DQL
+```
+Caso: ReservationRepository/UserRepository/TransactionRepository usan DATE() y DAYNAME()
+Impacto: Puede fallar si la funcion no esta registrada en DQL
+Mitigación: Usar expresiones soportadas o registrar funciones custom
+```
+
+#### 20. Form view no renderizado en backend/session/reservations
+```
+Caso: SessionController::reservations() pasa cancel_form sin createView()
+Impacto: Error en Twig si espera FormView
+Mitigación: Usar $cancelForm->createView()
+```
+
+#### 21. Campos nullable con NotBlank
+```
+Caso: User y StaffProfile tienen columnas nullable pero Assert\NotBlank
+Impacto: Datos existentes con null pueden fallar validacion
+Mitigación: Ajustar nullable o reglas de validacion
+```
+
+#### 22. WaitingList remove por GET sin CSRF
+```
+Caso: ProfileController::waitingListRemove() usa GET y elimina registros
+Impacto: CSRF/side-effects (prefetch, bots) pueden borrar lista de espera
+Mitigación: Cambiar a POST/DELETE + token CSRF
+```
+
+#### 23. Acciones sensibles POST sin CSRF
+```
+Caso: reservation_confirm, reservation_waitinglist, reservation_cancel,
+    reservation_change_session, package_checkout,
+    backend_reservation_attended, backend_transaction_cancel,
+    backend_transaction_edit_expiration, resetting_send_email
+Impacto: Reservas/cancelaciones/asistencia/ediciones disparadas desde sitios externos
+Mitigación: Formularios con CSRF o isCsrfTokenValid
+```
+
+#### 24. Acciones sensibles por GET
+```
+Caso: backend_user_reset_password ejecuta cambios y flush via GET
+Impacto: CSRF/side-effects (prefetch, bots) pueden resetear tokens
+Mitigación: Cambiar a POST con CSRF y confirmación
+```
+
+#### 25. Falta de tests automatizados
+```
+Caso: tests/ solo contiene bootstrap.php (sin WebTestCase ni pruebas funcionales)
+Impacto: Regresiones en reservas/pagos pasan a producción sin detección
+Mitigación: Agregar smoke tests y flujos críticos (login, reservar, cancelar, pago)
+```
+
+#### 26. N+1 queries en listados
+```
+Caso: ReservationRepository::getReservationsBySession() sin join a user (backend session reservations)
+    WaitingListRepository::getByUser() sin join a discipline/instructor/profile
+    TransactionRepository::getAllCompletedByUser() sin join a package
+Impacto: Multiples queries por fila en vistas (rendimiento lento)
+Mitigación: Agregar joins/selects o usar fetch join en repositorios
+```
+
+#### 27. Checkout sin usuario autenticado
+```
+Caso: package_checkout permite POST sin ROLE_USER; TransactionService::create usa getUser()
+Impacto: Error 500 en POST anonimo (null user) y flujo inconsistente
+Mitigación: Requerir ROLE_USER o validar usuario antes de crear transaccion
+```
+
+#### 28. Enumeracion de usuarios en reset password
+```
+Caso: ResettingController::validateNonExistUser() responde "correo no existe"
+Impacto: Permite enumerar usuarios por email
+Mitigación: Respuesta generica y rate limit en /restablecer
+```
+
+#### 29. Configuracion sin CSRF
+```
+Caso: backend_configuration_update usa forms HTML sin token CSRF
+Impacto: CSRF permite cambiar configuracion / subir archivos
+Mitigación: Agregar CSRF token o usar Symfony Form
+```
+
+#### 30. Uploads sin validacion en configuracion
+```
+Caso: ConfigurationFileModel no tiene constraints de tipo/tamano
+Impacto: Subida de archivos no deseados (riesgo de seguridad)
+Mitigación: Validar MIME/size y limitar extensiones
+```
+
+#### 31. TokenGenerator con fallback debil
+```
+Caso: TokenGenerator usa md5(uniqid()) si falla random_bytes()
+Impacto: Tokens predecibles si no hay fuente segura de entropia
+Mitigación: Eliminar fallback debil o abortar si random_bytes falla
+```
+
+#### 32. Fecha invalida rompe configuracion
+```
+Caso: ConfigurationController::castValues() usa createFromFormat()->format() sin validar
+Impacto: Error 500 si fecha invalida en settings
+Mitigación: Validar retorno de createFromFormat antes de format
+```
+
+#### 33. Fechas invalidas rompen filtros
+```
+Caso: ReservationRepository/TransactionRepository usan createFromFormat()->format() sin validar
+Impacto: Error 500 si el filtro de fechas es invalido
+Mitigación: Validar retorno antes de format
+```
+
+#### 34. Excepciones silenciadas
+```
+Caso: ResettingController::sendNotification() y HandlerContactService::processForm() ignoran excepciones
+Impacto: Fallas de email quedan ocultas (sin logging ni feedback)
+Mitigación: Registrar errores y devolver respuesta controlada
+```
+
+#### 35. Doble asiento por falta de validacion
+```
+Caso: ReservationService::reservate()/change() no verifican placeNumber ya ocupado
+Impacto: Dos usuarios pueden tener el mismo lugar en una clase
+Mitigación: Validar lugar ocupado y/o unique constraint (session_id, place_number)
+```
+
+#### 36. Expiracion sin hora en transacciones
+```
+Caso: TransactionRepository::getExpired() compara expirationAt con fecha (Y-m-d)
+Impacto: Expiracion ocurre hasta el siguiente dia, no a la hora real
+Mitigacion: Comparar con DateTime completo (Y-m-d H:i:s)
+```
+
+#### 37. Reserva permitida en sesiones cerradas/canceladas
+```
+Caso: ReservationService::reservate()/change() no validan status de Session
+Impacto: Reservas en sesiones CLOSED/CANCEL por request directo
+Mitigacion: Validar status (solo OPEN/FULL) antes de crear/cambiar reserva
+```
+
+#### 38. Cancelacion reabre sesiones cerradas o aun llenas
+```
+Caso: ReservationService::cancel() fuerza Session::STATUS_OPEN sin recalcular
+Detalle: Para admin (no ROLE_USER) no valida CLOSED; change() abre sesion previa si era FULL
+Impacto: Sesiones CLOSED/CANCEL pueden reabrirse o quedar OPEN aun con cupo lleno
+Mitigacion: Recalcular status segun reservas activas y respetar CLOSED/CANCEL
+```
+
+#### 39. Actualizacion de capacidad con errores silenciados
+```
+Caso: SessionRepository::updateCapacity() atrapa excepciones y no registra nada
+Impacto: Cambios en cupo/placesNotAvailable no se aplican y pasan desapercibidos
+Mitigacion: Loggear excepcion y retornar error al backend
+```
+
+#### 40. Sesiones de hoy omitidas en agrupacion
+```
+Caso: SessionRepository::findAllGroupByDateStart() usa new DateTime() (con hora) contra dateStart (DATE)
+Impacto: Si es hoy, los registros con dateStart=HOY quedan fuera por comparar con hora actual
+Mitigacion: Usar DateTime('today') o formatear Y-m-d
+```
+
+#### 41. SessionDay solo considera STATUS_OPEN
+```
+Caso: SessionDayController::index()/editDay() filtran sesiones con status OPEN
+Impacto: Sesiones FULL/CLOSED no se muestran ni se pueden editar
+Mitigacion: Incluir STATUS_FULL (y evaluar CLOSED si aplica) en consultas
+```
+
+#### 42. Ruta backend session-day sin control de acceso
+```
+Caso: SessionDayController::newBranchOffice() no tiene IsGranted
+Impacto: Acceso no autorizado a endpoint admin /backend/session-day/new-branch-office
+Mitigacion: Agregar IsGranted('ALLOWED_ROUTE_ACCESS') o control de rol en la ruta
+```
+
+#### 43. Cupon no incrementa uso en transaccion backend
+```
+Caso: Backend TransactionController::new() aplica cupon pero dispara TransactionEvent (no Success)
+Impacto: Coupon.used no se incrementa y el cupon puede exceder usesTotal
+Mitigacion: Disparar TransactionSuccessEvent o llamar addHistory en flujo backend
 ```
 
 ---
@@ -1157,7 +1434,7 @@ Mes: Rate limiting + 2FA
 
 ---
 
-**Reporte Preparado:** 27 Febrero 2026  
+**Reporte Preparado:** 02 Marzo 2026  
 **Auditor:** System Audit  
 **Validación:** Completa ✅
 

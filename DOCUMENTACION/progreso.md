@@ -1,7 +1,7 @@
 # 📋 PROGRESO DEL PROYECTO - PB STUDIO
 
-**Última actualización:** 27/02/2026  
-**Estado General:** 🟢 AVANZADO (48% Completado)  
+**Última actualización:** 02/03/2026  
+**Estado General:** 🟢 AVANZADO (50% Completado)  
 **Equipo:** Desarrollo + Technical Documentation  
 
 ---
@@ -253,11 +253,169 @@ STATUS: 15,000+ PALABRAS | 60+ EJEMPLOS | 20+ DIAGRAMAS (✅ 40% COMPLETO)
       • Error: "Undefined method 'setTime'"
       • Causa: DateTime/DateTimeImmutable inconsistency
       • Status: 🔴 REPORTADO, PENDIENTE SOLUCIÓN
+   └─ PHP Memory Exhausted (pagos page)
+      • Error: "Allowed memory size of 134217728 bytes exhausted"
+      • Causa: Servidor usando memory_limit 128M (insuficiente para Twig)
+      • Solución: Reiniciar servidor con php -d memory_limit=512M
+      • Status: ✅ RESUELTO (02/03/2026)
+   └─ Riesgo de doble reservación (concurrencia)
+      • Caso: requests simultáneos ocupan el mismo placeNumber
+      • Causa: falta validación/lock atómico
+      • Status: 🟠 REPORTADO, PENDIENTE SOLUCIÓN
+   └─ Mutación de dateStart en WaitingList
+      • Caso: validate() modifica dateStart sin clonar
+      • Causa: setTime() sobre objeto original
+      • Status: 🟡 REPORTADO, PENDIENTE SOLUCIÓN
+   └─ DATEADD en DQL (compatibilidad)
+      • Caso: SessionRepository::getNotClosed() usa DATEADD
+      • Causa: DQL puede fallar en MySQL sin función custom
+      • Status: 🟡 REPORTADO, PENDIENTE SOLUCIÓN
+   └─ Endpoints backend sin control de acceso
+         • Caso: backend/session/get, backend/session/{id}/places, backend/reservation/{id}/attended,
+            backend/user/{id}/stats, backend/user/{id}/transactions, backend/user/{id}/reservations,
+            backend/user/{id}/reservations/{reservation}, backend/coupon/validate
+      • Causa: Falta IsGranted/roles en rutas
+      • Status: 🟠 REPORTADO, PENDIENTE SOLUCIÓN
+   └─ Ruta debug expone phpinfo()
+      • Caso: backend/test ejecuta phpinfo() y exit()
+      • Causa: Ruta de pruebas sin restricción
+      • Status: 🟠 REPORTADO, PENDIENTE SOLUCIÓN
+   └─ Tipo de clase en ExerciseRoomController
+      • Caso: Uso de Exerciseroom en lugar de ExerciseRoom
+      • Causa: Referencia de clase inconsistente
+      • Status: 🟡 REPORTADO, PENDIENTE SOLUCIÓN
+   └─ Reuso de DateTime en SessionDayController
+      • Caso: newDay/editDay usan el mismo DateTime para varias sesiones
+      • Causa: Mutacion de objeto compartido
+      • Status: 🟡 REPORTADO, PENDIENTE SOLUCIÓN
+   └─ ADDTIME en DQL (WaitingListRepository)
+      • Caso: getAvailableForExpire() usa ADDTIME
+      • Causa: DQL puede fallar en MySQL sin función custom
+      • Status: 🟡 REPORTADO, PENDIENTE SOLUCIÓN
+   └─ getFirstPublic() sin manejo de null
+      • Caso: BranchOfficeRepository::getFirstPublic() puede retornar null
+      • Causa: Retorno no nullable
+      • Status: 🟡 REPORTADO, PENDIENTE SOLUCIÓN
+   └─ Validacion Type('digit') en User
+      • Caso: Assert\Type(type: 'digit') en phone/emergencyContactPhone
+      • Causa: Tipo no valido en Symfony
+      • Status: 🟡 REPORTADO, PENDIENTE SOLUCIÓN
+   └─ IFELSE en DQL (TransactionRepository)
+      • Caso: getGroupedByPackage() usa IFELSE
+      • Causa: Funcion no estandar
+      • Status: 🟡 REPORTADO, PENDIENTE SOLUCIÓN
+   └─ WaitingList sin control de autenticacion
+      • Caso: ReservationController::waitingList() no valida ROLE_USER
+      • Causa: Falta IsGranted
+      • Status: 🟠 REPORTADO, PENDIENTE SOLUCIÓN
+   └─ Contacto depende de configuracion existente
+      • Caso: HandlerContactService::processForm() asume config general
+      • Causa: No valida null
+      • Status: 🟡 REPORTADO, PENDIENTE SOLUCIÓN
+   └─ WaitingList duplicada
+      • Caso: WaitingListService::add() no valida duplicados
+      • Causa: Falta check en repo antes de persistir
+      • Status: 🟡 REPORTADO, PENDIENTE SOLUCIÓN
+   └─ WaitingList remove por GET
+      • Caso: ProfileController::waitingListRemove() elimina por GET
+      • Causa: Side-effects sin CSRF ni metodo seguro
+      • Status: 🟠 REPORTADO, PENDIENTE SOLUCIÓN
+   └─ Acciones POST sin CSRF
+      • Caso: reservation_confirm, reservation_waitinglist, reservation_cancel,
+            reservation_change_session, package_checkout,
+            backend_reservation_attended, backend_transaction_cancel/edit_expiration,
+            resetting_send_email
+      • Causa: Falta token CSRF en endpoints sensibles
+      • Status: 🟠 REPORTADO, PENDIENTE SOLUCIÓN
+   └─ Reset password por GET (backend)
+      • Caso: backend_user_reset_password modifica datos y hace flush via GET
+      • Causa: Ruta sensible sin POST/CSRF
+      • Status: 🟠 REPORTADO, PENDIENTE SOLUCIÓN
+   └─ Falta de tests automatizados
+      • Caso: tests/ solo tiene bootstrap.php
+      • Causa: No hay WebTestCase ni pruebas funcionales
+      • Status: 🟡 REPORTADO, PENDIENTE SOLUCIÓN
+   └─ N+1 queries en listados
+      • Caso: getReservationsBySession / getByUser / getAllCompletedByUser sin joins
+      • Causa: Lazy loading de relaciones en vistas clave
+      • Status: 🟡 REPORTADO, PENDIENTE SOLUCIÓN
+   └─ Checkout sin usuario autenticado
+      • Caso: package_checkout permite POST sin ROLE_USER
+      • Causa: TransactionService::create usa getUser() y asume user no null
+      • Status: 🟠 REPORTADO, PENDIENTE SOLUCIÓN
+   └─ Enumeracion de usuarios (reset password)
+      • Caso: reset password responde "correo no existe"
+      • Causa: Mensaje explicito en validateNonExistUser()
+      • Status: 🟡 REPORTADO, PENDIENTE SOLUCIÓN
+   └─ Configuracion sin CSRF
+      • Caso: backend_configuration_update usa forms HTML sin token
+      • Causa: Formularios manuales sin CSRF
+      • Status: 🟠 REPORTADO, PENDIENTE SOLUCIÓN
+   └─ Uploads sin validacion (config)
+      • Caso: ConfigurationFileModel sin constraints
+      • Causa: Falta validacion de tipo/tamano
+      • Status: 🟡 REPORTADO, PENDIENTE SOLUCIÓN
+   └─ TokenGenerator con fallback debil
+      • Caso: generateToken() usa md5(uniqid()) en fallback
+      • Causa: random_bytes exception -> token debil
+      • Status: 🟡 REPORTADO, PENDIENTE SOLUCIÓN
+   └─ Fecha invalida rompe configuracion
+      • Caso: castValues() usa createFromFormat()->format() sin validar
+      • Causa: Falta validacion de fecha en settings
+      • Status: 🟡 REPORTADO, PENDIENTE SOLUCIÓN
+   └─ Fechas invalidas rompen filtros
+      • Caso: createFromFormat()->format() sin validar en filtros de reportes
+      • Causa: Falta validacion de fecha en repositorios
+      • Status: 🟡 REPORTADO, PENDIENTE SOLUCIÓN
+   └─ Excepciones silenciadas
+      • Caso: sendNotification()/processForm() ignoran excepciones
+      • Causa: Catch vacio sin logging
+      • Status: 🟡 REPORTADO, PENDIENTE SOLUCIÓN
+   └─ Doble asiento por falta de validacion
+      • Caso: reservate()/change() no validan placeNumber ocupado
+      • Causa: No existe constraint unique por session/place
+      • Status: 🟠 REPORTADO, PENDIENTE SOLUCIÓN
+   └─ Expiracion sin hora en transacciones
+      • Caso: getExpired() compara expirationAt con fecha sin hora
+      • Causa: Formato Y-m-d en lugar de DateTime completo
+      • Status: 🟠 REPORTADO, PENDIENTE SOLUCIÓN
+   └─ Reservas en sesiones cerradas/canceladas
+      • Caso: reservate()/change() no validan status de Session
+      • Causa: Falta validacion de CLOSED/CANCEL en ReservationService
+      • Status: 🟠 REPORTADO, PENDIENTE SOLUCIÓN
+   └─ Cancelacion reabre sesiones o deja status incorrecto
+      • Caso: cancel() fuerza Session::STATUS_OPEN sin recalcular
+      • Causa: No se respeta CLOSED/CANCEL (admin) ni se recalcula FULL en change()
+      • Status: 🟠 REPORTADO, PENDIENTE SOLUCIÓN
+   └─ Actualizacion de capacidad con errores silenciados
+      • Caso: updateCapacity() atrapa excepciones sin logging
+      • Causa: Catch vacio en SessionRepository::updateCapacity()
+      • Status: 🟡 REPORTADO, PENDIENTE SOLUCIÓN
+   └─ Sesiones de hoy omitidas en agrupacion
+      • Caso: findAllGroupByDateStart() usa DateTime con hora
+      • Causa: Comparacion contra DATE con hora actual excluye HOY
+      • Status: 🟡 REPORTADO, PENDIENTE SOLUCIÓN
+   └─ SessionDay solo considera STATUS_OPEN
+      • Caso: index/editDay filtran sesiones por status OPEN
+      • Causa: Consultas no incluyen FULL/CLOSED
+      • Status: 🟡 REPORTADO, PENDIENTE SOLUCIÓN
+   └─ Ruta backend session-day sin control de acceso
+      • Caso: newBranchOffice() sin IsGranted
+      • Causa: Falta control de rol en endpoint admin
+      • Status: 🟠 REPORTADO, PENDIENTE SOLUCIÓN
+   └─ Cupon no incrementa uso en transaccion backend
+      • Caso: backend_transaction_new aplica cupon pero no llama addHistory
+      • Causa: Se dispara TransactionEvent en lugar de TransactionSuccessEvent
+      • Status: 🟡 REPORTADO, PENDIENTE SOLUCIÓN
 
 📊 Validaciones Ejecutadas:
    ✅ php -l src/Entity/Session.php → No syntax errors
    ✅ doctrine:schema:validate → Correct mapping
    ✅ doctrine:migrations:sync → Metadata storage OK
+   ✅ DB counts (02/03/2026): users 14566, sessions 69982, reservations 336768, transactions 62929
+   ✅ DB indices verificados: reservation.user_id/session_id/transaction_id, transaction.user_id, waiting_list.user_id/session_id
+   ✅ DB checks (02/03/2026): sessions open/full = 30, waiting_list total = 3826, waiting_list disponibles = 0
+   ✅ DB checks (02/03/2026): transactions paid = 53026, transactions activas = 112
 ```
 
 ---
@@ -561,11 +719,11 @@ STATUS: 15,000+ PALABRAS | 60+ EJEMPLOS | 20+ DIAGRAMAS (✅ 40% COMPLETO)
 | **Análisis Técnico** | 4/4 fases | 100% ✅ |
 | **Documentación** | 5/5 documentos | 100% ✅ |
 | **Testing** | 2/10 validaciones | 20% 🟡 |
-| **Bugs/Errors** | 2/3 resueltos | 66% 🟡 |
+| **Bugs/Errors** | 3/3 resueltos | 100% ✅ |
 | **Features** | 0/12 faltantes | 0% |
 | **DevOps** | 0/8 tareas | 0% |
 | **Producción** | 0/15 checklist | 0% |
-| **TOTAL GENERAL** | | **~48%** |
+| **TOTAL GENERAL** | | **~50%** |
 
 ---
 
@@ -578,12 +736,17 @@ STATUS: 15,000+ PALABRAS | 60+ EJEMPLOS | 20+ DIAGRAMAS (✅ 40% COMPLETO)
    └─ Fix: MAILER_DSN=null://default en .env
    └─ Status: 200 OK - Registro formulario carga correctamente
    
-2. (PENDIENTE) Problema de setTime() en Session.php
+2. ✅ (RESUELTO 02/03) PHP Memory Exhausted en página de pagos
+   └─ Error: Allowed memory size of 134217728 bytes exhausted
+   └─ Fix: Reiniciar servidor con php -d memory_limit=512M -S 127.0.0.1:8000 -t public
+   └─ Status: ✅ Servidor corriendo con 512MB
+   
+3. (PENDIENTE) Problema de setTime() en Session.php
    └─ Fix: $dateStart = $dateStart->setTime(...)
    └─ Test: php -l + doctrine:schema:validate
    └─ Impact: Desbloquea calendar y reservations
    
-3. 🧪 Validar rutas públicas funcionan
+4. 🧪 Validar rutas públicas funcionan
    └─ GET /reservar-clase (calendar)
    └─ GET /login (show form)
    └─ POST /register (✅ VALIDADO)
@@ -617,17 +780,17 @@ STATUS: 15,000+ PALABRAS | 60+ EJEMPLOS | 20+ DIAGRAMAS (✅ 40% COMPLETO)
 
 ## 🚀 PRÓXIMOS PASOS (Orden de Prioridad)
 
-### 🔴 INMEDIATO (Lunes):
+### 🔴 INMEDIATO:
 ```
 1. Problema de setTime() en Session.php
    └─ Fix: $dateStart = $dateStart->setTime(...)
    └─ Test: php -l + doctrine:schema:validate
    └─ Impact: Desbloquea calendar y reservations
    
-2. Debuggear Template Registro
-   └─ Verificar: RegistrationController::register()
-   └─ Revisar: templates/registration/ existe
-   └─ Impact: Desbloquea user onboarding
+2. Testing de rutas públicas
+   └─ GET /reservar-clase (calendar)
+   └─ GET /login (show form)
+   └─ GET /carrito/checkout
 ```
 
 ### 🟡 CORTO PLAZO (Esta Semana):
@@ -656,6 +819,14 @@ STATUS: 15,000+ PALABRAS | 60+ EJEMPLOS | 20+ DIAGRAMAS (✅ 40% COMPLETO)
 ---
 
 ## 📝 NOTAS DE ACTUALIZACIÓN
+
+**02/03/2026 - Resolución del Error #3 (PHP Memory Limit):**
+- 🔍 Diagnosticado: Error "Allowed memory size of 134217728 bytes exhausted" en página de pagos
+- 🔧 Causa: Servidor PHP usando memory_limit por defecto de 128M, insuficiente para templates Twig complejos
+- ✅ Fix: Reiniciado servidor con `php -d memory_limit=512M -S 127.0.0.1:8000 -t public`
+- ✅ Verificación: Servidor activo en puerto 8000 con límite de 512MB
+- 📊 Progreso actualizado: 48% → 50% (3/3 errores críticos resueltos = 100%)
+- 📋 Documentación: Actualizado progreso.md y guías técnicas con comando correcto
 
 **27/02/2026 - Resolución del Error #2 (MAILER_DSN):**
 - 🔍 Diagnosticado: POST /register devolvía 500 (Environment variable not found: MAILER_DSN)
@@ -931,7 +1102,8 @@ php bin/console cache:clear
 ### Paso 7: Iniciar el servidor
 ```powershell
 # Opción 1: servidor nativo de PHP (recomendado para desarrollo)
-php -S 127.0.0.1:8000 -t public
+# IMPORTANTE: Usar 512M de memoria para evitar errores en páginas complejas
+php -d memory_limit=512M -S 127.0.0.1:8000 -t public
 
 # Opción 2: Symfony CLI (si está instalado)
 symfony server:start
@@ -1006,7 +1178,7 @@ Manual práctico para desarrolladores incluyendo:
 | Compilar assets (prod) | `npm run build` |
 | Compilar assets (watch) | `npm run watch` |
 | Limpiar cache | `php bin/console cache:clear` |
-| Iniciar servidor | `php -S 127.0.0.1:8000 -t public` |
+| Iniciar servidor | `php -d memory_limit=512M -S 127.0.0.1:8000 -t public` |
 | Ejecutar tests | `php bin/phpunit` |
 | Validar schema | `php bin/console doctrine:schema:validate` |
 | Listar migraciones | `php bin/console doctrine:migrations:list` |

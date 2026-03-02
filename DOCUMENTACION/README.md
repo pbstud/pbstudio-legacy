@@ -1,18 +1,15 @@
 # 📚 DOCUMENTACIÓN - PBStudio
 
-**Última actualización:** 27 Febrero 2026  
-**Total de documentos:** 11  
+**Última actualización:** 02 Marzo 2026  
+**Total de documentos:** 13  
 **Tamaño total:** ~300 KB
-
 ---
-
-## 📖 Guía de Archivos
 
 ### 🚀 COMIENCE AQUÍ
 
-#### 1. [RESUMEN_EJECUTIVO.md](RESUMEN_EJECUTIVO.md) ⭐
+#### 1. [RESUMEN.md](RESUMEN.md) ⭐
 - **Lectura:** 5 minutos
-- **Para:** Todos (ejecutivos, developers, QA)
+- **Para:** Todos (developers, QA)
 - **Contiene:** Estado general, issues críticos, timeline
 - **Acción:** Lee primero → Entiende qué está mal
 
@@ -47,17 +44,17 @@
 
 ---
 
-### ✅ EJECUCIÓN & TESTING
+### ✅ IMPLEMENTACION & TESTING
 
-#### 4. [PLAN_ACCION_EJECUTIVO.md](PLAN_ACCION_EJECUTIVO.md)
+#### 4. [PLAN_ACCION.md](PLAN_ACCION.md)
 - **Lectura:** 15 minutos
-- **Para:** Dev leads, QA, DevOps
+- **Para:** Tech leads, QA, DevOps
 - **Contiene:** Scripts listos para ejecutar
 - **Issues detallados:**
-  - 🔴 #1 DateTime Immutability (30 min fix)
-  - 🟠 #2 Missing DB Indices (5 min fix)
-  - 🟠 #3 No Rate Limiting (2 horas impl)
-  - 🟠 #4 Phone sin encryption (2 horas impl)
+  - 🔴 #1 DateTime Immutability (40 min fix)
+  - 🟠 #2 Missing DB Indices (15 min fix)
+  - 🟠 #3 No Rate Limiting (2-3 horas impl)
+  - 🟠 #4 Phone sin encryption (2-3 horas impl)
   - 🟢 #5-7 Mejoras menores
 - **Checklists:**
   - Testing 6 niveles
@@ -130,20 +127,20 @@
 
 ## 🎯 Flujo de Lectura Sugerido
 
-### Para Ejecutivos (15 minutos)
+### Para  (15 minutos)
 ```
-1. RESUMEN_EJECUTIVO.md (5 min)
+1. RESUMEN.md (5 min)
    └─ ¿Listo para producción?
-2. PLAN_ACCION_EJECUTIVO.md - Issues section (10 min)
+2. PLAN_ACCION.md - Issues section (10 min)
    └─ ¿Qué arreglar?
 ```
 
 ### Para Developers (2 horas)
 ```
-1. RESUMEN_EJECUTIVO.md (5 min)
+1. RESUMEN.md (5 min)
 2. ARQUITECTURA_FLUJO_DATOS.md (20 min)
 3. AUDITORIA_TECNICA_INTEGRAL.md (30 min)
-4. PLAN_ACCION_EJECUTIVO.md (15 min)
+4. PLAN_ACCION.md (15 min)
 5. DOCUMENTACION_COMPLETA.md (30 min)
 6. Setup local + prácticos (20 min)
 ```
@@ -151,7 +148,7 @@
 ### Para New Joiners (0.5 días)
 ```
 Día 1:
-  1. RESUMEN_EJECUTIVO.md
+  1. RESUMEN.md
   2. ARQUITECTURA_FLUJO_DATOS.md
   3. Setup local
 
@@ -167,16 +164,16 @@ Día 3:
 
 ### Para QA/Testing (1 hora)
 ```
-1. RESUMEN_EJECUTIVO.md (5 min)
-2. PLAN_ACCION_EJECUTIVO.md - Testing Checklist (30 min)
+1. RESUMEN.md (5 min)
+2. PLAN_ACCION.md - Testing Checklist (30 min)
 3. ARQUITECTURA_FLUJO_DATOS.md - User Flow (20 min)
 ```
 
 ### Para DevOps (1.5 horas)
 ```
-1. RESUMEN_EJECUTIVO.md (5 min)
-2. PLAN_ACCION_EJECUTIVO.md - Deployment (20 min)
-3. PLAN_ACCION_EJECUTIVO.md - Monitoring (20 min)
+1. RESUMEN.md (5 min)
+2. PLAN_ACCION.md - Deployment (20 min)
+3. PLAN_ACCION.md - Monitoring (20 min)
 4. ARQUITECTURA_FLUJO_DATOS.md - Stack (20 min)
 5. BD metrics section (15 min)
 ```
@@ -186,7 +183,7 @@ Día 3:
 ## 🔍 Búsqueda Rápida
 
 ### "¿Cuál es el issue crítico?"
-→ PLAN_ACCION_EJECUTIVO.md → "Issue #1: DateTime Immutability"
+→ PLAN_ACCION.md → "Issue #1: DateTime Immutability"
 
 ### "¿Está seguro contra SQL injection?"
 → AUDITORIA_TECNICA_INTEGRAL.md → "Seguridad & Anti-Inyección"
@@ -198,10 +195,10 @@ Día 3:
 → AUDITORIA_TECNICA_INTEGRAL.md → "Estado de Base de Datos"
 
 ### "¿Cómo arreglo el DateTime?"
-→ PLAN_ACCION_EJECUTIVO.md → "Issue #1" → Scripts
+→ PLAN_ACCION.md → "Issue #1" → Scripts
 
 ### "¿Debo ir a producción?"
-→ RESUMEN_EJECUTIVO.md → "Estado de Producción"
+→ RESUMEN.md → "Estado de Producción"
 
 ### "¿Cómo funciona el calendario?"
 → DOCUMENTACION_COMPLETA.md → "Reservations"
@@ -229,13 +226,13 @@ Día 3:
 ## ✅ Checklist Rápido
 
 ### Estoy decidiendo sobre producción
-- [ ] Leer RESUMEN_EJECUTIVO.md
+- [ ] Leer RESUMEN.md
 - [ ] Revisar "Estado de Producción" section
 - [ ] Ejecutar PLAN_ACCION fixes
 - [ ] Pasar testing checklist
 
 ### Necesito arreglar algo
-- [ ] Ir a PLAN_ACCION_EJECUTIVO.md
+- [ ] Ir a PLAN_ACCION.md
 - [ ] Encontrar el Issue #
 - [ ] Copiar el fix/script
 - [ ] Ejecutar y testear
@@ -252,7 +249,7 @@ Día 3:
 ## 🆘 Soporte
 
 ### Si algo no funciona
-1. Buscar en PLAN_ACCION_EJECUTIVO.md
+1. Buscar en PLAN_ACCION.md
 2. Leer sección relevante en AUDITORIA_TECNICA_INTEGRAL.md
 3. Revisar ejemplos en DOCUMENTACION_EXPANSION_COMPLETA.md
 4. Consultar troubleshooting en GUIA_TECNICA_DESARROLLO.md
@@ -266,15 +263,21 @@ Día 3:
 
 ## 📅 Próximas Actualizaciones
 
-**Próxima review:** 6 Marzo 2026
+**Próxima review:** 09 Marzo 2026
 
 Si ejecuta los fixes, actualice:
-- [ ] RESUMEN_EJECUTIVO.md → Estado
-- [ ] PLAN_ACCION_EJECUTIVO.md → Completed items
+- [ ] RESUMEN.md → Estado
+- [ ] PLAN_ACCION.md → Completed items
 - [ ] progreso.md → New findings
 
 ---
 
+**Índice Completo de Documentación**  
+**02 Marzo 2026**  
+**13 documentos - Cobertura integral ✅**
+
+---
+
 **Documentación centralizada y organizada ✅**  
-**27 Febrero 2026**
+**02 Marzo 2026**
  

@@ -400,7 +400,7 @@ SessionController::create() (POST):
                             │ HTTP/AJAX
                             │
 ┌─────────────────────────────────────────────────────────────┐
-│                  ROUTING LAYER (src/Controller/)            │
+│                  ROUTING LAYER (../src/Controller/)            │
 │                                                             │
 │  ReservationController      → public routes                 │
 │  CheckoutController         → payment processing            │
@@ -416,7 +416,7 @@ SessionController::create() (POST):
                             │ Inyección de dependencias
                             │
 ┌─────────────────────────────────────────────────────────────┐
-│               SERVICE LAYER (src/Service/)                  │
+│               SERVICE LAYER (../src/Service/)                  │
 │          Lógica de negocio y operaciones complejas          │
 │                                                             │
 │  ReservationService    → create, cancel, markAttendance     │
@@ -436,7 +436,7 @@ SessionController::create() (POST):
                             │ EntityManager
                             │
 ┌─────────────────────────────────────────────────────────────┐
-│              REPOSITORY LAYER (src/Repository/)             │
+│              REPOSITORY LAYER (../src/Repository/)             │
 │            Consultas especializadas a BD                    │
 │                                                             │
 │  SessionRepository     → getCalendar(), getForMonth()       │
@@ -456,7 +456,7 @@ SessionController::create() (POST):
                             │ (Mapping entities → SQL)
                             │
 ┌─────────────────────────────────────────────────────────────┐
-│               ENTITY LAYER (src/Entity/)                    │
+│               ENTITY LAYER (../src/Entity/)                    │
 │         Modelos con atributos, relaciones, validadores      │
 │                                                             │
 │  User          → 14,566 records                             │

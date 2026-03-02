@@ -1,6 +1,6 @@
 # 📚 ÍNDICE DE DOCUMENTACIÓN - AUDITORÍA TÉCNICA PBStudio
 
-**Generado:** 27 Febrero 2026  
+**Generado:** 02 Marzo 2026  
 **Auditor:** System Audit  
 **Versión:** 1.0
 
@@ -8,15 +8,14 @@
 
 ## 📖 Documentos de Auditoría
 
-### 1. 🚨 [RESUMEN_EJECUTIVO.md](RESUMEN_EJECUTIVO.md) ⭐ **COMIENCE AQUÍ**
+### 1. 🚨 [RESUMEN.md](RESUMEN.md) ⭐ **COMIENCE AQUÍ**
 
 **lectura:** 5 minutos  
-**Para:** Directivos, product managers, QA principales
+**Para:** Equipo de producto, QA, liderazgo tecnico
 
 **Contiene:**
 - ✅ Estado general del proyecto (7/10)
-- 🔴 1 issue crítico identificado
-- 🟡 6 issues mejorables
+- 🔴 46 issues identificados (3 críticos)
 - 📊 Métricas actuales
 - 🚀 Recomendación de producción
 - ⏱️ Timeline siguiente
@@ -52,10 +51,10 @@
 
 ---
 
-### 3. 📋 [PLAN_ACCION_EJECUTIVO.md](PLAN_ACCION_EJECUTIVO.md)
+### 3. 📋 [PLAN_ACCION.md](PLAN_ACCION.md)
 
 **Lectura:** 15 minutos  
-**Para:** Dev leads, QA, DevOps execution
+**Para:** Tech leads, QA, DevOps
 
 **Contiene:**
 - 🔴 Issues críticos con HOW-TO fix
@@ -73,14 +72,14 @@
 ```php
 // ANTES: $dateStart->setTime(14, 0, 0);
 // DESPUÉS: $dateStart = $dateStart->setTime(14, 0, 0);
-// Tiempo fix: 30 min
+// Tiempo fix: 40 min
 // Archivos: SessionRepository, Services, Controllers
 ```
 
 **#2 Missing DB Indices** (MEJORA)
 ```sql
 ALTER TABLE reservation ADD INDEX idx_user_id (user_id);
--- Tiempo: 5 min
+-- Tiempo: 15 min
 -- Ganancia: -70% query time
 ```
 
@@ -118,10 +117,10 @@ ALTER TABLE reservation ADD INDEX idx_user_id (user_id);
 ### Si quiero saber...
 
 **"¿Qué estado tiene el proyecto?"**
-→ Leer [RESUMEN_EJECUTIVO.md](RESUMEN_EJECUTIVO.md) (5 min)
+→ Leer [RESUMEN.md](RESUMEN.md) (5 min)
 
 **"¿Cuál es el issue crítico?"**
-→ Sección "DateTime Immutability" en [PLAN_ACCION_EJECUTIVO.md](PLAN_ACCION_EJECUTIVO.md) (2 min)
+→ Sección "DateTime Immutability" en [PLAN_ACCION.md](PLAN_ACCION.md) (2 min)
 
 **"¿Cómo está la seguridad?"**
 → Sección "Seguridad & Anti-Inyección" en [AUDITORIA_TECNICA_INTEGRAL.md](AUDITORIA_TECNICA_INTEGRAL.md) (10 min)
@@ -130,16 +129,16 @@ ALTER TABLE reservation ADD INDEX idx_user_id (user_id);
 → Sección "Flujo de Nuevo Usuario" en [ARQUITECTURA_FLUJO_DATOS.md](ARQUITECTURA_FLUJO_DATOS.md) (10 min)
 
 **"¿Cómo arreglo DateTime?"**
-→ Issue #1 en [PLAN_ACCION_EJECUTIVO.md](PLAN_ACCION_EJECUTIVO.md) + búsqueda de `setTime(` (30 min)
+→ Issue #1 en [PLAN_ACCION.md](PLAN_ACCION.md) + búsqueda de `setTime(` (40 min)
 
 **"¿Cómo mejoro performance?"**
-→ Issue #2 en [PLAN_ACCION_EJECUTIVO.md](PLAN_ACCION_EJECUTIVO.md) + SQL indices (5 min)
+→ Issue #2 en [PLAN_ACCION.md](PLAN_ACCION.md) + SQL indices (15 min)
 
 **"¿Qué debo testear antes de deploy?"**
-→ Testing Checklist en [PLAN_ACCION_EJECUTIVO.md](PLAN_ACCION_EJECUTIVO.md) (30 min)
+→ Testing Checklist en [PLAN_ACCION.md](PLAN_ACCION.md) (30 min)
 
 **"¿Debo ir a producción?"**
-→ "Estado de Producción" en [RESUMEN_EJECUTIVO.md](RESUMEN_EJECUTIVO.md) (2 min)
+→ "Estado de Producción" en [RESUMEN.md](RESUMEN.md) (2 min)
 
 **"¿Cómo se estructura el código?"**
 → Sección "Arquitectura & Herencia" en [AUDITORIA_TECNICA_INTEGRAL.md](AUDITORIA_TECNICA_INTEGRAL.md) (10 min)
@@ -150,7 +149,7 @@ ALTER TABLE reservation ADD INDEX idx_user_id (user_id);
 
 | Documento | Líneas | Secciones | Público | Tiempo |
 |-----------|--------|-----------|---------|--------|
-| RESUMEN_EJECUTIVO | 250+ | 8 | Todos | 5 min |
+| RESUMEN | 250+ | 8 | Todos | 5 min |
 | AUDITORIA_TECNICA | 1,500+ | 18 | Técnicos | 30 min |
 | PLAN_ACCION | 600+ | 12 | Dev/DevOps | 15 min |
 | ARQUITECTURA_FLUJO | 800+ | 11 | Developers | 20 min |
@@ -165,7 +164,7 @@ ALTER TABLE reservation ADD INDEX idx_user_id (user_id);
 **Hoy:**
 ```
 ❌ NO - DateTime crashed
-└─ Fix: 30 min
+└─ Fix: 40 min
    ↓
 ✅ SÍ - Después del fix
 ```
@@ -173,8 +172,8 @@ ALTER TABLE reservation ADD INDEX idx_user_id (user_id);
 **Timeline sugerida:**
 ```
 Hoy (4-5 horas):
-  ├─ Fix DateTime (30 min)
-  ├─ Add indices (5 min)
+  ├─ Fix DateTime (40 min)
+  ├─ Add indices (15 min)
   ├─ Testing completo (2-3 horas)
   └─ Deploy a staging
 
@@ -193,18 +192,8 @@ Semana:
 
 ## 📈 Issues Summary
 
-### 🔴 Críticas (Hoy)
-1. DateTime Immutability - 30 min fix
-
-### 🟠 Importantes (Esta semana)
-2. Missing DB indices - 5 min fix
-3. No rate limiting - 2 horas impl
-4. Phone sin encrypt - 2 horas impl
-
-### 🟢 Mejoras (Próximo mes)
-5. Audit logging - 1 hora
-6. Validaciones extra - 1-2 horas
-7. Performance tuning - 2-3 horas
+Para el listado actualizado y prioridad por severidad, ver:
+- [PLAN_ACCION.md](PLAN_ACCION.md)
 
 ---
 
@@ -212,8 +201,8 @@ Semana:
 
 ```bash
 # 1. Leer documentos
-[ ] RESUMEN_EJECUTIVO.md (5 min)
-[ ] PLAN_ACCION_EJECUTIVO.md (15 min)
+[ ] RESUMEN.md (5 min)
+[ ] PLAN_ACCION.md (15 min)
 
 # 2. Fix crítico
 [ ] Buscar: grep -r "->setTime(" src/
@@ -242,7 +231,7 @@ Semana:
 ## 🎓 Onboarding para Nuevos Developers
 
 **1º Día:**
-- [ ] Leer [RESUMEN_EJECUTIVO.md](RESUMEN_EJECUTIVO.md)
+- [ ] Leer [RESUMEN.md](RESUMEN.md)
 - [ ] Entender [ARQUITECTURA_FLUJO_DATOS.md](ARQUITECTURA_FLUJO_DATOS.md)
 - [ ] Setup local + php bin/console about
 
@@ -259,8 +248,8 @@ Semana:
 
 ## 📞 Soporte & Actualizaciones
 
-**Documento creado:** 27 Febrero 2026  
-**Próxima review:** 6 de Marzo 2026  
+**Documento creado:** 02 Marzo 2026  
+**Próxima review:** 9 de Marzo 2026  
 
 **Si necesita actualizar:**
 1. Ejecute los fixes listados en PLAN_ACCION
@@ -275,11 +264,11 @@ Semana:
 ```
 ┌─────────────────────────────────────┐
 │  EMPEZAR AQUÍ (5 minutos)          │
-│  RESUMEN_EJECUTIVO.md              │
+│  RESUMEN.md              │
 │  ↓ Entiende qué está mal           │
 ├─────────────────────────────────────┤
 │  CÓMO ARREGLARLO (30 minutos)      │
-│  PLAN_ACCION_EJECUTIVO.md          │
+│  PLAN_ACCION.md          │
 │  ↓ Sigue los pasos exactos         │
 ├─────────────────────────────────────┤
 │  PROFUNDO - Entiende por qué        │
@@ -295,6 +284,6 @@ Semana:
 ---
 
 **Índice Completo de Documentación**  
-**27 Febrero 2026**  
-**4 documentos - 3,150+ líneas - Cobertura integral ✅**
+**02 Marzo 2026**  
+**13 documentos - Cobertura integral ✅**
 

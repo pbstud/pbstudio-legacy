@@ -73,8 +73,8 @@ npm run build
 php bin/console cache:clear
 php bin/console cache:warmup
 
-# Iniciar servidor Symfony (en puerto 8000)
-php -S 127.0.0.1:8000 -t public
+# Iniciar servidor Symfony (en puerto 8000 con 512M de memoria)
+php -d memory_limit=512M -S 127.0.0.1:8000 -t public
 # Acceder a: http://127.0.0.1:8000
 
 # VERIFICACIONES POST-SETUP
@@ -141,7 +141,7 @@ StaffController.php             // Perfil instructor
 
 📁 BACKEND (Admin)
 Backend/SessionController.php   // CRUD sesiones, marcar asistencia
-Backend/SessionDayController.php// Sesiones por día
+Backend/SessionDayController.php // Sesiones por día
 Backend/ReservationController.php // Admin CRUD reservaciones
 Backend/TransactionController.php // Admin transacciones
 Backend/UserController.php      // Admin usuarios

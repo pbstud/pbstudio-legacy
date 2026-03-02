@@ -1,7 +1,7 @@
 # 🏗️ ARQUITECTURA & FLUJO DE DATOS - Vista General
 
-**Documento:** Diagrama ejecutivo del sistema  
-**Fecha:** 27 Febrero 2026  
+**Documento:** Diagrama  del sistema  
+**Fecha:** 02 Marzo 2026  
 **Objetivo:** Entender cómo funciona el proyecto de punta a punta
 
 ---
@@ -298,7 +298,7 @@ PASO 5: LOGOUT
 ```
 ┌──────────────────────────────────────────────────────────┐
 │                    PRESENTATION LAYER                     │
-│  (templates/*.html.twig + JavaScript)                    │
+│  (../templates/*.html.twig + JavaScript)                    │
 ├──────────────────────────────────────────────────────────┤
 │  - Twig templating engine                                │
 │  - Bootstrap + CSS                                       │
@@ -308,7 +308,7 @@ PASO 5: LOGOUT
                          │ HTTP Requests/Responses
 ┌──────────────────────────────────────────────────────────┐
 │                  CONTROLLER LAYER                         │
-│  (src/Controller/*.php)                                  │
+│  (../src/Controller/*.php)                                  │
 ├──────────────────────────────────────────────────────────┤
 │  - RegistrationController → User signup                  │
 │  - ReservationController → Calendar + reservations       │
@@ -319,7 +319,7 @@ PASO 5: LOGOUT
                          │ Method calls
 ┌──────────────────────────────────────────────────────────┐
 │                   SERVICE LAYER                           │
-│  (src/Service/*.php)                                     │
+│  (../src/Service/*.php)                                     │
 ├──────────────────────────────────────────────────────────┤
 │  - ReservationService → Business logic for reservations  │
 │  - TransactionService → Payment processing               │
@@ -331,7 +331,7 @@ PASO 5: LOGOUT
                          │ Entity queries/persists
 ┌──────────────────────────────────────────────────────────┐
 │                 REPOSITORY LAYER                          │
-│  (src/Repository/*.php)                                  │
+│  (../src/Repository/*.php)                                  │
 ├──────────────────────────────────────────────────────────┤
 │  - UserRepository → Find users, search filters           │
 │  - ReservationRepository → Query reservations (336K+)    │
@@ -342,7 +342,7 @@ PASO 5: LOGOUT
                          │ Entity mappings
 ┌──────────────────────────────────────────────────────────┐
 │                    ENTITY LAYER                           │
-│  (src/Entity/*.php - Doctrine ORM Models)                │
+│  (../src/Entity/*.php - Doctrine ORM Models)                │
 ├──────────────────────────────────────────────────────────┤
 │  - User (14K+ users)                                     │
 │  - Session (69K+ sessions)                               │
@@ -442,7 +442,7 @@ LAYER 6: DATABASE LAYER
    ├─ Load config/services.yaml (DI)
    └─ Load config/packages/*.yaml
    ↓
-3. Router matches (config/routes.yaml)
+3. Router matches (../config/routes.yaml)
    └─ /register → RegistrationController::index()
    ↓
 4. Controller instantiated (DI injection)
@@ -589,6 +589,6 @@ tail -20 var/log/dev.log
 
 ---
 
-**Documento Completo:** 27 Febrero 2026  
+**Documento Completo:** 02 Marzo 2026  
 **Review:** ✅ ESTRUCTURA CLARA Y DOCUMENTADA
 
