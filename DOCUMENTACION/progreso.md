@@ -1267,6 +1267,7 @@ Manual práctico para desarrolladores incluyendo:
 | Compilar assets (prod) | `npm run build` |
 | Compilar assets (watch) | `npm run watch` |
 | Limpiar cache | `php bin/console cache:clear` |
+| Cerrar sesiones pasadas | `php bin/console app:session:autoclosing` |
 | Iniciar servidor | `php -d memory_limit=512M -S 127.0.0.1:8000 -t public` |
 | Quitar ONLY_FULL_GROUP_BY | `mysql -u root -pexael -e "SET GLOBAL sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''));"` |
 | Ejecutar tests | `php bin/phpunit` |
