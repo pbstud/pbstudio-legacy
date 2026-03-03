@@ -1079,6 +1079,10 @@ php bin/console doctrine:schema:validate       # Validar schema
 # Cache
 php bin/console cache:clear                    # Limpiar caché
 
+# Mantenimiento (ejecutar manualmente en desarrollo)
+php bin/console app:session:autoclosing        # Cerrar sesiones pasadas
+php bin/console app:transaction:checkexpiration # Verificar paquetes expirados
+
 # Debug
 php bin/console debug:router                   # Ver rutas
 php bin/console debug:container                # Ver servicios
@@ -1096,6 +1100,8 @@ php bin/console doctrine:cache:clear-metadata
 php bin/console doctrine:cache:clear-query
 php bin/console doctrine:cache:clear-result
 ```
+
+> **Nota importante:** Para que las "Clases tomadas" aparezcan en el panel de usuario, las sesiones deben estar cerradas (status=0). En desarrollo, ejecutar manualmente `php bin/console app:session:autoclosing`. En producción, configurar CRON para ejecutarlo cada 15 minutos.
 
 ---
 

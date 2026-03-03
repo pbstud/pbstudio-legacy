@@ -1,7 +1,7 @@
 # 📋 PROGRESO DEL PROYECTO - PB STUDIO
 
-**Última actualización:** 02/03/2026 19:30  
-**Estado General:** 🟢 AVANZADO (52% Completado)  
+**Última actualización:** 03/03/2026 12:40  
+**Estado General:** 🟢 AVANZADO (53% Completado)  
 **Equipo:** Desarrollo + Technical Documentation  
 
 ---
@@ -503,6 +503,85 @@ STATUS: 15,000+ PALABRAS | 60+ EJEMPLOS | 20+ DIAGRAMAS (✅ 40% COMPLETO)
    │  • Performance: Extra queries (N+1)
    ├─ Status: 🟡 MODERADO - Funciona parcialmente pero inestable
    └─ Acción: Mapping audit + schema validation + eager loading fix
+
+🟠 ERRORES URGENTES (POST-CRÍTICOS) - ESTADO ACTUAL
+
+   1) Disponibilidad de clase para selección de asientos desfasada y sin agrupar
+   ├─ Síntoma:
+   │  • En backend, la disponibilidad mostrada no coincide con el estado real de la sesión
+   │  • Los asientos aparecen sin agrupación esperada en la vista de selección
+   ├─ Reproducción:
+   │  • Confirmada manualmente en backend y frontend
+   │  • Contrasta con el comportamiento esperado descrito en diagnóstico
+   ├─ Hipótesis inicial:
+   │  • Query/DTO de disponibilidad sin orden y agrupación consistente por horario/salón/sesión
+   │  • Cálculo de capacidad disponible no sincronizado con placesNotAvailable/reservas activas
+   ├─ Impacto:
+   │  • Riesgo de selección de asiento con información incorrecta
+   │  • Mala UX y potencial sobre-reserva por percepción errónea
+   ├─ Prioridad: 🟠 URGENTE
+   └─ Documentación técnica: DOCUMENTACION/FIXES/URGENTE_DISPONIBILIDAD_ASIENTOS_DESFASADA.md
+
+   2) Doble reservación por la misma persona en la misma clase (asientos distintos)
+   ├─ Síntoma:
+   │  • Un mismo usuario logra reservar 2 lugares en la misma sesión
+   │  • Se observan dos `place_number` diferentes para el mismo `user_id + session_id`
+   ├─ Evidencia (reproducción local):
+   │  • Caso detectado: `user_id=14567`, `session_id=69999`, asientos `1` y `11`
+   │  • Logs: dos POST a `/reservacion-clase/69999` + dos INSERT en `reservation`
+   │  • Timestamps: `11:26:25` y `11:26:54` (misma transacción `62953`)
+   ├─ Causa probable:
+   │  • Falta validación/lock atómico para unicidad por usuario+sesión
+   │  • Sin constraint de negocio que impida múltiples reservas activas del mismo usuario en la clase
+   ├─ Impacto:
+   │  • Bloqueo injusto de lugares para otros usuarios
+   │  • Distorsión de ocupación y reglas comerciales
+   ├─ Prioridad: 🟠 URGENTE
+   └─ Documentación técnica: DOCUMENTACION/FIXES/URGENTE_DISPONIBILIDAD_ASIENTOS_DESFASADA.md
+
+   Estado consolidado de urgentes:
+   ├─ Confirmación: reproducidos manualmente y respaldados con evidencia en logs + BD
+   ├─ Resultado: comportamiento observado contrasta con lo esperado en operación normal
+   ├─ Alcance: flujo de reserva/asientos + consistencia de disponibilidad
+   ├─ Riesgo: sobre-reserva y bloqueo de lugares para otros usuarios
+   └─ Estado: ✅ documentación técnica cerrada, pendiente implementación en rama de fix
+
+📅 PLAN DE TRABAJO (SIGUIENTE JORNADA) - RESOLUCIÓN URGENTES
+
+   Objetivo del día: cerrar causa raíz y dejar correcciones aplicadas + validadas en backend.
+
+   1) 09:00-10:00 — Reproducción guiada + traza
+      ├─ Ejecutar casos mínimos por flujo (reserva, admin sesión, pago, selección de asiento)
+      ├─ Capturar request/response + SQL involucrado
+      └─ Confirmar punto exacto de ruptura por caso
+
+   2) 10:00-12:00 — Auditoría de mapeo Doctrine
+      ├─ Revisar relaciones en entidades afectadas (User, Session, Reservation, Transaction, Coupon)
+      ├─ Verificar JoinColumn, nullable, inversedBy/mappedBy
+      ├─ Revisar query de disponibilidad (ORDER BY/GROUP BY) y fuente de agregación de asientos
+      └─ Ejecutar schema validate y documentar divergencias
+
+   3) 12:00-13:00 — Diseño de fix por prioridad
+      ├─ Priorizar correcciones de mayor impacto en backend
+      ├─ Definir cambios mínimos por archivo
+      └─ Preparar checklist de aceptación
+
+   4) 15:00-17:00 — Implementación
+      ├─ Aplicar correcciones de mapping/queries
+      ├─ Corregir agrupación/orden de disponibilidad para vista de asientos
+      ├─ Ajustar eager/lazy loading en repositorios críticos
+      └─ Añadir validaciones explícitas donde hoy falla silenciosamente
+
+   5) 17:00-18:00 — Validación final + cierre
+      ├─ Reprobar casos backend ya reproducidos hoy
+      ├─ Validar que disponibilidad y agrupación de asientos coincidan con estado real
+      ├─ Verificar ausencia de regresión en flujos críticos
+      └─ Actualizar documentación de progreso con evidencia
+
+   Entregable esperado mañana:
+   ├─ lista de fixes aplicados por archivo
+   ├─ evidencia de validación backend
+   └─ estado final por error urgente (resuelto/en seguimiento)
 
 🛠️ PLAN DE SOLUCIÓN CON LOGGING - Instrumentation Strategy
    
@@ -1188,7 +1267,9 @@ Manual práctico para desarrolladores incluyendo:
 | Compilar assets (prod) | `npm run build` |
 | Compilar assets (watch) | `npm run watch` |
 | Limpiar cache | `php bin/console cache:clear` |
+| Cerrar sesiones pasadas | `php bin/console app:session:autoclosing` |
 | Iniciar servidor | `php -d memory_limit=512M -S 127.0.0.1:8000 -t public` |
+| Quitar ONLY_FULL_GROUP_BY | `mysql -u root -pexael -e "SET GLOBAL sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''));"` |
 | Ejecutar tests | `php bin/phpunit` |
 | Validar schema | `php bin/console doctrine:schema:validate` |
 | Listar migraciones | `php bin/console doctrine:migrations:list` |
