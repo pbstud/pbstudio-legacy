@@ -453,7 +453,28 @@ STATUS: 15,000+ PALABRAS | 60+ EJEMPLOS | 20+ DIAGRAMAS (✅ 40% COMPLETO)
    ├─ Status: ✅ COMPLETADO
    └─ Documentación: DOCUMENTACION/FIXES/DATETIME_IMMUTABILITY_FIX.md
 
-2️⃣ Template Registro No Sale - Registration Form Missing
+2️⃣ Exposición de phpinfo() en backend/test - Information Disclosure 🔴 CRÍTICO
+   ├─ Síntoma:
+   │  • Existe endpoint `/backend/test` accesible desde backend
+   │  • Ejecuta `phpinfo()` y finaliza con `exit()`
+   │  • Muestra configuración sensible del servidor PHP
+   ├─ Causa Raíz:
+   │  • Función de debugging (`backTest`) quedó en controlador productivo
+   │  • Sin guardas de entorno (`dev` only) ni hardening por rol/IP
+   │  • Ausencia de control preventivo para bloquear artefactos de debug
+   ├─ Impacto:
+   │  • Exposición de versión PHP, extensiones, rutas y variables de entorno
+   │  • Facilita reconocimiento técnico y selección de exploit
+   │  • Riesgo de compliance/auditoría por fuga de información sensible
+   ├─ Estado actual:
+   │  • ✅ Documentado para decisión
+   │  • ⏳ Pendiente de implementación del fix (hotfix recomendado)
+   ├─ Recomendación:
+   │  • Eliminar ruta y método `backTest` (mitigación inmediata)
+   │  • Opcional: migrar diagnóstico a comando CLI seguro
+   └─ Documentación técnica: DOCUMENTACION/FIXES_PENDIENTES/CRITICO_EXPOSICION_PHPINFO.md
+
+3️⃣ Template Registro No Sale - Registration Form Missing
    ├─ Síntoma: 
    │  • GET /register muestra error 500 (antes)
    │  • Usuarios nuevos NO pueden completar registro
@@ -470,7 +491,7 @@ STATUS: 15,000+ PALABRAS | 60+ EJEMPLOS | 20+ DIAGRAMAS (✅ 40% COMPLETO)
    │  └─ Verificación: curl devuelve Status 200 en /register
    └─ Acción: Completar + documentar en .env.example
 
-3️⃣ Errores de Mapeo en Flujo de Trabajo - Entity Relationship Issues
+4️⃣ Errores de Mapeo en Flujo de Trabajo - Entity Relationship Issues
    ├─ Descripción General:
    │  • Algunas relaciones FK no se cargan correctamente
    │  • Posible mismatch entre Entity properties y BD columns
@@ -520,7 +541,7 @@ STATUS: 15,000+ PALABRAS | 60+ EJEMPLOS | 20+ DIAGRAMAS (✅ 40% COMPLETO)
    │  • Riesgo de selección de asiento con información incorrecta
    │  • Mala UX y potencial sobre-reserva por percepción errónea
    ├─ Prioridad: 🟠 URGENTE
-   └─ Documentación técnica: DOCUMENTACION/FIXES/URGENTE_DISPONIBILIDAD_ASIENTOS_DESFASADA.md
+   └─ Documentación técnica: DOCUMENTACION/FIXES_PENDIENTES/URGENTE_DISPONIBILIDAD_ASIENTOS_DESFASADA.md
 
    2) Doble reservación por la misma persona en la misma clase (asientos distintos)
    ├─ Síntoma:
@@ -537,7 +558,7 @@ STATUS: 15,000+ PALABRAS | 60+ EJEMPLOS | 20+ DIAGRAMAS (✅ 40% COMPLETO)
    │  • Bloqueo injusto de lugares para otros usuarios
    │  • Distorsión de ocupación y reglas comerciales
    ├─ Prioridad: 🟠 URGENTE
-   └─ Documentación técnica: DOCUMENTACION/FIXES/URGENTE_DISPONIBILIDAD_ASIENTOS_DESFASADA.md
+   └─ Documentación técnica: DOCUMENTACION/FIXES_PENDIENTES/URGENTE_DISPONIBILIDAD_ASIENTOS_DESFASADA.md
 
    Estado consolidado de urgentes:
    ├─ Confirmación: reproducidos manualmente y respaldados con evidencia en logs + BD
@@ -583,7 +604,102 @@ STATUS: 15,000+ PALABRAS | 60+ EJEMPLOS | 20+ DIAGRAMAS (✅ 40% COMPLETO)
    ├─ evidencia de validación backend
    └─ estado final por error urgente (resuelto/en seguimiento)
 
-🛠️ PLAN DE SOLUCIÓN CON LOGGING - Instrumentation Strategy
+� SECURITY HARDENING - CSRF Protection Branch (Rama: fix/urgente-csrf-endpoints)
+
+   Objetivo: Identificar y corregir vulnerabilidades CSRF en endpoints críticos
+   
+   Status Global: 🟡 EN PROGRESO (1 de ~3-4 fixes aplicadas)
+   
+   Contexto:
+   ├─ Análisis identifi­có múltiples endpoint POST sin CSRF validation
+   ├─ Algunos usan GET para operaciones de escritura (anti-patrón)
+   ├─ Otros usan POST pero sin validar token CSRF
+   ├─ JavaScript AJAX no envía CSRF tokens en headers
+   └─ Riesgo CVSS: 5.4 (MEDIUM) - Requiere usuario logueado + interacción
+   
+   VULNERABILIDADES IDENTIFICADAS:
+   
+   1️⃣ waiting_list_remove - GET Method (CRÍTICO)
+   ├─ Ubicación: src/Controller/ProfileController.php::waitingListRemove() line 321
+   ├─ Template: templates/profile/waiting_list.html.twig line 25-27
+   ├─ Problema: DELETE via GET request + NO CSRF token
+   ├─ Severidad: 🔴 ALTO (violación REST + CSRF)
+   ├─ Solución aplicada: ✅
+   │  ├─ cambio en ruta: GET → POST
+   │  ├─ agregar validación CSRF en controlador
+   │  ├─ actualizar template: link HTML → form con token
+   │  ├─ archivo actualizado: ProfileController.php (POST method)
+   │  └─ archivo actualizado: waiting_list.html.twig (form + token)
+   ├─ Commit message: "fix(security): add CSRF protection to waiting_list_remove endpoint"
+   └─ Status: ✅ APLICADO Y VALIDADO
+   
+   2️⃣ reservation_change_session - POST without CSRF validation
+   ├─ Ubicación: src/Controller/ProfileController.php::reservationChangeSession() line 262 → 284
+   ├─ Ruta: POST /mi-cuenta/reservacion/{id}/cambiar/{sessionId}
+   ├─ Template: templates/profile/reservation_change_session.html.twig line 48
+   ├─ Problema: POST request procesa cambio de sesión + NO server-side CSRF validation
+   ├─ Flujo:
+   │  1. Usuario hace clic "Cambiar reservación"
+   │  2. GET /cambiar/{id} → muestra sesiones disponibles
+   │  3. GET /cambiar/{id}/{sessionId} → muestra grid de asientos
+   │  4. Usuario selecciona asiento → POST sin validar CSRF token ← VULNERABILIDAD
+   │  5. Controlador procesa cambio sin verificar origen de solicitud
+   ├─ Severidad: 🟡 ALTO (ataque CSRF puede transferir usuario a clase diferente)
+   ├─ Solución recomendada: ✅ DOCUMENTADA (2 CAMBIOS SIMPLES)
+   │  ├─ Template: agregar {{ csrf_token('reservation_change_session') }} en form
+   │  ├─ Controlador: agregar isCsrfTokenValid() validation (3 líneas)
+   │  └─ Complejidad: BAJA
+   ├─ Archivo de análisis CONSOLIDADO: DOCUMENTACION/FIXES_PENDIENTES/CSRF_RESERVATION_CHANGE_SESSION.md
+   │  ├─ PARTE 1: Explica canChange() vs canCancel() + flujo completo
+   │  ├─ PARTE 2: Ubicación exacta de vulnerabilidad + ataque concreto
+   │  ├─ PARTE 3: Solución con código actual vs nuevo
+   │  └─ ✅ Checklist de verificación e implementación
+   ├─ Nota: Este fix SOLO afecta cambio de sesión, NO cancela la reservación
+   │        (canChange() es ventana 2-12h, canCancel() es después de 12h)
+   └─ Status: 📋 DOCUMENTADO (LISTO PARA IMPLEMENTAR) - PENDIENTE CÓDIGO
+   
+   3️⃣ reservation_cancel - GET method (CRÍTICO - POST sin CSRF)
+   ├─ Ubicación: src/Controller/ProfileController.php::reservationCancel() line 162
+   ├─ Ruta: GET /mi-cuenta/reservacion/{id}/cancelar (también POST sin CSRF)
+   ├─ Template: templates/profile/reservation_cancel.html.twig line 38
+   ├─ Problema: GET para operación de escritura (anti-patrón REST)
+   ├─ Problema 2: POST también acepta pero sin CSRF validation
+   ├─ Severidad: 🔴 CRÍTICO (violación REST + CSRF)
+   ├─ Visibilidad: Oculto en UX (reservation_can_cancel() retorna false generalmente)
+   │           pero existe en código y accesible si condiciones timing lo permiten
+   ├─ Nota: Ya hay análisis documentado en fix anterior (CSRF_WAITING_LIST_REMOVE_GET.md)
+   ├─ Archivo de análisis: DOCUMENTACION/FIXES_PENDIENTES/URGENTE_DISPONIBILIDAD_ASIENTOS_DESFASADA.md
+   └─ Status: 🔄 PENDIENTE - Próximo a auditar después de reservation_change_session
+   
+   4️⃣ reservation_confirm - POST unknown CSRF status
+   ├─ Ubicación: src/Controller/ReservationController.php::reserveSession()
+   ├─ Status: 🔄 NECESITA AUDITORÍA - No revisado aún
+   
+   4️⃣ backend_user_reset_password - GET method (CRÍTICO)
+   ├─ Ubicación: src/Controller/Backend/StaffController.php::resetPassword()
+   ├─ Problema: GET request modifica datos + NO CSRF token
+   ├─ Severidad: 🔴 CRÍTCAL (violación REST + CSRF)
+   ├─ Status: 🔄 PENDIENTE - Colocado en lista para próximo fix
+   
+   PLAN DE TRABAJO (PRÓXIMOS FIXES):
+   
+   Secuencia recomendada:
+   1. ✅ waiting_list_remove (HECHO)
+   2. 🔄 reservation_cancel (EN ANÁLISIS - siguiente a implementar)
+   3. 🔴 backend_user_reset_password (GET → POST + CSRF)
+   4. 🔄 Auditar reservation_confirm, reservation_change_session
+   5. 🔄 Auditar backend_transaction_cancel, backend_reservation_attended
+   
+   Criterios de aceptación para cada fix:
+   ├─ Cambios de código requeridos (mínimos)
+   ├─ ✅ Sin errores sintácticos (get_errors OK)
+   ├─ ✅ Funcionalidad original se mantiene sin cambios
+   ├─ ✅ Autenticación/autorización intacta
+   ├─ ✅ UX sin impacto (mismos botones, comportamiento)
+   ├─ ✅ Validación CSRF retorna 403 en caso de token inválido
+   └─ Todo committeado en rama fix/urgente-csrf-endpoints
+
+�🛠️ PLAN DE SOLUCIÓN CON LOGGING - Instrumentation Strategy
    
    Objetivo: Visibilidad completa en cada paso del workflow para diagnosticar errores
    

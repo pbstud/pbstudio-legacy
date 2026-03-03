@@ -175,6 +175,10 @@ class ProfileController extends AbstractController
         }
 
         if ($request->isMethod('POST')) {
+            if (!$this->isCsrfTokenValid('reservation_cancel', $request->request->get('_token'))) {
+                throw $this->createAccessDeniedException('Invalid CSRF token');
+            }
+
             try {
                 $reservationService->cancel($reservation);
 
@@ -276,6 +280,10 @@ class ProfileController extends AbstractController
         }
 
         if ($request->isMethod('POST') && $request->request->has('place_number')) {
+            if (!$this->isCsrfTokenValid('reservation_change_session', $request->request->get('_token'))) {
+                throw $this->createAccessDeniedException('Invalid CSRF token');
+            }
+
             try {
                 if (!$reservationService->canChange($reservation)) {
                     throw new ReservationException('La reservación no acepta cambios.');
@@ -318,14 +326,20 @@ class ProfileController extends AbstractController
         ]);
     }
 
-    #[Route('/waiting-list/{sessionId}/remove', name: 'waiting_list_remove', methods: ['GET'])]
+    #[Route('/waiting-list/{sessionId}/remove', name: 'waiting_list_remove', methods: ['POST'])]
     public function waitingListRemove(
         int $sessionId,
+        Request $request,
         WaitingListRepository $waitingListRepository,
         EntityManagerInterface $em,
     ): Response {
         /** @var User $user */
         $user = $this->getUser();
+
+        // Validar token CSRF
+        if (!$this->isCsrfTokenValid('waiting_list_remove_'.$sessionId, (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException('Invalid CSRF token.');
+        }
 
         $waitingList = $waitingListRepository->getOneBySession($sessionId, $user);
 

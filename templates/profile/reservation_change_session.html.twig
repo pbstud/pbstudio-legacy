@@ -49,6 +49,7 @@
             'id': reservation.id,
             'sessionId': session.id
         }) }}" method="post" class="m-fjx">
+            <input type="hidden" name="_token" value="{{ csrf_token('reservation_change_session') }}" />
             <input type="hidden" name="place_number" />
         </form>
 

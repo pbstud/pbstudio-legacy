@@ -35,6 +35,9 @@
             </div>
         </div>
 
+        <form id="frmReservationCancel" action="{{ path('reservation_cancel', { 'id': reservation.id }) }}" method="post" class="m-fjx" style="display:none;">
+            <input type="hidden" name="_token" value="{{ csrf_token('reservation_cancel') }}" />
+        </form>
         <a id="btn-reservation-cancel" href="#" data-url="{{ path('reservation_cancel', { 'id': reservation.id }) }}" class="btn btn-submit">Cancelar reservación</a>
     </div>
 </section>

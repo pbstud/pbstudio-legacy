@@ -202,10 +202,14 @@ class UserController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}/reset-password', name: 'backend_user_reset_password', methods: ['GET'])]
+    #[Route('/{id}/reset-password', name: 'backend_user_reset_password', methods: ['POST'])]
     #[IsGranted('ALLOWED_ROUTE_ACCESS')]
-    public function resetPassword(User $user, EntityManagerInterface $em): Response
+    public function resetPassword(User $user, EntityManagerInterface $em, Request $request): Response
     {
+        if (!$this->isCsrfTokenValid('backend_user_reset_password', $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException('Invalid CSRF token');
+        }
+
         if (!$user->isPasswordRequestNonExpired($this->getParameter('resetting_retry_ttl'))) {
             $user
                 ->setConfirmationToken(TokenGenerator::generateToken())

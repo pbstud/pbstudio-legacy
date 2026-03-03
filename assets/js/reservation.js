@@ -112,10 +112,14 @@ function reservationCancelInit()
         ModalLoading.show();
 
         let url = button.data('url');
+        let csrfToken = $('#frmReservationCancel input[name="_token"]').val();
 
         $.ajax({
             url : url,
             type: 'post',
+            data: {
+                _token: csrfToken
+            },
             success: function (response) {
                 if (response.error) {
                     ModalFlash.error(response.error);

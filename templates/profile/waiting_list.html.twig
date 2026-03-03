@@ -22,9 +22,10 @@
                             <p><b>Día: </b>{{ session.dateStart()|format_date(null, "EEEE d 'de' MMMM") }}</p>
                             <p><b>Hora: </b>{{ session.timeStart|date('h:i a') }}</p>
                             <p><b>Instructor: </b>{{ session.instructor.profile.firstname }}</p>
-                            <a href="{{ path('waiting_list_remove', { 'sessionId': session.id }) }}" class="link waiting-list-remove">
-                                Borrar de lista de espera
-                            </a>
+                            <form action="{{ path('waiting_list_remove', { 'sessionId': session.id }) }}" method="post" class="m-fjx">
+                                <input type="hidden" name="_token" value="{{ csrf_token('waiting_list_remove_' ~ session.id) }}">
+                                <button type="submit" class="link waiting-list-remove">Borrar de lista de espera</button>
+                            </form>
                         </div>
                     </div>
                 </div>
