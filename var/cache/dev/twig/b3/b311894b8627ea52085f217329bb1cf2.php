@@ -132,12 +132,16 @@ class __TwigTemplate_eaf01aa55cb7ba22ff1de236a5e5b99d extends Template
             // line 24
             yield Twig\Extension\EscaperExtension::escape($this->env, CoreExtension::getAttribute($this->env, $this->source, CoreExtension::getAttribute($this->env, $this->source, CoreExtension::getAttribute($this->env, $this->source, (isset($context["session"]) || array_key_exists("session", $context) ? $context["session"] : (function () { throw new RuntimeError('Variable "session" does not exist.', 24, $this->source); })()), "instructor", [], "any", false, false, false, 24), "profile", [], "any", false, false, false, 24), "firstname", [], "any", false, false, false, 24), "html", null, true);
             yield "</p>
-                            <a href=\"";
+                            <form action=\"";
             // line 25
             yield Twig\Extension\EscaperExtension::escape($this->env, $this->extensions['Symfony\Bridge\Twig\Extension\RoutingExtension']->getPath("waiting_list_remove", ["sessionId" => CoreExtension::getAttribute($this->env, $this->source, (isset($context["session"]) || array_key_exists("session", $context) ? $context["session"] : (function () { throw new RuntimeError('Variable "session" does not exist.', 25, $this->source); })()), "id", [], "any", false, false, false, 25)]), "html", null, true);
-            yield "\" class=\"link waiting-list-remove\">
-                                Borrar de lista de espera
-                            </a>
+            yield "\" method=\"post\" class=\"m-fjx\">
+                                <input type=\"hidden\" name=\"_token\" value=\"";
+            // line 26
+            yield Twig\Extension\EscaperExtension::escape($this->env, $this->env->getRuntime('Symfony\Component\Form\FormRenderer')->renderCsrfToken(("waiting_list_remove_" . CoreExtension::getAttribute($this->env, $this->source, (isset($context["session"]) || array_key_exists("session", $context) ? $context["session"] : (function () { throw new RuntimeError('Variable "session" does not exist.', 26, $this->source); })()), "id", [], "any", false, false, false, 26))), "html", null, true);
+            yield "\">
+                                <button type=\"submit\" class=\"link waiting-list-remove\">Borrar de lista de espera</button>
+                            </form>
                         </div>
                     </div>
                 </div>
@@ -145,7 +149,7 @@ class __TwigTemplate_eaf01aa55cb7ba22ff1de236a5e5b99d extends Template
             $context['_iterated'] = true;
         }
         if (!$context['_iterated']) {
-            // line 32
+            // line 33
             yield "                <div class=\"reserv_class clearfix\">
                     <p>Sin registros por mostrar</p>
                 </div>
@@ -154,11 +158,11 @@ class __TwigTemplate_eaf01aa55cb7ba22ff1de236a5e5b99d extends Template
         $_parent = $context['_parent'];
         unset($context['_seq'], $context['_iterated'], $context['_key'], $context['entity'], $context['_parent'], $context['loop']);
         $context = array_intersect_key($context, $_parent) + $_parent;
-        // line 36
+        // line 37
         yield "
             <a href=\"";
-        // line 37
-        yield Twig\Extension\EscaperExtension::escape($this->env, $this->extensions['Symfony\Bridge\Twig\Extension\RoutingExtension']->getPath("reservation_calendar", ["slug" => CoreExtension::getAttribute($this->env, $this->source, CoreExtension::getAttribute($this->env, $this->source, CoreExtension::getAttribute($this->env, $this->source, (isset($context["app"]) || array_key_exists("app", $context) ? $context["app"] : (function () { throw new RuntimeError('Variable "app" does not exist.', 37, $this->source); })()), "user", [], "any", false, false, false, 37), "branchOffice", [], "any", false, false, false, 37), "slug", [], "any", false, false, false, 37)]), "html", null, true);
+        // line 38
+        yield Twig\Extension\EscaperExtension::escape($this->env, $this->extensions['Symfony\Bridge\Twig\Extension\RoutingExtension']->getPath("reservation_calendar", ["slug" => CoreExtension::getAttribute($this->env, $this->source, CoreExtension::getAttribute($this->env, $this->source, CoreExtension::getAttribute($this->env, $this->source, (isset($context["app"]) || array_key_exists("app", $context) ? $context["app"] : (function () { throw new RuntimeError('Variable "app" does not exist.', 38, $this->source); })()), "user", [], "any", false, false, false, 38), "branchOffice", [], "any", false, false, false, 38), "slug", [], "any", false, false, false, 38)]), "html", null, true);
         yield "\" class=\"btn\">Reservar clase</a>
         </div>
     </div>
@@ -193,7 +197,7 @@ class __TwigTemplate_eaf01aa55cb7ba22ff1de236a5e5b99d extends Template
      */
     public function getDebugInfo()
     {
-        return array (  161 => 37,  158 => 36,  149 => 32,  137 => 25,  133 => 24,  129 => 23,  125 => 22,  119 => 21,  112 => 17,  106 => 13,  103 => 12,  101 => 11,  96 => 10,  90 => 6,  80 => 5,  60 => 3,  37 => 1,);
+        return array (  165 => 38,  162 => 37,  153 => 33,  141 => 26,  137 => 25,  133 => 24,  129 => 23,  125 => 22,  119 => 21,  112 => 17,  106 => 13,  103 => 12,  101 => 11,  96 => 10,  90 => 6,  80 => 5,  60 => 3,  37 => 1,);
     }
 
     public function getSourceContext()
@@ -222,9 +226,10 @@ class __TwigTemplate_eaf01aa55cb7ba22ff1de236a5e5b99d extends Template
                             <p><b>Día: </b>{{ session.dateStart()|format_date(null, \"EEEE d 'de' MMMM\") }}</p>
                             <p><b>Hora: </b>{{ session.timeStart|date('h:i a') }}</p>
                             <p><b>Instructor: </b>{{ session.instructor.profile.firstname }}</p>
-                            <a href=\"{{ path('waiting_list_remove', { 'sessionId': session.id }) }}\" class=\"link waiting-list-remove\">
-                                Borrar de lista de espera
-                            </a>
+                            <form action=\"{{ path('waiting_list_remove', { 'sessionId': session.id }) }}\" method=\"post\" class=\"m-fjx\">
+                                <input type=\"hidden\" name=\"_token\" value=\"{{ csrf_token('waiting_list_remove_' ~ session.id) }}\">
+                                <button type=\"submit\" class=\"link waiting-list-remove\">Borrar de lista de espera</button>
+                            </form>
                         </div>
                     </div>
                 </div>

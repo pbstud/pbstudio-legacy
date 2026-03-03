@@ -123,14 +123,14 @@ class __TwigTemplate_fd409618cf5665d9f40038390c0716df extends Template
             <div class=\"col-md-8 col-xs-12\">
                 ";
         // line 50
-        yield from         $this->loadTemplate("backend/staff/edit.html.twig", "backend/staff/edit.html.twig", 50, "883475289")->unwrap()->yield(CoreExtension::toArray(["page_title" => "Información", "staff" =>         // line 52
+        yield from         $this->loadTemplate("backend/staff/edit.html.twig", "backend/staff/edit.html.twig", 50, "1100885713")->unwrap()->yield(CoreExtension::toArray(["page_title" => "Información", "staff" =>         // line 52
 (isset($context["staff"]) || array_key_exists("staff", $context) ? $context["staff"] : (function () { throw new RuntimeError('Variable "staff" does not exist.', 52, $this->source); })()), "edit_form" =>         // line 53
 (isset($context["edit_form"]) || array_key_exists("edit_form", $context) ? $context["edit_form"] : (function () { throw new RuntimeError('Variable "edit_form" does not exist.', 53, $this->source); })())]));
         // line 98
         yield "
                 ";
         // line 99
-        yield from         $this->loadTemplate("backend/staff/edit.html.twig", "backend/staff/edit.html.twig", 99, "662538044")->unwrap()->yield(CoreExtension::toArray(["page_title" => "Sucursales", "edit_form" =>         // line 101
+        yield from         $this->loadTemplate("backend/staff/edit.html.twig", "backend/staff/edit.html.twig", 99, "745619563")->unwrap()->yield(CoreExtension::toArray(["page_title" => "Sucursales", "edit_form" =>         // line 101
 (isset($context["edit_form"]) || array_key_exists("edit_form", $context) ? $context["edit_form"] : (function () { throw new RuntimeError('Variable "edit_form" does not exist.', 101, $this->source); })())]));
         // line 112
         yield "            </div>
@@ -138,7 +138,7 @@ class __TwigTemplate_fd409618cf5665d9f40038390c0716df extends Template
             <div class=\"col-md-4 col-xs-12\">
                 ";
         // line 115
-        yield from         $this->loadTemplate("backend/staff/edit.html.twig", "backend/staff/edit.html.twig", 115, "1517912457")->unwrap()->yield(CoreExtension::toArray(["page_title" => "Permisos", "edit_form" =>         // line 117
+        yield from         $this->loadTemplate("backend/staff/edit.html.twig", "backend/staff/edit.html.twig", 115, "1255678898")->unwrap()->yield(CoreExtension::toArray(["page_title" => "Permisos", "edit_form" =>         // line 117
 (isset($context["edit_form"]) || array_key_exists("edit_form", $context) ? $context["edit_form"] : (function () { throw new RuntimeError('Variable "edit_form" does not exist.', 117, $this->source); })())]));
         // line 125
         yield "            </div>
@@ -428,7 +428,7 @@ class __TwigTemplate_fd409618cf5665d9f40038390c0716df extends Template
 
 
 /* backend/staff/edit.html.twig */
-class __TwigTemplate_fd409618cf5665d9f40038390c0716df___883475289 extends Template
+class __TwigTemplate_fd409618cf5665d9f40038390c0716df___1100885713 extends Template
 {
     private $source;
     private $macros = [];
@@ -744,7 +744,7 @@ class __TwigTemplate_fd409618cf5665d9f40038390c0716df___883475289 extends Templa
 
 
 /* backend/staff/edit.html.twig */
-class __TwigTemplate_fd409618cf5665d9f40038390c0716df___662538044 extends Template
+class __TwigTemplate_fd409618cf5665d9f40038390c0716df___745619563 extends Template
 {
     private $source;
     private $macros = [];
@@ -1029,7 +1029,7 @@ class __TwigTemplate_fd409618cf5665d9f40038390c0716df___662538044 extends Templa
 
 
 /* backend/staff/edit.html.twig */
-class __TwigTemplate_fd409618cf5665d9f40038390c0716df___1517912457 extends Template
+class __TwigTemplate_fd409618cf5665d9f40038390c0716df___1255678898 extends Template
 {
     private $source;
     private $macros = [];

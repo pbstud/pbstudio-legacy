@@ -167,6 +167,10 @@ class __TwigTemplate_f8a23237200dbc269731b0be7c44b277 extends Template
 (isset($context["session"]) || array_key_exists("session", $context) ? $context["session"] : (function () { throw new RuntimeError('Variable "session" does not exist.', 50, $this->source); })()), "id", [], "any", false, false, false, 50)]), "html", null, true);
         // line 51
         yield "\" method=\"post\" class=\"m-fjx\">
+            <input type=\"hidden\" name=\"_token\" value=\"";
+        // line 52
+        yield Twig\Extension\EscaperExtension::escape($this->env, $this->env->getRuntime('Symfony\Component\Form\FormRenderer')->renderCsrfToken("reservation_change_session"), "html", null, true);
+        yield "\" />
             <input type=\"hidden\" name=\"place_number\" />
         </form>
 
@@ -206,7 +210,7 @@ class __TwigTemplate_f8a23237200dbc269731b0be7c44b277 extends Template
      */
     public function getDebugInfo()
     {
-        return array (  169 => 51,  167 => 50,  166 => 49,  165 => 48,  155 => 41,  149 => 38,  143 => 35,  139 => 34,  135 => 33,  131 => 32,  127 => 31,  123 => 30,  118 => 27,  110 => 25,  106 => 24,  94 => 23,  91 => 22,  88 => 21,  85 => 20,  82 => 19,  80 => 18,  77 => 17,  74 => 16,  71 => 15,  68 => 14,  64 => 13,  59 => 11,  55 => 10,  44 => 1,);
+        return array (  172 => 52,  169 => 51,  167 => 50,  166 => 49,  165 => 48,  155 => 41,  149 => 38,  143 => 35,  139 => 34,  135 => 33,  131 => 32,  127 => 31,  123 => 30,  118 => 27,  110 => 25,  106 => 24,  94 => 23,  91 => 22,  88 => 21,  85 => 20,  82 => 19,  80 => 18,  77 => 17,  74 => 16,  71 => 15,  68 => 14,  64 => 13,  59 => 11,  55 => 10,  44 => 1,);
     }
 
     public function getSourceContext()
@@ -262,6 +266,7 @@ class __TwigTemplate_f8a23237200dbc269731b0be7c44b277 extends Template
             'id': reservation.id,
             'sessionId': session.id
         }) }}\" method=\"post\" class=\"m-fjx\">
+            <input type=\"hidden\" name=\"_token\" value=\"{{ csrf_token('reservation_change_session') }}\" />
             <input type=\"hidden\" name=\"place_number\" />
         </form>
 

@@ -137,9 +137,18 @@ class __TwigTemplate_23cf88df1c6b09c6c3161751ba5367ae extends Template
             </div>
         </div>
 
-        <a id=\"btn-reservation-cancel\" href=\"#\" data-url=\"";
+        <form id=\"frmReservationCancel\" action=\"";
         // line 38
         yield Twig\Extension\EscaperExtension::escape($this->env, $this->extensions['Symfony\Bridge\Twig\Extension\RoutingExtension']->getPath("reservation_cancel", ["id" => CoreExtension::getAttribute($this->env, $this->source, (isset($context["reservation"]) || array_key_exists("reservation", $context) ? $context["reservation"] : (function () { throw new RuntimeError('Variable "reservation" does not exist.', 38, $this->source); })()), "id", [], "any", false, false, false, 38)]), "html", null, true);
+        yield "\" method=\"post\" class=\"m-fjx\" style=\"display:none;\">
+            <input type=\"hidden\" name=\"_token\" value=\"";
+        // line 39
+        yield Twig\Extension\EscaperExtension::escape($this->env, $this->env->getRuntime('Symfony\Component\Form\FormRenderer')->renderCsrfToken("reservation_cancel"), "html", null, true);
+        yield "\" />
+        </form>
+        <a id=\"btn-reservation-cancel\" href=\"#\" data-url=\"";
+        // line 41
+        yield Twig\Extension\EscaperExtension::escape($this->env, $this->extensions['Symfony\Bridge\Twig\Extension\RoutingExtension']->getPath("reservation_cancel", ["id" => CoreExtension::getAttribute($this->env, $this->source, (isset($context["reservation"]) || array_key_exists("reservation", $context) ? $context["reservation"] : (function () { throw new RuntimeError('Variable "reservation" does not exist.', 41, $this->source); })()), "id", [], "any", false, false, false, 41)]), "html", null, true);
         yield "\" class=\"btn btn-submit\">Cancelar reservación</a>
     </div>
 </section>
@@ -177,7 +186,7 @@ class __TwigTemplate_23cf88df1c6b09c6c3161751ba5367ae extends Template
      */
     public function getDebugInfo()
     {
-        return array (  142 => 38,  135 => 34,  130 => 32,  126 => 31,  122 => 30,  118 => 29,  114 => 28,  110 => 27,  105 => 24,  96 => 21,  86 => 20,  83 => 19,  80 => 18,  77 => 17,  74 => 16,  70 => 15,  65 => 13,  61 => 12,  55 => 9,  46 => 2,  44 => 1,);
+        return array (  151 => 41,  146 => 39,  142 => 38,  135 => 34,  130 => 32,  126 => 31,  122 => 30,  118 => 29,  114 => 28,  110 => 27,  105 => 24,  96 => 21,  86 => 20,  83 => 19,  80 => 18,  77 => 17,  74 => 16,  70 => 15,  65 => 13,  61 => 12,  55 => 9,  46 => 2,  44 => 1,);
     }
 
     public function getSourceContext()
@@ -219,6 +228,9 @@ class __TwigTemplate_23cf88df1c6b09c6c3161751ba5367ae extends Template
             </div>
         </div>
 
+        <form id=\"frmReservationCancel\" action=\"{{ path('reservation_cancel', { 'id': reservation.id }) }}\" method=\"post\" class=\"m-fjx\" style=\"display:none;\">
+            <input type=\"hidden\" name=\"_token\" value=\"{{ csrf_token('reservation_cancel') }}\" />
+        </form>
         <a id=\"btn-reservation-cancel\" href=\"#\" data-url=\"{{ path('reservation_cancel', { 'id': reservation.id }) }}\" class=\"btn btn-submit\">Cancelar reservación</a>
     </div>
 </section>

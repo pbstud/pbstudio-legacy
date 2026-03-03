@@ -342,13 +342,24 @@ class __TwigTemplate_9ceb41abebb733d678a8718c14bbde13 extends Template
                 \$modalBodyReset.text(\$modalBodyReset.data('loading'))
                 \$modalReset.modal('show');
 
-                \$.getJSON(\$(this).data('url'), function(data) {
-                    \$modalBodyReset.empty();
-                    \$('<a/>', {
-                        'target': '_blank',
-                        'href': data.url,
-                        'text': data.url
-                    }).appendTo(\$modalBodyReset);
+                let csrfToken = \$('meta[name=\"csrf-token\"]').attr('content');
+                let url = \$(this).data('url');
+
+                \$.ajax({
+                    url: url,
+                    type: 'post',
+                    data: {
+                        _token: csrfToken
+                    },
+                    dataType: 'json',
+                    success: function(data) {
+                        \$modalBodyReset.empty();
+                        \$('<a/>', {
+                            'target': '_blank',
+                            'href': data.url,
+                            'text': data.url
+                        }).appendTo(\$modalBodyReset);
+                    }
                 });
             });
         });
@@ -356,8 +367,8 @@ class __TwigTemplate_9ceb41abebb733d678a8718c14bbde13 extends Template
         function load_user_stats () {
             \$.ajax({
                 url: '";
-        // line 212
-        yield Twig\Extension\EscaperExtension::escape($this->env, $this->extensions['Symfony\Bridge\Twig\Extension\RoutingExtension']->getPath("backend_user_stats", ["id" => CoreExtension::getAttribute($this->env, $this->source, (isset($context["user"]) || array_key_exists("user", $context) ? $context["user"] : (function () { throw new RuntimeError('Variable "user" does not exist.', 212, $this->source); })()), "id", [], "any", false, false, false, 212)]), "html", null, true);
+        // line 223
+        yield Twig\Extension\EscaperExtension::escape($this->env, $this->extensions['Symfony\Bridge\Twig\Extension\RoutingExtension']->getPath("backend_user_stats", ["id" => CoreExtension::getAttribute($this->env, $this->source, (isset($context["user"]) || array_key_exists("user", $context) ? $context["user"] : (function () { throw new RuntimeError('Variable "user" does not exist.', 223, $this->source); })()), "id", [], "any", false, false, false, 223)]), "html", null, true);
         yield "'
             }).always(function (response) {
                 \$('#userStatsContent').replaceWith(response);
@@ -395,7 +406,7 @@ class __TwigTemplate_9ceb41abebb733d678a8718c14bbde13 extends Template
      */
     public function getDebugInfo()
     {
-        return array (  360 => 212,  294 => 150,  284 => 149,  244 => 119,  238 => 116,  204 => 85,  198 => 82,  189 => 75,  181 => 70,  177 => 68,  175 => 67,  170 => 65,  163 => 61,  157 => 58,  150 => 54,  143 => 49,  137 => 47,  130 => 42,  123 => 37,  120 => 36,  118 => 35,  115 => 34,  106 => 29,  104 => 28,  87 => 14,  81 => 11,  75 => 7,  65 => 6,  54 => 1,  52 => 4,  50 => 3,  37 => 1,);
+        return array (  371 => 223,  294 => 150,  284 => 149,  244 => 119,  238 => 116,  204 => 85,  198 => 82,  189 => 75,  181 => 70,  177 => 68,  175 => 67,  170 => 65,  163 => 61,  157 => 58,  150 => 54,  143 => 49,  137 => 47,  130 => 42,  123 => 37,  120 => 36,  118 => 35,  115 => 34,  106 => 29,  104 => 28,  87 => 14,  81 => 11,  75 => 7,  65 => 6,  54 => 1,  52 => 4,  50 => 3,  37 => 1,);
     }
 
     public function getSourceContext()
@@ -598,13 +609,24 @@ class __TwigTemplate_9ceb41abebb733d678a8718c14bbde13 extends Template
                 \$modalBodyReset.text(\$modalBodyReset.data('loading'))
                 \$modalReset.modal('show');
 
-                \$.getJSON(\$(this).data('url'), function(data) {
-                    \$modalBodyReset.empty();
-                    \$('<a/>', {
-                        'target': '_blank',
-                        'href': data.url,
-                        'text': data.url
-                    }).appendTo(\$modalBodyReset);
+                let csrfToken = \$('meta[name=\"csrf-token\"]').attr('content');
+                let url = \$(this).data('url');
+
+                \$.ajax({
+                    url: url,
+                    type: 'post',
+                    data: {
+                        _token: csrfToken
+                    },
+                    dataType: 'json',
+                    success: function(data) {
+                        \$modalBodyReset.empty();
+                        \$('<a/>', {
+                            'target': '_blank',
+                            'href': data.url,
+                            'text': data.url
+                        }).appendTo(\$modalBodyReset);
+                    }
                 });
             });
         });
