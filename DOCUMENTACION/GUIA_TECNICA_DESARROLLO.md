@@ -28,6 +28,7 @@
 ✓ curl              # HTTP requests para Conekta
 ✓ openssl           # SSL/TLS para HTTPS
 ✓ zip               # Manejo de archivos comprimidos
+✓ fileinfo          # Detección de MIME types (para VichUploader)
 ✓ ctype, iconv      # Para validaciones Symfony
 ✓ simplexml, tokenizer  # Para Symfony core
 ```
