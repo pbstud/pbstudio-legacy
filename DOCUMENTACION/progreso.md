@@ -426,32 +426,34 @@ STATUS: 15,000+ PALABRAS | 60+ EJEMPLOS | 20+ DIAGRAMAS (✅ 40% COMPLETO)
 ```
 🔴 ERRORES CRÍTICOS ENCONTRADOS (PRIORITY: HIGH):
 
-1️⃣ Session.php::getDateTimeStart() - DateTime Type Safety Issue ✅ RESUELTO
+1️⃣ Session.php::getDateTimeStart() - DateTime Type Safety Issue ✅ RESUELTO (02/03/2026)
    ├─ Síntoma: "Undefined method 'setTime'" en DateTimeInterface
    ├─ Causa Raíz: 
-   │  • DateTimeInterface no declara setTime(), solo clases concretas
-   │  • clone sobre DateTimeInterface mantiene el tipo interface
+   │  • DateTimeInterface no declara setTime(), solo clases concretas (DateTime/DateTimeImmutable)
+   │  • clone sobre DateTimeInterface mantiene el tipo interface genérico
    │  • Analizador estático no puede garantizar disponibilidad del método
-   ├─ Impacto: 
+   ├─ Impacto Original: 
    │  • Errores en IDE/analizador en 4 archivos críticos
    │  • Afecta: Session entity, ReservationService, WaitingListService, DashboardController
    │  • Riesgo: comportamiento inconsistente entre DateTime/DateTimeImmutable
-   ├─ Solución Aplicada:
-   │  └─ Patrón type-safe implementado:
+   ├─ Solución Implementada:
+   │  └─ Patrón type-safe: DateTimeImmutable::createFromInterface()
    │     1. Validación null antes de operar
-   │     2. DateTimeImmutable::createFromInterface() para conversión segura
+   │     2. Conversión segura a tipo concreto con createFromInterface()
    │     3. Captura explícita del resultado de setTime()
-   ├─ Archivos corregidos (4):
-   │  • src/Entity/Session.php (getDateTimeStart)
+   ├─ Archivos Corregidos (4):
+   │  • src/Entity/Session.php (getDateTimeStart - line ~X)
    │  • src/Service/Reservation/ReservationService.php (getSecondsToStart)
    │  • src/Controller/Backend/DashboardController.php (backTest)
    │  • src/Service/WaitingList/WaitingListService.php (add validation)
-   ├─ Validación realizada:
-   │  • Barrido global: 7 ocurrencias de setTime() revisadas
-   │  • get_errors: 0 errores en análisis estático
-   │  • Archivos validados: TransactionController, SessionDayController OK
-   ├─ Status: ✅ COMPLETADO
-   └─ Documentación: DOCUMENTACION/FIXES/DATETIME_IMMUTABILITY_FIX.md
+   ├─ Validación Realizada:
+   │  ✅ Barrido global: 7 ocurrencias de setTime() revisadas
+   │  ✅ get_errors: 0 errores en análisis estático
+   │  ✅ Archivos validados: TransactionController, SessionDayController (sin cambios)
+   │  ✅ Tipo safety garantizado + null checks + excepciones claras
+   ├─ Rama: fix/datetime-immutability-issue
+   ├─ Status: ✅ COMPLETADO Y VALIDADO
+   └─ Documentación: [DOCUMENTACION/FIXES/DATETIME_IMMUTABILITY_FIX.md](FIXES/DATETIME_IMMUTABILITY_FIX.md)
 
 2️⃣ Exposición de phpinfo() en backend/test - Information Disclosure 🔴 CRÍTICO
    ├─ Síntoma:

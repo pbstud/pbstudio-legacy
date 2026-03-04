@@ -25,15 +25,15 @@
 
 ---
 
-### 🔴 CRÍTICO - ARREGLAR HOY
+### 🔴 CRÍTICO - ARREGLADO YA (02/03/2026)
 
-| Issue | Sintoma | Impacto | Fix |
-|-------|---------|--------|-----|
-| **DateTime Immutability** | `$date->setTime()` crash | Calendario NO funciona | Cambiar 1 línea x 5 archivos |
+| Issue | Status | Fix |
+|-------|--------|-----|
+| **DateTime Immutability** | ✅ RESUELTO | DateTimeImmutable::createFromInterface() en 4 archivos |
+| **PHP Memory Exhausted** | ✅ RESUELTO | memory_limit=512M + reiniciar servidor |
+| **MAILER_DSN** | ✅ RESUELTO | MAILER_DSN=null://default en .env |
 
-**Prioridad:** 🔴 BLOQUEA PRODUCCIÓN  
-**Tiempo:** 30 minutos  
-**Riesgo:** ALTO si no se arregla hoy
+**Documentación:** [DOCUMENTACION/FIXES/DATETIME_IMMUTABILITY_FIX.md](FIXES/DATETIME_IMMUTABILITY_FIX.md)
 
 ---
 

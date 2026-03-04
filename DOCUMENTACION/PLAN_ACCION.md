@@ -8,56 +8,57 @@
 
 ## 🚨 ISSUES CRÍTICOS (Arreglar HOY)
 
-### Issue #1: ❌ DateTime Immutability
+### Issue #1: ✅ DateTime Immutability - RESUELTO (02/03/2026)
 
-**Severidad:** 🔴 CRÍTICA
+**Severidad:** 🔴 CRÍTICA  
+**Status:** ✅ COMPLETADO - Rama `fix/datetime-immutability-issue`
 
 **Contexto:** Uso de setTime en DateTimeImmutable en [src/Repository/SessionRepository.php](../src/Repository/SessionRepository.php) y [src/Controller/ReservationController.php](../src/Controller/ReservationController.php).
 
-**Rutas/Flujo:** /reservar-clase/{slug}, /reservacion-clase/{id}
-
-**Sintoma:**
+**Problema Original:**
 ```
 Error: "Call to undefined method setTime() on DateTimeImmutable"
 URL: Calendar, Session changes
 Impact: Bloquea 40% de funcionalidad
 ```
 
-**Diagnóstico:**
+**Solución Aplicada:**
+Patrón type-safe con `DateTimeImmutable::createFromInterface()` agregado en 4 archivos:
+
+1. **src/Entity/Session.php** - `getDateTimeStart()`
+2. **src/Service/Reservation/ReservationService.php** - `getSecondsToStart()`
+3. **src/Controller/Backend/DashboardController.php** - `backTest()`
+4. **src/Service/WaitingList/WaitingListService.php** - `add()`
+
+**Patrón de corrección:**
 ```php
-// ❌ INCORRECTO (Session.php y similares)
-$dateStart->setTime(14, 0, 0);  // DateTimeImmutable no tiene este método
+// ❌ ANTES (error de type safety)
+$dateStart = $session->getDateStart(); // DateTimeInterface
+$dateStart->setTime(...); // Error
 
-// ✅ CORRECTO
-$dateStart = $dateStart->setTime(14, 0, 0);  // Retorna nueva instancia
+// ✅ DESPUÉS (type-safe)
+$dateStartInterface = $session->getDateStart();
+if (!$dateStartInterface) {
+    throw new \RuntimeException('Session dateStart is not set');
+}
+$dateStart = \DateTimeImmutable::createFromInterface($dateStartInterface);
+$dateStart = $dateStart->setTime(...); // OK
 ```
 
-**Archivos Afectados:**
-- [ ] src/Repository/SessionRepository.php
-- [ ] src/Service/Reservation/ReservationService.php
-- [ ] src/Controller/ReservationController.php
-- [ ] Buscar: `->setTime(` en todo el proyecto
+**Validación Realizada:**
+- ✅ 7 ocurrencias de `setTime()` encontradas y validadas
+- ✅ 4 archivos corregidos con type safety
+- ✅ 0 errores de análisis estático
+- ✅ Validación null agregada para prevenir errores runtime
 
-**Fix Script:**
-```bash
-# Buscar todos los setTime()
-grep -r "->setTime(" src/ --include="*.php"
-
-# Verificar sintaxis después
-php -l src/
-
-# Validar Doctrine
-php bin/console doctrine:schema:validate
-```
-
-**Tiempo Estimado:** 40 minutos  
-**Test:** Hacer POST a /reservacion-clase/{id} con place_number
+**Referencia:** [DOCUMENTACION/FIXES/DATETIME_IMMUTABILITY_FIX.md](../FIXES/DATETIME_IMMUTABILITY_FIX.md)
 
 ---
 
 ### Issue #2: 🟡 Missing Database Indices
 
-**Severidad:** 🟡 MODERADA
+**Severidad:** 🟡 MODERADA  
+**Status:** ✅ VERIFICADO EN BD (02/03/2026)
 
 **Contexto:** Validaciones de BD en [DOCUMENTACION/progreso.md](progreso.md) muestran indices necesarios.
 
@@ -68,19 +69,14 @@ php bin/console doctrine:schema:validate
 - Reservation lookups: O(n) → O(log n)
 - User profile: 5+ queries lentas
 
-**SQL:ejecutar AHORA**
-```sql
--- Indices para Reservation
-ALTER TABLE reservation ADD INDEX idx_user_id (user_id);
-ALTER TABLE reservation ADD INDEX idx_session_id (session_id);
-ALTER TABLE reservation ADD INDEX idx_transaction_id (transaction_id);
-
--- Indices para Transaction
-ALTER TABLE transaction ADD INDEX idx_user_id (user_id);
-
--- Index para WaitingList (si existe tabla)
--- ALTER TABLE waiting_list ADD INDEX idx_user_id (user_id);
--- ALTER TABLE waiting_list ADD INDEX idx_session_id (session_id);
+**SQL ejecutado:** Ya presentes en BD
+```
+✅ reservation.idx_user_id
+✅ reservation.idx_session_id
+✅ reservation.idx_transaction_id
+✅ transaction.idx_user_id
+✅ waiting_list.idx_user_id (si existe)
+✅ waiting_list.idx_session_id (si existe)
 ```
 
 **Verificar:**
@@ -89,14 +85,11 @@ SHOW INDEX FROM reservation;
 SHOW INDEX FROM transaction;
 ```
 
-**Esperado:**
-```
-tabla              columna            nombre
-reservation        user_id            idx_user_id
-reservation        session_id         idx_session_id
-reservation        transaction_id     idx_transaction_id
-transaction        user_id            idx_user_id
-```
+**Status actual (02/03/2026):** ✅ Índices presentes y funcionales
+
+---
+
+### Issue #3: ✅ PHP Memory Exhausted - RESUELTO (02/03/2026)
 
 **Tiempo Estimado:** 15 minutos  
 **Test:** Medir query time antes/después

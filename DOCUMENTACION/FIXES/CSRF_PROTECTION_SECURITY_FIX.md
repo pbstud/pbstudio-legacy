@@ -572,14 +572,94 @@ Todos los endpoints funcionan correctamente con protección CSRF activa, sin afe
 
 3. **Largo Plazo (Roadmap)**
    - Establecer SLA de envío de emails
-   - Monitoring/alertas si emails fallan
    - Implementar retry logic con exponential backoff
    - Considerar cola asíncrona para envío de emails (Messenger)
 
 ---
 
+# 🔒 ISSUE #25: WAITING LIST REMOVE POR GET (FUTURO)
+
+**Status:** ⏳ PENDIENTE - No incluido en implementación actual  
+**Severidad:** 🟠 IMPORTANTE
+
+**Endpoint:** `GET /mi-cuenta/lista-espera` (remove)
+
+## Vulnerabilidad
+
+```html
+<!-- Atacante envía imagen/enlace - usuario ni se da cuenta -->
+<img src="https://pbstudio.com/mi-cuenta/lista-espera/remove/123" style="display:none">
+
+<!-- Resultado: USUARIO ELIMINADO DE LISTA DE ESPERA -->
+```
+
+## Fix Requerido
+
+**Cambiar a POST con CSRF token**
+
+---
+
+# 🔒 ISSUE #26: 7 ENDPOINTS POST SIN CSRF (FUTURO)
+
+**Status:** ⏳ PENDIENTE - No incluido en implementación actual  
+**Severidad:** 🟠 IMPORTANTE
+
+Estos 7 endpoints deben agregar validación CSRF:
+
+| # | Endpoint | Método | Archivo |
+|---|----------|--------|---------|
+| 26.1 | `reservation_confirm` | POST | ReservationController |
+| 26.2 | `reservation_waitinglist` | POST | ReservationController |
+| 26.3 | `package_checkout` | POST | PackageController |
+| 26.4 | `backend_reservation_attended` | POST | Backend/ReservationController |
+| 26.5 | `backend_transaction_cancel` | POST | Backend/TransactionController |
+| 26.6 | `backend_transaction_edit_expiration` | POST | Backend/TransactionController |
+| 26.7 | `resetting_send_email` | POST | ResettingController |
+
+**Fix:** Agregar validación CSRF a todos (mismo patrón que issues #1-3)
+
+---
+
+# 🔒 ISSUE #32: CONFIGURATION UPDATE SIN CSRF (FUTURO)
+
+**Status:** ⏳ PENDIENTE - No incluido en implementación actual  
+**Severidad:** 🟠 IMPORTANTE
+
+**Endpoint:** `POST /backend/settings/update`  
+**Archivo:** `src/Controller/Backend/ConfigurationController.php`
+
+## Vulnerabilidad
+
+Formas HTML manuales sin token CSRF pueden cambiar configuración sensible:
+- APP_NAME, APP_EMAIL
+- Logo/favicon
+- Configuración de pagos (Conekta)
+- Horarios operativos
+
+## Fix Requerido
+
+Agregar token CSRF en template + validación en controller
+
+---
+
+## 📊 RESUMEN TOTAL CSRF
+
+| # | Endpoint | Status | Prioridad |
+|---|----------|--------|-----------|
+| #1 | `reservation_change_session` | ✅ IMPLEMENTADO | Alta |
+| #2 | `reservation_cancel` | ✅ IMPLEMENTADO | Alta |
+| #3 | `backend_user_reset_password` | ✅ IMPLEMENTADO | Alta |
+| #25 | `waiting_list_remove` | ⏳ FUTURO | Alta |
+| #26 (7 endpoints) | POST sin CSRF | ⏳ FUTURO | Media |
+| #32 | `backend_configuration_update` | ⏳ FUTURO | Alta |
+
+**Total Implementado:** 3/12 (25%)  
+**Total Pendiente:** 9/12 (75%)
+
+---
+
 **Creado:** 3 de marzo de 2026  
-**Última Actualización:** 3 de marzo de 2026 - 17:35  
-**Estado:** ✅ IMPLEMENTADO Y VALIDADO  
-**Documentación:** COMPLETA Y CONSOLIDADA (582 líneas)  
-**Código:** LISTO PARA IMPLEMENTAR
+**Última Actualización:** 4 de marzo de 2026 - 14:30  
+**Estado:** ✅ IMPLEMENTADO (3/12) + 📋 DOCUMENTADO FUTURO (9/12)  
+**Documentación:** COMPLETA Y CONSOLIDADA (700+ líneas)  
+**Código:** 3 principales LISTOS | 9 PENDIENTES para fase siguiente
