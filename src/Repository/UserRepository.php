@@ -49,23 +49,26 @@ class UserRepository extends ServiceEntityRepository
         }
 
         if (!empty($filters['name'])) {
+            $normalizedName = trim($filters['name']);
             $qb
                 ->andWhere($qb->expr()->like('u.name', ':name'))
-                ->setParameter('name', '%'.$filters['name'].'%')
+                ->setParameter('name', '%'.$normalizedName.'%')
             ;
         }
 
         if (!empty($filters['lastname'])) {
+            $normalizedLastname = trim($filters['lastname']);
             $qb
                 ->andWhere($qb->expr()->like('u.lastname', ':lastname'))
-                ->setParameter('lastname', '%'.$filters['lastname'].'%')
+                ->setParameter('lastname', '%'.$normalizedLastname.'%')
             ;
         }
 
         if (!empty($filters['email'])) {
+            $normalizedEmail = trim($filters['email']);
             $qb
                 ->andWhere($qb->expr()->like('u.email', ':email'))
-                ->setParameter('email', '%'.$filters['email'].'%')
+                ->setParameter('email', '%'.$normalizedEmail.'%')
             ;
         }
 
