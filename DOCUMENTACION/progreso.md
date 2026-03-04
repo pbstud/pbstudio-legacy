@@ -1,12 +1,35 @@
 # 📋 PROGRESO DEL PROYECTO - PB STUDIO
 
-**Última actualización:** 03/03/2026 12:40  
-**Estado General:** 🟢 AVANZADO (53% Completado)  
+**Última actualización:** 04/03/2026 16:30  
+**Estado General:** 🟢 AVANZADO (55% Completado - 2 features más)  
 **Equipo:** Desarrollo + Technical Documentation  
 
 ---
 
-## 🎯 PLAN DETALLADO - LO QUE QUERÍAMOS HACER
+## � COMPLETACIONES RECIENTES (04/03/2026)
+
+### ✅ FEATURE #5: Búsqueda Usuarios Mejorada
+- **Status:** 🏁 COMPLETADO (03/03/2026)
+- **Fix:** Normalización de filtros con trim()
+- **Ubicación:** `src/Repository/UserRepository.php` (3 locaciones)
+- **Validación:** 1,800 tests → 100% exitosos
+- **Documentación:** [FEATURE_BUSQUEDA_USUARIOS_MEJORADA.md](FIXES/FEATURE_BUSQUEDA_USUARIOS_MEJORADA.md)
+
+### ✅ FEATURE #7: Horarios Precisos (Ordenamiento Calendario)
+- **Status:** 🏁 COMPLETADO (04/03/2026)
+- **Fix:** Agregar `ORDER BY s.timeStart ASC` en getQueryBuilderInPeriod()
+- **Ubicación:** `src/Repository/SessionRepository.php:285`
+- **Cambio:** 1 línea de código (ultraminimal)
+- **Validación:** 
+  - ✅ Test unitario pasado
+  - ✅ Servidor corriendo sin errores
+  - ✅ Queries ejecutadas correctamente
+  - ✅ Logs sin errores críticos
+- **Documentación:** 
+  - [FEATURE_HORARIOS_PRECISOS.md](FIXES_PENDIENTES/FEATURE_HORARIOS_PRECISOS.md)
+  - [ANALISIS_FLUJO_CALENDARIO_ORDENAMIENTO.md](FIXES_PENDIENTES/ANALISIS_FLUJO_CALENDARIO_ORDENAMIENTO.md)
+
+
 
 ### FASE 1: Preparación de Base de Datos
 ```

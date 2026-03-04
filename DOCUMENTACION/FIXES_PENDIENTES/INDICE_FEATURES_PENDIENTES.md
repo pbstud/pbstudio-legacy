@@ -21,7 +21,7 @@ Ninguno en pendientes (CSRF, DateTime ya implementados)
 | **4** | 📧 Notificación cambio clase | Asistencia ↑30% | 2-4h | 📋 Doc |
 | **5** | 🔍 Búsqueda usuarios mejorada | Productividad admin | 1-2h | ✅ **COMPLETADO** |
 | **6** | 💌 Correos lista de espera | Conversión ×2.5 | 1-2h | 🔄 80% |
-| **7** | ⏰ Horarios precisos | Integridad de datos | 2-2.5h | 📋 Doc |
+| **7** | ⏰ Horarios precisos | Integridad + calendario | 1h | ✅ **COMPLETADO** |
 
 ---
 
@@ -93,32 +93,36 @@ Impacto:  Conversión lista → inscripción ×2.5
 Timeline: 1-2 horas (para completar)
 ```
 
-### [7️⃣ FEATURE_HORARIOS_PRECISOS.md](FEATURE_HORARIOS_PRECISOS.md)
+### [7️⃣ FEATURE_HORARIOS_PRECISOS.md](FEATURE_HORARIOS_PRECISOS.md) ✅ COMPLETADO
 ```
-Problema: Clase 10:00 se guarda como 14:35
-Solución: Separar fecha + hora en form/BD
-Impacto:  Datos correctos, calendario ordenado
-Timeline: 2-2.5 horas
+Problema: Clases en calendario desordenadas por hora
+Solución: Agregar ORDER BY timeStart en getQueryBuilderInPeriod()
+Impacto:  Calendario ordenado, mejor UX
+Status:   ✅ IMPLEMENTADO, VALIDADO Y FUNCIONANDO (04/03/2026)
+Ubicación: src/Repository/SessionRepository.php:285
+Timeline: 1 hora (fix simple de 1 línea)
 ```
 
 ---
 
 ## 🚀 Plan de Implementación Sugerido
 
+### ✅ COMPLETADOS
+- **#5 Búsqueda usuarios** (1-2h) → ✅ Implementado 04/03/2026
+- **#7 Horarios precisos** (1h) → ✅ Implementado 04/03/2026
+
 ### Día 1 (Mañana) - Rápidos (1-2h cada uno)
-- **#5 Búsqueda usuarios** (1-2h) → admin más productivo inmediatamente
-- **#7 Horarios precisos** (2-2.5h) → integridad de datos
+- **#1 Carga masiva** (2-3h) → ahorro operacional
+- **#3 Editar foto** (2-3h) → validado en local, listo para deploy
 
 ### Día 2 - Medianos (2-4h)
-- **#3 Editar foto** (2-3h) → presentación
-- **#1 Carga masiva** (2-3h) → ahorro operacional
+- **#4 Notificación cambio** (2-4h) → comunicación
+- **#6 Correos lista espera** (1-2h) → completar testing (80% listo)
 
 ### Día 3 - Complejos (4-8h)
-- **#4 Notificación cambio** (2-4h) → comunicación
 - **#2 Cancelación devolución** (4-8h) → integración Conekta + validaciones
-- **#6 Correos lista espera** (1-2h) → completar testing/validación (80% listo)
 
-**Total:** ~1 semana (máximo 2 con testing)
+**Total restante:** ~2-3 días (máximo 1 semana con testing)
 
 ---
 
@@ -163,10 +167,14 @@ R: Todos son importantes pero no "rompen" el sistema. #2 y #6 impactan dinero (d
 
 ```
 Creado:    03/03/2026
-Actualizado: 03/03/2026
+Actualizado: 04/03/2026
 Documentos: 8 (1 índice + 7 features)
-Líneas totales: ~2,800
-Estado: LISTO PARA USAR
+Líneas totales: ~2,900
+Estado: 2 COMPLETADOS, 5 EN PENDIENTES
+
+Completados hoy:
+- #5 Búsqueda usuarios (1,800 tests ✓)
+- #7 Horarios precisos (validado en vivo ✓)
 
 Nota: #6 Correos lista espera RESTAURADO
       80% código existente (WaitingListMailer)

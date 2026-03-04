@@ -282,6 +282,7 @@ class SessionRepository extends ServiceEntityRepository
                 Session::STATUS_FULL,
             ])
             ->setParameter('today', $now)
+            ->orderBy('s.timeStart', 'ASC')
         ;
 
         return $qb;
