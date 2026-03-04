@@ -51,30 +51,20 @@ class DashboardController extends AbstractController
     public function backTest(Request $request, SessionRepository $sessionRepository, TimeToCancel $sessionTimeToCancel)
     {
         $session = $sessionRepository->find($request->query->get('id'));
-        if (!$session) {
-            throw $this->createNotFoundException('Session not found');
-        }
 
-        $currentDate = new \DateTimeImmutable();
+        $currentDate = new \DateTime();
         var_dump('Current: ', $currentDate);
 
-        $dateStartInterface = $session->getDateStart();
-        if (!$dateStartInterface) {
-            throw $this->createNotFoundException('Session dateStart is not set');
+        $dateStartValue = $session->getDateStart();
+        $timeStartValue = $session->getTimeStart();
+
+        if (!$dateStartValue || !$timeStartValue) {
+            throw $this->createNotFoundException('La sesión no tiene fecha u hora de inicio configurada.');
         }
-        
-        $timeStartInterface = $session->getTimeStart();
-        if (!$timeStartInterface) {
-            throw $this->createNotFoundException('Session timeStart is not set');
-        }
-        
-        var_dump('Date start: ', $dateStartInterface);
-        
-        $dateStart = \DateTimeImmutable::createFromInterface($dateStartInterface);
-        $dateStart = $dateStart->setTime(
-            (int) $timeStartInterface->format('H'),
-            (int) $timeStartInterface->format('i')
-        );
+
+        $dateStart = \DateTimeImmutable::createFromInterface($dateStartValue);
+        var_dump('Date start: ', $dateStart);
+        $dateStart = $dateStart->setTime((int) $timeStartValue->format('H'), (int) $timeStartValue->format('i'));
         var_dump('Date start 2: ', $dateStart);
 
         $diffSeconds = $dateStart->getTimestamp() - $currentDate->getTimestamp();

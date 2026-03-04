@@ -1,35 +1,12 @@
 # 📋 PROGRESO DEL PROYECTO - PB STUDIO
 
-**Última actualización:** 04/03/2026 16:30  
-**Estado General:** 🟢 AVANZADO (55% Completado - 2 features más)  
+**Última actualización:** 02/03/2026 18:05  
+**Estado General:** 🟢 AVANZADO (52% Completado)  
 **Equipo:** Desarrollo + Technical Documentation  
 
 ---
 
-## � COMPLETACIONES RECIENTES (04/03/2026)
-
-### ✅ FEATURE #5: Búsqueda Usuarios Mejorada
-- **Status:** 🏁 COMPLETADO (03/03/2026)
-- **Fix:** Normalización de filtros con trim()
-- **Ubicación:** `src/Repository/UserRepository.php` (3 locaciones)
-- **Validación:** 1,800 tests → 100% exitosos
-- **Documentación:** [FEATURE_BUSQUEDA_USUARIOS_MEJORADA.md](FIXES/FEATURE_BUSQUEDA_USUARIOS_MEJORADA.md)
-
-### ✅ FEATURE #7: Horarios Precisos (Ordenamiento Calendario)
-- **Status:** 🏁 COMPLETADO (04/03/2026)
-- **Fix:** Agregar `ORDER BY s.timeStart ASC` en getQueryBuilderInPeriod()
-- **Ubicación:** `src/Repository/SessionRepository.php:285`
-- **Cambio:** 1 línea de código (ultraminimal)
-- **Validación:** 
-  - ✅ Test unitario pasado
-  - ✅ Servidor corriendo sin errores
-  - ✅ Queries ejecutadas correctamente
-  - ✅ Logs sin errores críticos
-- **Documentación:** 
-  - [FEATURE_HORARIOS_PRECISOS.md](FIXES_PENDIENTES/FEATURE_HORARIOS_PRECISOS.md)
-  - [ANALISIS_FLUJO_CALENDARIO_ORDENAMIENTO.md](FIXES_PENDIENTES/ANALISIS_FLUJO_CALENDARIO_ORDENAMIENTO.md)
-
-
+## 🎯 PLAN DETALLADO - LO QUE QUERÍAMOS HACER
 
 ### FASE 1: Preparación de Base de Datos
 ```
@@ -449,57 +426,27 @@ STATUS: 15,000+ PALABRAS | 60+ EJEMPLOS | 20+ DIAGRAMAS (✅ 40% COMPLETO)
 ```
 🔴 ERRORES CRÍTICOS ENCONTRADOS (PRIORITY: HIGH):
 
-1️⃣ Session.php::getDateTimeStart() - DateTime Type Safety Issue ✅ RESUELTO (02/03/2026)
-   ├─ Síntoma: "Undefined method 'setTime'" en DateTimeInterface
+1️⃣ Session.php::getDateTimeStart() - DateTime Immutability Issue
+   ├─ Síntoma: "Undefined method 'setTime' on DateTimeImmutable" ← RESUELTO
    ├─ Causa Raíz: 
-   │  • DateTimeInterface no declara setTime(), solo clases concretas (DateTime/DateTimeImmutable)
-   │  • clone sobre DateTimeInterface mantiene el tipo interface genérico
-   │  • Analizador estático no puede garantizar disponibilidad del método
-   ├─ Impacto Original: 
-   │  • Errores en IDE/analizador en 4 archivos críticos
-   │  • Afecta: Session entity, ReservationService, WaitingListService, DashboardController
-   │  • Riesgo: comportamiento inconsistente entre DateTime/DateTimeImmutable
-   ├─ Solución Implementada:
-   │  └─ Patrón type-safe: DateTimeImmutable::createFromInterface()
-   │     1. Validación null antes de operar
-   │     2. Conversión segura a tipo concreto con createFromInterface()
-   │     3. Captura explícita del resultado de setTime()
-   ├─ Archivos Corregidos (4):
-   │  • src/Entity/Session.php (getDateTimeStart - line ~X)
-   │  • src/Service/Reservation/ReservationService.php (getSecondsToStart)
-   │  • src/Controller/Backend/DashboardController.php (backTest)
-   │  • src/Service/WaitingList/WaitingListService.php (add validation)
-   ├─ Validación Realizada:
-   │  ✅ Barrido global: 7 ocurrencias de setTime() revisadas
-   │  ✅ get_errors: 0 errores en análisis estático
-   │  ✅ Archivos validados: TransactionController, SessionDayController (sin cambios)
-   │  ✅ Tipo safety garantizado + null checks + excepciones claras
-   ├─ Rama: fix/datetime-immutability-issue
-   ├─ Status: ✅ COMPLETADO Y VALIDADO
-   └─ Documentación: [DOCUMENTACION/FIXES/DATETIME_IMMUTABILITY_FIX.md](FIXES/DATETIME_IMMUTABILITY_FIX.md)
+   │  • $this->dateStart es DateTimeImmutable (no DateTime mutable)
+   │  • clone preserva la immutabilidad
+   │  • setTime() retorna nueva instancia, no modifica en-place
+   ├─ Impacto: 
+   │  • Bloquea toda operación que requiere combinar date + time
+   │  • Afecta: SessionRepository::getCalendar(), views del calendario
+   │  • Rutina: Usuario no puede ver calendario ni hacer reserva
+   ├─ Solución Técnica:
+   │  └─ Cambiar: $dateStart->setTime(...)
+   │     Por: $dateStart = $dateStart->setTime(...)
+   │     Razón: Capturar el retorno (nueva instancia)
+   ├─ Status: ✅ RESUELTO (02/03/2026 16:50)
+   ├─ Validación: 3/3 tests PASS, 7 assertions OK
+   ├─ Archivos corregidos: 7 cambios en 6 archivos
+   ├─ Barrido global `setTime()` en `src/**/*.php`: 7 ocurrencias revisadas, 0 errores activos
+   └─ Documentación: DOCUMENTACION/FIXES/DATETIME_IMMUTABILITY_FIX.md
 
-2️⃣ Exposición de phpinfo() en backend/test - Information Disclosure 🔴 CRÍTICO
-   ├─ Síntoma:
-   │  • Existe endpoint `/backend/test` accesible desde backend
-   │  • Ejecuta `phpinfo()` y finaliza con `exit()`
-   │  • Muestra configuración sensible del servidor PHP
-   ├─ Causa Raíz:
-   │  • Función de debugging (`backTest`) quedó en controlador productivo
-   │  • Sin guardas de entorno (`dev` only) ni hardening por rol/IP
-   │  • Ausencia de control preventivo para bloquear artefactos de debug
-   ├─ Impacto:
-   │  • Exposición de versión PHP, extensiones, rutas y variables de entorno
-   │  • Facilita reconocimiento técnico y selección de exploit
-   │  • Riesgo de compliance/auditoría por fuga de información sensible
-   ├─ Estado actual:
-   │  • ✅ Documentado para decisión
-   │  • ⏳ Pendiente de implementación del fix (hotfix recomendado)
-   ├─ Recomendación:
-   │  • Eliminar ruta y método `backTest` (mitigación inmediata)
-   │  • Opcional: migrar diagnóstico a comando CLI seguro
-   └─ Documentación técnica: DOCUMENTACION/FIXES_PENDIENTES/CRITICO_EXPOSICION_PHPINFO.md
-
-3️⃣ Template Registro No Sale - Registration Form Missing
+2️⃣ Template Registro No Sale - Registration Form Missing
    ├─ Síntoma: 
    │  • GET /register muestra error 500 (antes)
    │  • Usuarios nuevos NO pueden completar registro
@@ -516,7 +463,7 @@ STATUS: 15,000+ PALABRAS | 60+ EJEMPLOS | 20+ DIAGRAMAS (✅ 40% COMPLETO)
    │  └─ Verificación: curl devuelve Status 200 en /register
    └─ Acción: Completar + documentar en .env.example
 
-4️⃣ Errores de Mapeo en Flujo de Trabajo - Entity Relationship Issues
+3️⃣ Errores de Mapeo en Flujo de Trabajo - Entity Relationship Issues
    ├─ Descripción General:
    │  • Algunas relaciones FK no se cargan correctamente
    │  • Posible mismatch entre Entity properties y BD columns
@@ -550,181 +497,7 @@ STATUS: 15,000+ PALABRAS | 60+ EJEMPLOS | 20+ DIAGRAMAS (✅ 40% COMPLETO)
    ├─ Status: 🟡 MODERADO - Funciona parcialmente pero inestable
    └─ Acción: Mapping audit + schema validation + eager loading fix
 
-🟠 ERRORES URGENTES (POST-CRÍTICOS) - ESTADO ACTUAL
-
-   1) Disponibilidad de clase para selección de asientos desfasada y sin agrupar
-   ├─ Síntoma:
-   │  • En backend, la disponibilidad mostrada no coincide con el estado real de la sesión
-   │  • Los asientos aparecen sin agrupación esperada en la vista de selección
-   ├─ Reproducción:
-   │  • Confirmada manualmente en backend y frontend
-   │  • Contrasta con el comportamiento esperado descrito en diagnóstico
-   ├─ Hipótesis inicial:
-   │  • Query/DTO de disponibilidad sin orden y agrupación consistente por horario/salón/sesión
-   │  • Cálculo de capacidad disponible no sincronizado con placesNotAvailable/reservas activas
-   ├─ Impacto:
-   │  • Riesgo de selección de asiento con información incorrecta
-   │  • Mala UX y potencial sobre-reserva por percepción errónea
-   ├─ Prioridad: 🟠 URGENTE
-   └─ Documentación técnica: DOCUMENTACION/FIXES_PENDIENTES/URGENTE_DISPONIBILIDAD_ASIENTOS_DESFASADA.md
-
-   2) Doble reservación por la misma persona en la misma clase (asientos distintos)
-   ├─ Síntoma:
-   │  • Un mismo usuario logra reservar 2 lugares en la misma sesión
-   │  • Se observan dos `place_number` diferentes para el mismo `user_id + session_id`
-   ├─ Evidencia (reproducción local):
-   │  • Caso detectado: `user_id=14567`, `session_id=69999`, asientos `1` y `11`
-   │  • Logs: dos POST a `/reservacion-clase/69999` + dos INSERT en `reservation`
-   │  • Timestamps: `11:26:25` y `11:26:54` (misma transacción `62953`)
-   ├─ Causa probable:
-   │  • Falta validación/lock atómico para unicidad por usuario+sesión
-   │  • Sin constraint de negocio que impida múltiples reservas activas del mismo usuario en la clase
-   ├─ Impacto:
-   │  • Bloqueo injusto de lugares para otros usuarios
-   │  • Distorsión de ocupación y reglas comerciales
-   ├─ Prioridad: 🟠 URGENTE
-   └─ Documentación técnica: DOCUMENTACION/FIXES_PENDIENTES/URGENTE_DISPONIBILIDAD_ASIENTOS_DESFASADA.md
-
-   Estado consolidado de urgentes:
-   ├─ Confirmación: reproducidos manualmente y respaldados con evidencia en logs + BD
-   ├─ Resultado: comportamiento observado contrasta con lo esperado en operación normal
-   ├─ Alcance: flujo de reserva/asientos + consistencia de disponibilidad
-   ├─ Riesgo: sobre-reserva y bloqueo de lugares para otros usuarios
-   └─ Estado: ✅ documentación técnica cerrada, pendiente implementación en rama de fix
-
-📅 PLAN DE TRABAJO (SIGUIENTE JORNADA) - RESOLUCIÓN URGENTES
-
-   Objetivo del día: cerrar causa raíz y dejar correcciones aplicadas + validadas en backend.
-
-   1) 09:00-10:00 — Reproducción guiada + traza
-      ├─ Ejecutar casos mínimos por flujo (reserva, admin sesión, pago, selección de asiento)
-      ├─ Capturar request/response + SQL involucrado
-      └─ Confirmar punto exacto de ruptura por caso
-
-   2) 10:00-12:00 — Auditoría de mapeo Doctrine
-      ├─ Revisar relaciones en entidades afectadas (User, Session, Reservation, Transaction, Coupon)
-      ├─ Verificar JoinColumn, nullable, inversedBy/mappedBy
-      ├─ Revisar query de disponibilidad (ORDER BY/GROUP BY) y fuente de agregación de asientos
-      └─ Ejecutar schema validate y documentar divergencias
-
-   3) 12:00-13:00 — Diseño de fix por prioridad
-      ├─ Priorizar correcciones de mayor impacto en backend
-      ├─ Definir cambios mínimos por archivo
-      └─ Preparar checklist de aceptación
-
-   4) 15:00-17:00 — Implementación
-      ├─ Aplicar correcciones de mapping/queries
-      ├─ Corregir agrupación/orden de disponibilidad para vista de asientos
-      ├─ Ajustar eager/lazy loading en repositorios críticos
-      └─ Añadir validaciones explícitas donde hoy falla silenciosamente
-
-   5) 17:00-18:00 — Validación final + cierre
-      ├─ Reprobar casos backend ya reproducidos hoy
-      ├─ Validar que disponibilidad y agrupación de asientos coincidan con estado real
-      ├─ Verificar ausencia de regresión en flujos críticos
-      └─ Actualizar documentación de progreso con evidencia
-
-   Entregable esperado mañana:
-   ├─ lista de fixes aplicados por archivo
-   ├─ evidencia de validación backend
-   └─ estado final por error urgente (resuelto/en seguimiento)
-
-� SECURITY HARDENING - CSRF Protection Branch (Rama: fix/urgente-csrf-endpoints)
-
-   Objetivo: Identificar y corregir vulnerabilidades CSRF en endpoints críticos
-   
-   Status Global: 🟡 EN PROGRESO (1 de ~3-4 fixes aplicadas)
-   
-   Contexto:
-   ├─ Análisis identifi­có múltiples endpoint POST sin CSRF validation
-   ├─ Algunos usan GET para operaciones de escritura (anti-patrón)
-   ├─ Otros usan POST pero sin validar token CSRF
-   ├─ JavaScript AJAX no envía CSRF tokens en headers
-   └─ Riesgo CVSS: 5.4 (MEDIUM) - Requiere usuario logueado + interacción
-   
-   VULNERABILIDADES IDENTIFICADAS:
-   
-   1️⃣ waiting_list_remove - GET Method (CRÍTICO)
-   ├─ Ubicación: src/Controller/ProfileController.php::waitingListRemove() line 321
-   ├─ Template: templates/profile/waiting_list.html.twig line 25-27
-   ├─ Problema: DELETE via GET request + NO CSRF token
-   ├─ Severidad: 🔴 ALTO (violación REST + CSRF)
-   ├─ Solución aplicada: ✅
-   │  ├─ cambio en ruta: GET → POST
-   │  ├─ agregar validación CSRF en controlador
-   │  ├─ actualizar template: link HTML → form con token
-   │  ├─ archivo actualizado: ProfileController.php (POST method)
-   │  └─ archivo actualizado: waiting_list.html.twig (form + token)
-   ├─ Commit message: "fix(security): add CSRF protection to waiting_list_remove endpoint"
-   └─ Status: ✅ APLICADO Y VALIDADO
-   
-   2️⃣ reservation_change_session - POST without CSRF validation
-   ├─ Ubicación: src/Controller/ProfileController.php::reservationChangeSession() line 262 → 284
-   ├─ Ruta: POST /mi-cuenta/reservacion/{id}/cambiar/{sessionId}
-   ├─ Template: templates/profile/reservation_change_session.html.twig line 48
-   ├─ Problema: POST request procesa cambio de sesión + NO server-side CSRF validation
-   ├─ Flujo:
-   │  1. Usuario hace clic "Cambiar reservación"
-   │  2. GET /cambiar/{id} → muestra sesiones disponibles
-   │  3. GET /cambiar/{id}/{sessionId} → muestra grid de asientos
-   │  4. Usuario selecciona asiento → POST sin validar CSRF token ← VULNERABILIDAD
-   │  5. Controlador procesa cambio sin verificar origen de solicitud
-   ├─ Severidad: 🟡 ALTO (ataque CSRF puede transferir usuario a clase diferente)
-   ├─ Solución recomendada: ✅ DOCUMENTADA (2 CAMBIOS SIMPLES)
-   │  ├─ Template: agregar {{ csrf_token('reservation_change_session') }} en form
-   │  ├─ Controlador: agregar isCsrfTokenValid() validation (3 líneas)
-   │  └─ Complejidad: BAJA
-   ├─ Archivo de análisis CONSOLIDADO: DOCUMENTACION/FIXES_PENDIENTES/CSRF_RESERVATION_CHANGE_SESSION.md
-   │  ├─ PARTE 1: Explica canChange() vs canCancel() + flujo completo
-   │  ├─ PARTE 2: Ubicación exacta de vulnerabilidad + ataque concreto
-   │  ├─ PARTE 3: Solución con código actual vs nuevo
-   │  └─ ✅ Checklist de verificación e implementación
-   ├─ Nota: Este fix SOLO afecta cambio de sesión, NO cancela la reservación
-   │        (canChange() es ventana 2-12h, canCancel() es después de 12h)
-   └─ Status: 📋 DOCUMENTADO (LISTO PARA IMPLEMENTAR) - PENDIENTE CÓDIGO
-   
-   3️⃣ reservation_cancel - GET method (CRÍTICO - POST sin CSRF)
-   ├─ Ubicación: src/Controller/ProfileController.php::reservationCancel() line 162
-   ├─ Ruta: GET /mi-cuenta/reservacion/{id}/cancelar (también POST sin CSRF)
-   ├─ Template: templates/profile/reservation_cancel.html.twig line 38
-   ├─ Problema: GET para operación de escritura (anti-patrón REST)
-   ├─ Problema 2: POST también acepta pero sin CSRF validation
-   ├─ Severidad: 🔴 CRÍTICO (violación REST + CSRF)
-   ├─ Visibilidad: Oculto en UX (reservation_can_cancel() retorna false generalmente)
-   │           pero existe en código y accesible si condiciones timing lo permiten
-   ├─ Nota: Ya hay análisis documentado en fix anterior (CSRF_WAITING_LIST_REMOVE_GET.md)
-   ├─ Archivo de análisis: DOCUMENTACION/FIXES_PENDIENTES/URGENTE_DISPONIBILIDAD_ASIENTOS_DESFASADA.md
-   └─ Status: 🔄 PENDIENTE - Próximo a auditar después de reservation_change_session
-   
-   4️⃣ reservation_confirm - POST unknown CSRF status
-   ├─ Ubicación: src/Controller/ReservationController.php::reserveSession()
-   ├─ Status: 🔄 NECESITA AUDITORÍA - No revisado aún
-   
-   4️⃣ backend_user_reset_password - GET method (CRÍTICO)
-   ├─ Ubicación: src/Controller/Backend/StaffController.php::resetPassword()
-   ├─ Problema: GET request modifica datos + NO CSRF token
-   ├─ Severidad: 🔴 CRÍTCAL (violación REST + CSRF)
-   ├─ Status: 🔄 PENDIENTE - Colocado en lista para próximo fix
-   
-   PLAN DE TRABAJO (PRÓXIMOS FIXES):
-   
-   Secuencia recomendada:
-   1. ✅ waiting_list_remove (HECHO)
-   2. 🔄 reservation_cancel (EN ANÁLISIS - siguiente a implementar)
-   3. 🔴 backend_user_reset_password (GET → POST + CSRF)
-   4. 🔄 Auditar reservation_confirm, reservation_change_session
-   5. 🔄 Auditar backend_transaction_cancel, backend_reservation_attended
-   
-   Criterios de aceptación para cada fix:
-   ├─ Cambios de código requeridos (mínimos)
-   ├─ ✅ Sin errores sintácticos (get_errors OK)
-   ├─ ✅ Funcionalidad original se mantiene sin cambios
-   ├─ ✅ Autenticación/autorización intacta
-   ├─ ✅ UX sin impacto (mismos botones, comportamiento)
-   ├─ ✅ Validación CSRF retorna 403 en caso de token inválido
-   └─ Todo committeado en rama fix/urgente-csrf-endpoints
-
-�🛠️ PLAN DE SOLUCIÓN CON LOGGING - Instrumentation Strategy
+🛠️ PLAN DE SOLUCIÓN CON LOGGING - Instrumentation Strategy
    
    Objetivo: Visibilidad completa en cada paso del workflow para diagnosticar errores
    
@@ -938,6 +711,215 @@ STATUS: 15,000+ PALABRAS | 60+ EJEMPLOS | 20+ DIAGRAMAS (✅ 40% COMPLETO)
    ├─ [ ] Uptime monitoring
    └─ [ ] Alert thresholds configured
 ```
+
+---
+
+## ⚠️ DEPRECATION WARNINGS - A TENER EN CUENTA (NO URGENTE)
+
+**Nota:** Estas advertencias aparecen en logs del servidor pero **NO se van a resolver ahora**. Son para futuras actualizaciones del stack (Symfony 7.0, Doctrine 3.0).
+
+**Fecha de análisis:** 02/03/2026  
+**Total warnings:** 37 deprecations  
+**Decisión:** Documentar pero NO actualizar componentes ni cambiar estructura del stack
+
+---
+
+### 🟡 CATEGORÍA 1: Type Hints Faltantes (Symfony 7.0)
+```
+⚠️ Severidad: MEDIA | Urgencia: Antes de Symfony 7.0 | Tiempo: 30 min
+
+Archivos afectados:
+• App\Command\SessionAutoClosingCommand - Falta `: int` en execute()
+• App\Form\Backend\StaffCreateType - Falta `: void` en buildForm() y configureOptions()
+• App\Form\Backend\StaffPasswordType - Falta `: void` en buildForm() y configureOptions()
+• App\Form\ResettingFormType - Falta `: void` en buildForm()
+
+Impacto: ❌ Romperá en Symfony 7.0
+Estado: 🔵 DOCUMENTADO - No urgente mientras estemos en Symfony 6.x
+```
+
+---
+
+### 🟠 CATEGORÍA 2: Extensión PHP intl
+```
+⚠️ Severidad: IMPORTANTE | Urgencia: Corto plazo | Tiempo: 5 min
+
+Warning: "Please install the intl PHP extension for best performance"
+
+Impacto:
+• Performance reducido en internacionalización
+• Funciones de locale/timezone limitadas
+
+Solución futura:
+  # php.ini
+  extension=intl
+
+Estado: 🔵 DOCUMENTADO - Proyecto funciona sin ella
+```
+
+---
+
+### 🟡 CATEGORÍA 3: Doctrine ORM Auto-Mapping
+```
+⚠️ Severidad: MEDIA | Urgencia: Antes de Doctrine Bundle 3.0 | Tiempo: 5 min
+
+Warning: "doctrine.orm.controller_resolver.auto_mapping" default cambiará de true a false
+
+Solución futura:
+  # config/packages/doctrine.yaml
+  doctrine:
+      orm:
+          controller_resolver:
+              auto_mapping: true  # Explícito
+
+Estado: 🔵 DOCUMENTADO - Funciona con default actual
+```
+
+---
+
+### 🟢 CATEGORÍA 4: MakerBundle Authenticator
+```
+⚠️ Severidad: BAJA | Urgencia: No urgente | Tiempo: -
+
+Warning: "MakeAuthenticator class is deprecated, use Security\Make* instead"
+
+Impacto: Solo comandos de generación (desarrollo)
+Estado: 🔵 DOCUMENTADO - No afecta producción
+```
+
+---
+
+### 🔴 CATEGORÍA 5: Knp\DoctrineBehaviors Subscribers → Listeners
+```
+⚠️ Severidad: ALTA | Urgencia: Antes de Symfony 7.0 | Tiempo: 2-3 horas
+⚠️ Cantidad: 14 warnings (7 subscribers × 2 contextos)
+
+Subscribers afectados:
+1. BlameableEventSubscriber
+2. LoggableEventSubscriber
+3. SluggableEventSubscriber
+4. SoftDeletableEventSubscriber
+5. TimestampableEventSubscriber
+6. TranslatableEventSubscriber
+7. TreeEventSubscriber
+8. UuidableEventSubscriber
+
+Warning: "Registering as Doctrine subscriber is deprecated. Use #[AsDoctrineListener] instead"
+
+Impacto: Paquete de terceros (knplabs/doctrine-behaviors)
+Solución futura: Actualizar knplabs/doctrine-behaviors o migrar subscribers a listeners
+
+Estado: 🔵 DOCUMENTADO - Requiere actualización de paquete tercero
+```
+
+---
+
+### 🟡 CATEGORÍA 6: Security Bundle Alias
+```
+⚠️ Severidad: MEDIA | Urgencia: Antes de Symfony 7.0 | Tiempo: 15 min
+
+Warning: "Symfony\Component\Security\Core\Security alias deprecated"
+  Use "Symfony\Bundle\SecurityBundle\Security" instead
+
+Archivo: Knp\DoctrineBehaviors\Provider\UserProvider
+
+Impacto: Paquete de terceros
+Solución futura: Actualizar knplabs/doctrine-behaviors
+
+Estado: 🔵 DOCUMENTADO - Se resuelve actualizando paquete
+```
+
+---
+
+### 🟡 CATEGORÍA 7: Liip\ImagineBundle Twig Mode
+```
+⚠️ Severidad: MEDIA | Urgencia: Antes de liip/imagine-bundle 3.0 | Tiempo: 5 min
+⚠️ Cantidad: 2 warnings
+
+Warning: "Liip\ImagineBundle\Templating classes deprecated"
+  Configure "liip_imagine.twig.mode" to "lazy"
+
+Solución futura:
+  # config/packages/liip_imagine.yaml
+  liip_imagine:
+      twig:
+          mode: lazy
+
+Estado: 🔵 DOCUMENTADO - Funciona con modo actual
+```
+
+---
+
+### 🔴 CATEGORÍA 8: Doctrine ORM getEntity() → getObject()
+```
+⚠️ Severidad: ALTA | Urgencia: Antes de Doctrine ORM 3.0 | Tiempo: 15 min
+
+Warning: "Method getEntity() is deprecated. Use getObject() instead"
+Archivo: TranslatableEventSubscriber.php:164 (knplabs/doctrine-behaviors)
+
+Impacto: Paquete de terceros
+Solución futura: Actualizar knplabs/doctrine-behaviors
+
+Estado: 🔵 DOCUMENTADO - Se resuelve actualizando paquete
+```
+
+---
+
+### 🟠 CATEGORÍA 9: DateTime Passing Null
+```
+⚠️ Severidad: IMPORTANTE | Urgencia: Corto plazo | Tiempo: 1 hora
+
+Warning: "Passing null to parameter #2 ($dateType) of type int is deprecated"
+
+Impacto: Código propio usando DateTimeType con null
+Acción futura: Buscar formularios con DateTimeType y especificar tipo explícito
+
+Estado: 🔵 DOCUMENTADO - Requiere revisión de formularios
+```
+
+---
+
+### 📋 RESUMEN DE DEPRECATIONS
+
+| Categoría | Severidad | Warnings | Tiempo | Origen |
+|-----------|-----------|----------|--------|--------|
+| Type Hints | 🟡 Media | 7 | 30 min | Código propio |
+| intl extension | 🟠 Alta | 1 | 5 min | PHP config |
+| Doctrine auto-mapping | 🟡 Media | 1 | 5 min | Config |
+| MakerBundle | 🟢 Baja | 1 | - | Dev only |
+| **Knp Subscribers** | 🔴 **Alta** | **14** | **2-3h** | **knplabs/doctrine-behaviors** |
+| Security alias | 🟡 Media | 1 | 15 min | knplabs/doctrine-behaviors |
+| Liip Twig mode | 🟡 Media | 2 | 5 min | Config |
+| Doctrine getEntity | 🔴 Alta | 1 | 15 min | knplabs/doctrine-behaviors |
+| DateTime null | 🟠 Alta | 1 | 1h | Código propio |
+| **TOTAL** | | **37** | **~5h** | |
+
+---
+
+### 🎯 ESTRATEGIA FUTURA (NO IMPLEMENTAR AHORA)
+
+**Cuando actualicemos stack (Symfony 7.0 / Doctrine 3.0):**
+
+1. **Actualizar paquetes de terceros:**
+   ```bash
+   composer update knplabs/doctrine-behaviors
+   composer update liip/imagine-bundle
+   ```
+
+2. **Configuraciones rápidas (20 min total):**
+   - Habilitar `extension=intl` en php.ini
+   - Configurar `liip_imagine.twig.mode: lazy`
+   - Configurar `doctrine.orm.controller_resolver.auto_mapping: true`
+
+3. **Código propio (2 horas total):**
+   - Agregar type hints a Commands/Forms
+   - Buscar y arreglar DateTimeType con null
+
+4. **Si knplabs no actualiza:**
+   - Migrar subscribers a listeners con `#[AsDoctrineListener]`
+   - O reemplazar paquete por implementación propia
+
+**Conclusión:** Proyecto funciona correctamente con Symfony 6.4. Estas deprecations son avisos para futuras versiones mayores (7.0/3.0).
 
 ---
 
@@ -1408,9 +1390,7 @@ Manual práctico para desarrolladores incluyendo:
 | Compilar assets (prod) | `npm run build` |
 | Compilar assets (watch) | `npm run watch` |
 | Limpiar cache | `php bin/console cache:clear` |
-| Cerrar sesiones pasadas | `php bin/console app:session:autoclosing` |
 | Iniciar servidor | `php -d memory_limit=512M -S 127.0.0.1:8000 -t public` |
-| Quitar ONLY_FULL_GROUP_BY | `mysql -u root -pexael -e "SET GLOBAL sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''));"` |
 | Ejecutar tests | `php bin/phpunit` |
 | Validar schema | `php bin/console doctrine:schema:validate` |
 | Listar migraciones | `php bin/console doctrine:migrations:list` |

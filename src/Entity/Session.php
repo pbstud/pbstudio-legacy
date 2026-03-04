@@ -126,14 +126,10 @@ class Session implements TimestampableInterface
     // y revisar warnings de timezone.
     public function getDateTimeStart(): \DateTimeInterface
     {   
-        if (!$this->dateStart) {
-            throw new \LogicException('Session dateStart is not set');
+        if (!$this->dateStart || !$this->timeStart) {
+            throw new \LogicException('La sesión no tiene fecha u hora de inicio configurada.');
         }
-        
-        if (!$this->timeStart) {
-            throw new \LogicException('Session timeStart is not set');
-        }
-        
+
         $dateStart = \DateTimeImmutable::createFromInterface($this->dateStart);
         $dateStart = $dateStart->setTime(
             (int) $this->timeStart->format('H'),

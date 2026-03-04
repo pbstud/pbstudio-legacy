@@ -216,7 +216,7 @@ class TransactionController extends AbstractController
                 throw new \Exception('Fecha inválida');
             }
 
-            $expirationDate->setTime(0, 0);
+            $expirationDate = $expirationDate->setTime(0, 0);
             $today = new \DateTime('today');
 
             if ($expirationDate < $today) {
