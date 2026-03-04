@@ -19,7 +19,7 @@ Ninguno en pendientes (CSRF, DateTime ya implementados)
 | **2** | 💳 Cancelación con devolución | Confianza del cliente | 4-8h | 📋 Doc |
 | **3** | 📷 Editar foto instructores | Presentación + UX | 2-3h | ✅ Validado local |
 | **4** | 📧 Notificación cambio clase | Asistencia ↑30% | 2-4h | 📋 Doc |
-| **5** | 🔍 Búsqueda usuarios mejorada | Productividad admin | 1-2h | 📋 Doc |
+| **5** | 🔍 Búsqueda usuarios mejorada | Productividad admin | 1-2h | ✅ **COMPLETADO** |
 | **6** | 💌 Correos lista de espera | Conversión ×2.5 | 1-2h | 🔄 80% |
 | **7** | ⏰ Horarios precisos | Integridad de datos | 2-2.5h | 📋 Doc |
 
@@ -74,10 +74,12 @@ Impacto:  Inasistencias ↓, Confianza ↑
 Timeline: 2-4 horas
 ```
 
-### [5️⃣ FEATURE_BUSQUEDA_USUARIOS_MEJORADA.md](FEATURE_BUSQUEDA_USUARIOS_MEJORADA.md)
+### [5️⃣ FEATURE_BUSQUEDA_USUARIOS_MEJORADA.md](../FIXES/FEATURE_BUSQUEDA_USUARIOS_MEJORADA.md) ✅ COMPLETADO
 ```
-Problema: Buscar "maria" no encuentra "María"
-Solución: Tolerancia a acentos + parciales
+Problema: Filtros con espacios externos no funcionaban
+Solución: Aplicar trim() al input de búsqueda en backend
+Status:   ✅ IMPLEMENTADO Y VALIDADO (1,800 tests pasando, 0 regresiones)
+Ubicación: ../FIXES/ (fix completado)
 Impacto:  Búsquedas 98% exitosas
 Timeline: 1-2 horas
 ```
