@@ -1,10 +1,10 @@
 # 📷 FEATURE: Editar Foto de Instructores en Backend
 
-**Fecha de documentación:** 03/03/2026  
+**Fecha de documentación:** 03/03/2026 (actualizado 04/03/2026)  
 **Prioridad:** 🟠 IMPORTANTE  
 **Impacto:** Perfil de instructores + Presentación visual  
 **Timeline estimado:** 2-3 horas  
-**Estado:** ✅ VALIDADO EN LOCAL - LISTO PARA SUBIR A RAMA
+**Estado:** ✅ COMPLETADO - DEPLOYADO (Commit: 786a5e54)
 
 ---
 

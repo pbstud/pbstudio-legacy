@@ -1,8 +1,8 @@
 # 📚 DOCUMENTACIÓN - PBStudio
 
-**Última actualización:** 02 Marzo 2026  
-**Total de documentos:** 13  
-**Tamaño total:** ~300 KB
+**Última actualización:** 04 Marzo 2026  
+**Total de documentos:** 14  
+**Tamaño total:** ~320 KB
 ---
 
 ### 🚀 COMIENCE AQUÍ
@@ -63,21 +63,11 @@
 
 ---
 
-### 📑 REFERENCIA RÁPIDA
-
-#### 5. [INDICE_DOCUMENTACION.md](INDICE_DOCUMENTACION.md)
-- **Lectura:** 5 minutos
-- **Para:** Navegar entre docs
-- **Contiene:** Mapa de navegación por pregunta
-- **Ejemplo:** "Si quiero saber cómo está la seguridad" → Link directo
-
----
-
 ## 🏗️ DOCUMENTOS DE CONTEXTO
 
-### ANÁLISIS ANTERIOR (Sesiones previas)
+### ANÁLISIS TÉCNICO
 
-#### 6. [DOCUMENTACION_COMPLETA.md](DOCUMENTACION_COMPLETA.md)
+#### 5. [DOCUMENTACION_COMPLETA.md](DOCUMENTACION_COMPLETA.md)
 - 1,200+ líneas
 - 20 entidades documentadas
 - 13+ controllers
@@ -94,39 +84,48 @@
 #### 8. [GUIA_TECNICA_DESARROLLO.md](GUIA_TECNICA_DESARROLLO.md)
 - 1,100 líneas
 - Setup instructions
+- 30+6. [DIAGRAMA_RELACIONES.md](DIAGRAMA_RELACIONES.md)
+- 721 líneas
+- UML ASCII diagram
+- 27 relationships
+- 45+ validation rules
+- Record counts
+
+#### 7. [GUIA_TECNICA_DESARROLLO.md](GUIA_TECNICA_DESARROLLO.md)
+- 1,100+ líneas
+- Setup instructions
 - 30+ console commands
 - Coding patterns
 - Troubleshooting
 
-#### 9. [GUIA_TECNICA_EXPANSION.md](GUIA_TECNICA_EXPANSION.md)
-- 4,500+ líneas
-- Real entity patterns
-- Service layer examples
-- Exception handling
-- Payment integration (Conekta)
-
-#### 10. [DOCUMENTACION_EXPANSION_COMPLETA.md](DOCUMENTACION_EXPANSION_COMPLETA.md)
+#### 8. [DOCUMENTACION_EXPANSION_COMPLETA.md](DOCUMENTACION_EXPANSION_COMPLETA.md) ⚠️
 - 8,000+ líneas
 - 3 end-to-end use cases
 - Complete architecture integration
 - 12 troubleshooting problems
 - Daily monitoring checklist
+- **N� ISSUES CRÍTICOS NUEVOS (04/03/2026)
+
+#### 9. [ANALISIS_PROFUNDO_VALIDACIONES_04-03-2026.md](ANALISIS_PROFUNDO_VALIDACIONES_04-03-2026.md) ⚡ **NUEVO**
+- **Lectura:** 20 minutos
+- **Para:** Developers (PRIORITARIO)
+- **Contiene:** 3 issues críticos nuevos identificados
+- **Issues:**
+  - 🔴 #47: ReservationController::confirm() null-unsafe
+  - 🔴 #48: Multiple find() sin NULL checks (5 ubicaciones)
+  - 🔴 #49: WaitingListService sin transacción atómica
+- **Timeline:** ~80 minutos de fixes
+- **Prioridad:** INMEDIATA (antes de producción)
 
 ---
 
 ### 📋 TRACKING
 
-#### 11. [progreso.md](progreso.md)
-- Estado del proyecto
+#### 10. [progreso.md](progreso.md)
+- Estado del proyecto (55% completado)
 - Fases completadas
-- Bugs identificados (3 totales)
-- Documentación completada (100%)
-- Siguientes pasos
-
----
-
-## 🎯 Flujo de Lectura Sugerido
-
+- Bugs identificados y resueltos
+- Documentación completada
 ### Para  (15 minutos)
 ```
 1. RESUMEN.md (5 min)
@@ -194,17 +193,17 @@ Día 3:
 ### "¿Cuáles son los datos en BD?"
 → AUDITORIA_TECNICA_INTEGRAL.md → "Estado de Base de Datos"
 
-### "¿Cómo arreglo el DateTime?"
-→ PLAN_ACCION.md → "Issue #1" → Scripts
+### "¿Qué issues nuevos hay (04/03/2026)?"
+→ ANALISIS_PROFUNDO_VALIDACIONES_04-03-2026.md → Issues #47-#49 ⚡
 
-### "¿Debo ir a producción?"
-→ RESUMEN.md → "Estado de Producción"
-
-### "¿Cómo funciona el calendario?"
-→ DOCUMENTACION_COMPLETA.md → "Reservations"
-
-### "¿Cómo hago un pago con Conekta?"
-→ GUIA_TECNICA_EXPANSION.md → "Payment Integration"
+### "¿Debo ir a 2 |
+| Líneas totales | 2,400+ |
+| Tamaño | ~320 KB |
+| Tiempo lectura total | ~3.5 horas |
+| Código de ejemplo | 50+ snippets |
+| Diagramas ASCII | 10+ |
+| Issues identificados | 49+ |
+| Recomendaciones | 30ON.md → "Payment Integration"
 
 ---
 
@@ -254,17 +253,49 @@ Día 3:
 3. Revisar ejemplos en DOCUMENTACION_EXPANSION_COMPLETA.md
 4. Consultar troubleshooting en GUIA_TECNICA_DESARROLLO.md
 
-### Para contribuir
-1. Leer DOCUMENTACION_COMPLETA.md (patterns)
-2. Consultar GUIA_TECNICA_EXPANSION.md (implementation)
-3. Revisar código en src/ (real examples)
+- [ ] ANALISIS_PROFUNDO_VALIDACIONES → Marcar issues completados
 
 ---
 
-## 📅 Próximas Actualizaciones
+## 📁 ESTRUCTURA DE CARPETAS
 
-**Próxima review:** 09 Marzo 2026
+```
+DOCUMENTACION/
+├── README.md (este archivo)
+├── RESUMEN.md
+├── PLAN_ACCION.md
+├── AUDITORIA_TECNICA_INTEGRAL.md
+├── ARQUITECTURA_FLUJO_DATOS.md
+├── ANALISIS_PROFUNDO_VALIDACIONES_04-03-2026.md ⚡
+├── DOCUMENTACION_COMPLETA.md
+├── DOCUMENTACION_EXPANSION_COMPLETA.md
+├── GUIA_TECNICA_DESARROLLO.md
+├── DIAGRAMA_RELACIONES.md
+├── progreso.md
+├── FIXES/ (features completados)
+│   ├── CSRF_PROTECTION_SECURITY_FIX.md
+│   ├── DATETIME_IMMUTABILITY_FIX.md
+│   ├── FEATURE_BUSQUEDA_USUARIOS_MEJORADA.md
+│   ├── FEATURE_EDITAR_FOTO_INSTRUCTORES.md
+│   └── FEATURE_HORARIOS_PRECISOS.md
+└── FIXES_PENDIENTES/ (pendientes)
+    ├── FEATURE_CANCELACION_CON_DEVOLUCION.md
+    ├── FEATURE_CARGA_MASIVA_HORARIOS.md
+    ├── FEATURE_CORREOS_LISTA_ESPERA.md
+    ├── FEATURE_NOTIFICACION_CAMBIO_CLASE.md
+    └── URGENTE_DISPONIBILIDAD_ASIENTOS_DESFASADA.md
+```
 
+---
+
+**Índice Completo de Documentación**  
+**04 Marzo 2026**  
+**12 documentos activos - Cobertura integral ✅**
+
+---
+
+**Documentación actualizada y limpia ✅**  
+**04
 Si ejecuta los fixes, actualice:
 - [ ] RESUMEN.md → Estado
 - [ ] PLAN_ACCION.md → Completed items
