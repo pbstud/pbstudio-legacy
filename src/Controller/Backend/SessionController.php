@@ -449,6 +449,7 @@ class SessionController extends AbstractController
         return $this->render('backend/session/audit.html.twig', [
             'session' => $session,
             'audits' => $audits,
+            'cancel_form' => $this->createCancelForm($session)->createView(),
         ]);
     }
 

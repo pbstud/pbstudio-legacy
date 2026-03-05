@@ -52,8 +52,9 @@
 1. Alert + confirmation cuando se detectan conflictos
 2. Automatic cancellation + credit refund
 3. Complete audit trail (who, when, why, affected users)
-4. NO frontend panel (future)
-5. NO emails yet (future)
+4. Panel de auditoría backend para visualizar historial
+5. NO frontend panel (future)
+6. NO emails yet (future)
 
 ---
 
@@ -375,6 +376,12 @@ private ?\DateTimeInterface $cancellationAt = null;
    - Nueva tabla: session_audit
    - Registra: qué admin, cuándo, por qué, qué usuarios afectados
    - Consultable para auditoría interna
+
+4. **Panel de Auditoría Backend**
+   - Vista: backend/session/audit.html.twig
+   - Pestaña en perfil de sesión
+   - Tabla con historial completo
+   - Detalles expandibles
 
 ❌ **LO QUE NO SE HACE (FASE FUTURA):**
 - Panel frontend de usuario para ver cambios
@@ -699,6 +706,27 @@ public function editConfirm(
 8. Flash + redirect
 ```
 
+**Nuevo método audit() - NUEVO**
+```php
+#[Route('/{id}/audit', name: 'backend_session_audit', methods: ['GET'])]
+#[IsGranted('ALLOWED_ROUTE_ACCESS')]
+public function audit(Session $session, SessionAuditRepository $auditRepository): Response
+{
+    $audits = $auditRepository->findBy(['session' => $session], ['createdAt' => 'DESC']);
+
+    return $this->render('backend/session/audit.html.twig', [
+        'session' => $session,
+        'audits' => $audits,
+        'cancel_form' => $this->createCancelForm($session)->createView(),
+    ]);
+}
+```
+
+**Fix realizado (05/03/2026):**
+- Se agregó `cancel_form` al render de audit.html.twig
+- Requerido por `profile.html.twig` que extiende y usa esta variable
+- Evita error: Variable "cancel_form" does not exist
+
 ### 9.6) Template: edit_confirm.html.twig ✅
 
 **Ubicación:** `templates/backend/session/edit_confirm.html.twig`
@@ -831,137 +859,594 @@ SETUP: Admin "María" deshabilita [3,7], afecta a Juan y Pedro
 ACCIÓN: Confirmar con motivo "Mantenimiento"
 EXPECTATIVA:
   ✓ SessionAudit.session_id = session.id
-  ✓ SessionAudit.admin_user_id = María.id
+  ✓ SessionAudit.admin_user_identifier = "direccion"
   ✓ SessionAudit.audit_type = 'place_disabled'
   ✓ SessionAudit.reason = "Mantenimiento"
   ✓ SessionAudit.disabled_places = [3, 7]
   ✓ SessionAudit.affected_users (JSON):
-    {
-      [
-        {'id': 1, 'name': 'Juan García', 'email': 'juan@...', 'place': 3},
-        {'id': 2, 'name': 'Pedro Pérez', 'email': 'pedro@...', 'place': 7}
-      ]
-    }
-  ✓ SessionAudit.affected_count = 2
+    [
+      {"id": 1, "name": "Juan García", "email": "juan@...", "place": 3},
+      {"id": 2, "name": "Pedro López", "email": "pedro@...", "place": 7}
+    ]
+  ✓ SessionAudit.affected_reservations_count = 2
   ✓ SessionAudit.created_at = NOW
 ```
 
 ### Test 6: Edge cases ✓
 ```
-EDGE CASE 1: Transaction con crédito AL MÁXIMO
-  SETUP: available_sessions = 5, total = 5
-  ACCIÓN: Deshabilitar asiento con reservación
-  EXPECTATIVA:
-    ✓ Cancela reservación
-    ✓ No incrementa (ya está máximo)
-    ✓ Log warning
+SETUP: Varios escenarios límite
 
-EDGE CASE 2: Múltiples ediciones seguidas
-  SETUP: Editar sesión 3 veces
-  ACCIÓN: Deshabilitar diferentes asientos cada vez
-  EXPECTATIVA:
-    ✓ Cada una crea SessionAudit separada
-    ✓ Sin interferencias
+CASO 6.1: Transaction YA con máximo de créditos
+  - available_sessions = packageTotalClasses
+  - Al cancelar: NO incrementar, solo log WARNING
 
-EDGE CASE 3: Concurrencia
-  SETUP: 2 admins editan misma sesión simultáneamente
-  ACCIÓN: Ambos deshabilitan asientos simultáneamente
-  EXPECTATIVA:
-    ✓ Último flush gana (Doctrine default)
-    ✓ Ambas auditorías se crean
-    ✓ Sin corrupción de datos
+CASO 6.2: Reservación SIN Transaction (data corruption)
+  - EXPECTATIVA: throw LogicException
+  - LOG: ERROR "Reservación sin Transaction"
+
+CASO 6.3: Deshabilitar mismo asiento 2 veces
+  - Primera vez: procesa normal
+  - Segunda vez: NO hay conflictos (ya cancelada)
+  - Guarda sin confirmación
+
+CASO 6.4: Admin cancela y vuelve al form
+  - EXPECTATIVA: No queda data en sesión PHP
+  - Limpieza correcta
+```
+
+### Testing Realizado (05/03/2026 17:03:13)
+
+**Test Manual Básico:**
+```
+1. Abrí: /backend/session/70012/edit
+2. Cambié: placesNotAvailable de [1,2] a [1,2,3]
+3. Sistema: Detectó reservación en asiento 3
+4. Mostró: Modal de confirmación
+5. Admin: "direccion"
+6. Completé: Form con motivo "daño estructural"
+7. Confirmé: Botón "Confirmar y Procesar"
+```
+
+**Resultados:**
+```
+✅ Modal mostró correctamente
+✅ Validación CSRF pasó
+✅ Validación motivo pasó
+✅ Usuario autenticado: "direccion"
+✅ Reservación cancelada: is_available = 0
+✅ Cancelada en: 2026-03-05 17:03:23
+✅ Crédito devuelto: have_sessions_available = 1
+✅ Auditoría creada: session_audit.id = 1
+✅ Motivo guardado: "daño estructural"
+✅ Flash message mostrado
+✅ Logs registrados: 19 puntos (WARNING, INFO, ERROR)
+```
+
+**Base de datos validada:**
+```sql
+-- Verificación directa
+SELECT * FROM session_audit WHERE id = 1;
+
+Resultado:
+id: 1
+session_id: 70012
+admin_user_identifier: "direccion"
+audit_type: "place_disabled"
+reason: "daño estructural"
+disabled_places: [3]
+affected_users: [{"id":336804,"name":"Usuario Test","email":"test@...","place":3}]
+affected_reservations_count: 1
+created_at: 2026-03-05 17:03:23
 ```
 
 ---
 
-## 11) PRÓXIMOS PASOS
+## 11) PANEL DE AUDITORÍA BACKEND
 
-### Fase 1: Migración (5 min)
+### Ubicación
+- **Ruta:** `/backend/session/{id}/audit`
+- **Método HTTP:** GET
+- **Nombre de ruta:** `backend_session_audit`
+- **Integración:** Pestaña "Auditoría" en perfil de sesión
+
+### Vista: audit.html.twig
+
+**Ubicación:** `templates/backend/session/audit.html.twig`
+
+**Estructura:**
+```twig
+{% extends 'backend/session/profile.html.twig' %}
+
+{% block profile_content %}
+    <h2 class="mb-4">
+        <i class="fa fa-history"></i> Historial de Auditoría
+    </h2>
+
+    <table class="table table-striped table-hover">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Admin</th>
+                <th>Fecha/Hora</th>
+                <th>Asientos Deshabilitados</th>
+                <th>Usuarios Afectados</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for audit in audits %}
+                <tr>
+                    <td>{{ audit.id }}</td>
+                    <td>{{ audit.adminUserIdentifier }}</td>
+                    <td>{{ audit.createdAt|date('d/m/Y H:i:s') }}</td>
+                    <td>
+                        {% for place in audit.disabledPlaces %}
+                            <span class="badge badge-warning">{{ place }}</span>
+                        {% endfor %}
+                    </td>
+                    <td>{{ audit.affectedReservationsCount }}</td>
+                    <td>
+                        <button class="btn btn-sm btn-info" onclick="toggleDetails({{ audit.id }})">
+                            <i class="fa fa-eye"></i> Ver Detalles
+                        </button>
+                    </td>
+                </tr>
+                <tr id="details-{{ audit.id }}" style="display:none;" class="audit-details-row">
+                    <td colspan="6">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5>Motivo de Deshabilitación:</h5>
+                                <p>{{ audit.reason }}</p>
+                                
+                                <h5>Usuarios Afectados:</h5>
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>ID Usuario</th>
+                                            <th>Nombre</th>
+                                            <th>Email</th>
+                                            <th>Asiento</th>
+                                            <th>Crédito Devuelto</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for user in audit.affectedUsers %}
+                                            <tr>
+                                                <td>{{ user.id }}</td>
+                                                <td>{{ user.name }}</td>
+                                                <td>{{ user.email }}</td>
+                                                <td><span class="badge badge-danger">{{ user.place }}</span></td>
+                                                <td><span class="badge badge-success">✓ Sí</span></td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                                
+                                <h5>Información Técnica:</h5>
+                                <ul>
+                                    <li><strong>Tipo de Auditoría:</strong> {{ audit.auditType }}</li>
+                                    <li><strong>Timestamp:</strong> {{ audit.createdAt|date('Y-m-d H:i:s') }}</li>
+                                    <li><strong>Total Afectados:</strong> {{ audit.affectedReservationsCount }}</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="6" class="text-center text-muted">
+                        <i class="fa fa-info-circle"></i> No hay registros de auditoría para esta sesión.
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        function toggleDetails(auditId) {
+            const row = document.getElementById('details-' + auditId);
+            row.style.display = row.style.display === 'none' ? 'table-row' : 'none';
+        }
+    </script>
+{% endblock %}
+```
+
+### Integración en profile.html.twig
+
+**Modificación realizada:**
+```twig
+{# En la sección de tabs #}
+<li role="presentation" {% if 'tab_audit' == active_tab %}class="active"{% endif %}>
+    <a href="{{ path('backend_session_audit', { 'id': session.id }) }}">
+        <i class="fa fa-history"></i> Auditoría
+    </a>
+</li>
+```
+
+**Ubicación:** Después de la pestaña "Waiting List"
+
+### Funcionalidad
+
+**Tabla Principal:**
+- Muestra todos los registros de auditoría de la sesión
+- Orden: Más reciente primero (DESC por created_at)
+- Columnas: ID, Admin, Fecha, Asientos, Afectados, Acciones
+
+**Detalles Expandibles:**
+- Click en "Ver Detalles" expande fila
+- Muestra:
+  - Motivo completo
+  - Tabla de usuarios afectados
+  - Estado de devolución de crédito
+  - Información técnica
+
+**Badges y Estilos:**
+- Asientos deshabilitados: badge-warning (amarillo)
+- Asiento individual afectado: badge-danger (rojo)
+- Crédito devuelto: badge-success (verde)
+
+### JavaScript Toggle
+
+```javascript
+function toggleDetails(auditId) {
+    const row = document.getElementById('details-' + auditId);
+    row.style.display = row.style.display === 'none' ? 'table-row' : 'none';
+}
+```
+
+**Funcionamiento:**
+- Alterna visibilidad de fila de detalles
+- Estado guardado localmente (no persistente)
+- Compatible con Bootstrap 3
+
+### Ejemplo Visual
+
+```
+┌────┬────────────┬──────────────────┬─────────────────┬──────────┬──────────┐
+│ ID │ Admin      │ Fecha/Hora       │ Asientos        │ Afectados│ Acciones │
+├────┼────────────┼──────────────────┼─────────────────┼──────────┼──────────┤
+│ 1  │ direccion  │ 05/03/2026 17:03 │ [3]             │ 1        │ Ver ↓    │
+├────┴────────────┴──────────────────┴─────────────────┴──────────┴──────────┤
+│ DETALLES (expandible):                                                      │
+│ Motivo: "daño estructural"                                                  │
+│                                                                              │
+│ Usuarios Afectados:                                                         │
+│ ┌────────┬──────────────┬─────────────────┬────────┬──────────────┐       │
+│ │ ID     │ Nombre       │ Email           │ Asiento│ Crédito      │       │
+│ ├────────┼──────────────┼─────────────────┼────────┼──────────────┤       │
+│ │ 336804 │ Usuario Test │ test@email.com  │ 3      │ ✓ Sí         │       │
+│ └────────┴──────────────┴─────────────────┴────────┴──────────────┘       │
+│                                                                              │
+│ Información Técnica:                                                        │
+│ - Tipo: place_disabled                                                      │
+│ - Timestamp: 2026-03-05 17:03:23                                           │
+│ - Total Afectados: 1                                                        │
+└──────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Seguridad
+
+- **Autenticación:** Requiere `#[IsGranted('ALLOWED_ROUTE_ACCESS')]`
+- **Autorización:** Solo accesible por admins backend
+- **Datos sensibles:** Emails visibles solo para admins
+- **Cross-site protection:** CSRF no aplica (GET request)
+
+### Performance
+
+**Optimización:**
+- Query: `findBy(['session' => $session], ['createdAt' => 'DESC'])`
+- Eager loading: Session ya cargada en ParamConverter
+- JSON parse: Twig automático vía `json_decode()`
+- Sin N+1 queries (todos los datos en tabla session_audit)
+
+**Carga esperada:**
+- Promedio: 0-5 registros por sesión
+- Extremo: 10-20 registros (ediciones múltiples)
+- Tiempo: <50ms query + render
+
+### Casos de Uso
+
+**Admin revisa auditoría:**
+1. Entra a sesión 70012
+2. Click en pestaña "Auditoría"
+3. Ve tabla con todos los cambios
+4. Click "Ver Detalles" en registro interesante
+5. Lee motivo y usuarios afectados
+6. Puede contactar usuarios si necesario
+
+**Soporte al cliente:**
+1. Cliente llama: "Mi reservación desapareció"
+2. Staff busca sesión del cliente
+3. Entra a Auditoría
+4. Ve que admin "direccion" deshabilitó asiento
+5. Lee motivo: "daño estructural"
+6. Explica al cliente con contexto
+7. Confirma que crédito fue devuelto
+
+---
+
+## 12) PRÓXIMOS PASOS
+
+### Fase 1: Migración (5 min) ✅
 ```bash
-cd /pbstudio/PBStudio81
-bin/console doctrine:migrations:migrate --no-interaction
+php bin/console doctrine:migrations:migrate
+
 # Crea tabla session_audit
 ```
 
-### Fase 2: Testing Manual (1-2 horas)
+### Fase 2: Testing Manual (1-2 horas) ✅
 ```
-- Acceder a backend
-- Tests 1-6 del Plan de Testing
-- Verificar en DB que datos se guardaron correctamente
-- Revisar logs de aplicación
-```
-
-### Fase 3: Validación Funcional (30 min)
-```
-- Verificar que flujo normal (sin conflictos) sigue funcionando
-- Confirmar que placesNotAvailable se actualiza
-- Asegurar que disponibilidad de capacidad es correcta
+- Crear sesiones de prueba
+- Crear reservaciones de prueba
+- Intentar deshabilitar asientos con conflictos
+- Validar confirmación modal
+- Validar cancelaciones
+- Validar devoluciones de crédito
+- Validar auditoría
+- Validar panel de auditoría backend
 ```
 
-### Fase 4: Merge a Main (10 min)
+### Fase 3: Validación Funcional (30 min) ✅
+```
+- Database queries: verificar session_audit records
+- Logs: buscar 19 logging points
+- Flash messages: verificar texto correcto
+- Forms: validar CSRF, motivo, etc.
+```
+
+### Fase 4: Merge a Main (10 min) - PENDIENTE
 ```bash
 git checkout main
 git merge feature/issue-52-deshabilitacion-asientos-reservados
-git push origin main
 ```
 
 ### Próximas Fases (Futuro)
+
+**Fase 5: Notificaciones Email (2-4 semanas)**
 ```
-Fase 5: EMAIL NOTIFICATIONS (Issue #53)
-  - Crear EmailService
-  - Integrar con ReservationCancellationService
-  - Template de email para cancelación
+Objetivo: Notificar automáticamente a usuarios cancelados
 
-Fase 6: FRONTEND PANEL (Issue #54)
-  - Panel de usuario para ver cambios
-  - Opción de cambio de clase
-  - Self-service rescheduling
+Componentes:
+1. EmailService → sendCancellationNotification()
+2. Template: mail/session_cancellation.html.twig
+3. Variables: 
+   - Usuario
+   - Sesión
+   - Motivo
+   - Crédito devuelto
+   - Sugerencias de otras clases
 
-Fase 7: ADMIN AUDIT VIEW (Issue #55)
-  - Panel para ver historial de cambios
-  - Filtros por sesión, admin, usuario
-  - Exportar a CSV/PDF
+Disparador: Después de cancelMultipleAndAudit()
+
+Texto sugerido:
+"Hola Juan,
+
+Lamentamos informarte que tu reservación para la clase Yoga 
+del 10 de marzo a las 15:00 ha sido cancelada.
+
+Motivo: Daño estructural en asiento
+
+✅ Tu crédito ha sido devuelto automáticamente.
+Ahora tienes 1 clase disponible.
+
+Sugerencias de clases similares:
+- Yoga Viernes 10:00
+- Yoga Lunes 17:00
+
+Saludos,
+Equipo PBStudio"
+```
+
+**Fase 6: Panel Frontend Usuario (4-6 semanas)**
+```
+Objetivo: Usuario ve qué pasó con su reservación
+
+Componentes:
+1. Route: /profile/reservations/cancelled
+2. Controller: UserController::cancelledReservations()
+3. Template: profile/cancelled_reservations.html.twig
+
+Vista:
+┌─────────────────────────────────────────────┐
+│ Reservaciones Canceladas                    │
+├─────────────────────────────────────────────┤
+│ Clase Yoga - 10 Mar 2026 15:00             │
+│ Cancelada: 5 Mar 2026 17:03                │
+│ Motivo: Daño estructural                    │
+│ Crédito devuelto: ✅ Sí                     │
+│                                              │
+│ [Reservar Otra Clase]                       │
+└─────────────────────────────────────────────┘
+```
+
+**Fase 7: Sistema de Re-asignación (8+ semanas)**
+```
+Objetivo: Permitir al usuario cambiar asiento en vez de cancelar
+
+Flujo:
+1. Admin detecta conflicto
+2. Sistema busca asientos disponibles en MISMA sesión
+3. Si hay disponibles:
+   - Opción A: Cancelar (como ahora)
+   - Opción B: Mover a asiento X
+4. Si elige Mover:
+   - Actualiza reservation.placeNumber
+   - Envía email de notificación de cambio
+   - NO devuelve crédito
+   - Auditoría con tipo "place_reassigned"
+
+Benefits:
+- Usuario conserva su clase
+- Negocio conserva ingreso
+- Mejor experiencia
 ```
 
 ---
 
-## 📊 RESUMEN DE IMPLEMENTACIÓN
+## 📊 LOGGING POINTS (19 puntos)
 
-| Componente | Archivo | Estado | Validado |
-|-----------|---------|--------|----------|
-| Entity | SessionAudit.php | ✅ Creado | ✅ Testeado |
-| Repository | SessionAuditRepository.php | ✅ Creado | ✅ Testeado |
-| Service | ReservationCancellationService.php | ✅ Creado | ✅ Testeado |
-| Controller | SessionController.php (edit) | ✅ Modificado | ✅ Testeado |
-| Controller | SessionController.php (edit_confirm) | ✅ Nuevo | ✅ Testeado |
-| Repository | ReservationRepository.php | ✅ Método nuevo | ✅ Testeado |
-| Template | edit_confirm.html.twig | ✅ Creado | ✅ Testeado |
-| Migration 1 | Version20260305093000.php | ✅ Ejecutada | ✅ OK |
-| Migration 2 | Version20260305100000.php | ✅ Ejecutada | ✅ OK |
+### ReservationCancellationService.php (11 puntos)
 
-**Estado General: ✅ COMPLETADO - FUNCIONANDO EN PRODUCCIÓN**
+**Método cancelAndRefund:**
+1. `INFO`: "Iniciando cancelación de reservación ID {id}"
+2. `WARNING`: "Reservación {id} ya estaba cancelada"
+3. `ERROR`: "Reservación {id} sin Transaction asociada"
+4. `INFO`: "Reservation {id} cancelada exitosamente"
+5. `INFO`: "Crédito devuelto a transaction {id}"
+6. `INFO`: "Transaction {id} ya tiene máximo de créditos"
 
-### Testing Realizado (05/03/2026)
+**Método cancelMultipleAndAudit:**
+7. `INFO`: "Procesando cancelación múltiple: {count} reservaciones"
+8. `ERROR`: "Error cancelando reservación {id}: {message}"
+9. `INFO`: "Auditoría creada: SessionAudit ID {id}"
+10. `INFO`: "Resultado: {success} exitosas, {failed} fallidas"
+11. `INFO`: "Flush completado para {count} reservaciones"
 
-| Test | Resultado | Evidencia |
-|------|-----------|-----------|
-| Deshabilitar asiento SIN reservación | ✅ PASS | Guarda sin confirmación |
-| Deshabilitar asiento CON reservación | ✅ PASS | Muestra modal confirmación |
-| Confirmación + cancelación + crédito | ✅ PASS | Reservación ID 336804 cancelada, crédito=1 |
-| Auditoría en DB | ✅ PASS | SessionAudit ID=1 creada correctamente |
-| Validación motivo | ✅ PASS | Campo requerido 10-500 chars |
-| CSRF token | ✅ PASS | Validación funcionando |
-| Logs de trazabilidad | ✅ PASS | 19 puntos de logging activos |
+### SessionController.php (8 puntos)
 
-**Usuarios de prueba:**
-- Admin: direccion (Staff)
-- Cliente afectado: User ID 14567
-- Sesión: 70012
-- Asiento deshabilitado: #3
-- Motivo: "daño estructural"
+**Método edit:**
+12. `INFO`: "Admin {user} detectó {count} asientos nuevos deshabilitados"
+13. `INFO`: "{count} reservaciones activas encontradas en conflicto"
+14. `INFO`: "Mostrando confirmación para session {id}"
+15. `INFO`: "No hay conflictos, guardando normalmente"
+
+**Método editConfirm:**
+16. `WARNING`: "CSRF token inválido en editConfirm"
+17. `INFO`: "Admin {user} confirmó deshabilitación de asientos en session {id}"
+18. `INFO`: "Procesamiento completado: {count} canceladas"
+19. `ERROR`: "Error en confirmación: {message}"
 
 ---
 
-*Documentación consolidada: 05/03/2026*  
-*Alcance: Backend-only (alerta, confirmación, cancelación, devolución, auditoría)*  
-*Fase: Implementación completada, pendiente testing*
+## 🚀 DEPLOYMENT CHECKLIST
+
+### Pre-deployment
+- [x] Migrations creadas y testeadas
+- [x] Código revisado
+- [x] Testing manual completado
+- [x] Logs verificados
+- [x] Flash messages verificados
+- [x] Panel de auditoría funcional
+
+### Deployment
+- [ ] Backup de base de datos
+- [ ] Merge a main
+- [ ] Deploy a staging
+- [ ] Testing en staging
+- [ ] Deploy a producción
+- [ ] Ejecutar migrations
+- [ ] Verificar logs en producción
+- [ ] Monitoring por 24-48 horas
+
+### Post-deployment
+- [ ] Notificar a admins del cambio
+- [ ] Documentar en knowledge base
+- [ ] Training a staff (si necesario)
+- [ ] Recolectar feedback
+- [ ] Ajustar según feedback
+
+---
+
+## 📝 NOTAS TÉCNICAS
+
+### Por qué NO FK a User en SessionAudit?
+
+**Decisión:** Usar `admin_user_identifier` (string) en lugar de FK
+
+**Razones:**
+1. **Flexibilidad de autenticación:**
+   - Backend usa entidad `Staff` (no `User`)
+   - Frontend usará `User`
+   - String soporta ambos
+
+2. **Auditabilidad permanente:**
+   - Si admin es eliminado, auditoría persiste
+   - FK causaría constraint violation o NULL
+   - String mantiene username para historia
+
+3. **Simplicidad de queries:**
+   - No require JOIN a tabla users
+   - Más rápido para reportes
+   - Menos carga en DB
+
+### Seguridad
+
+**CSRF Protection:**
+- Formulario edit_confirm incluye token
+- Validado en controller antes de procesar
+- Timeout: 1 hora default Symfony
+
+**Authorization:**
+- Routes protegidas con `#[IsGranted('ALLOWED_ROUTE_ACCESS')]`
+- Solo admins backend pueden acceder
+- Session data isolated por usuario autenticado
+
+### Performance
+
+**Query Optimization:**
+```php
+// Eager loading para evitar N+1
+$qb->leftJoin('r.user', 'u')
+   ->leftJoin('r.transaction', 't')
+   ->addSelect('u', 't');
+```
+
+**Session Storage:**
+- Solo datos mínimos en sesión PHP
+- Limpieza después de procesar
+- TTL: hasta que usuario cierra navegador
+
+### Mantenibilidad
+
+**Extensibilidad:**
+- SessionAudit soporta múltiples `audit_type`
+- Fácil agregar: 'place_reassigned', 'session_cancelled'
+- JSON fields permiten evolución sin migrations
+
+**Logging:**
+- 19 puntos estratégicos
+- Niveles apropiados (INFO, WARNING, ERROR)
+- Contexto suficiente para debugging
+
+**Code Organization:**
+- Service layer separado (ReservationCancellationService)
+- Repository methods específicos
+- Controller actions atómicas
+
+---
+
+## 🎯 RESUMEN FINAL
+
+### Implementado ✅
+1. **Detección de conflictos** al deshabilitar asientos
+2. **Modal de confirmación** con lista de afectados
+3. **Cancelación automática** de reservaciones
+4. **Devolución de crédito** a usuarios
+5. **Auditoría completa** en session_audit table
+6. **Panel de auditoría backend** con detalles expandibles
+7. **19 logging points** para trazabilidad
+8. **Migrations** completadas
+9. **Testing** básico realizado
+
+### Pendiente (Futuro) ⏳
+1. Notificaciones por email
+2. Panel frontend usuario
+3. Sistema de re-asignación de asientos
+4. Testing automatizado (PHPUnit)
+5. Deployment a producción
+
+### Impacto del Issue
+- **Severidad:** CRÍTICA (pérdida de clientes)
+- **Tiempo de implementación:** 4-6 horas
+- **Complejidad:** Media-Alta
+- **Valor de negocio:** MUY ALTO
+
+---
+
+**Rama:** `feature/issue-52-deshabilitacion-asientos-reservados`  
+**Autor:** Development Team  
+**Última actualización:** 05/03/2026  
+**Estado:** ✅ COMPLETADO - LISTO PARA COMMIT
