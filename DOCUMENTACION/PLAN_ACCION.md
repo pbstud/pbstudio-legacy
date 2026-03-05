@@ -1,8 +1,10 @@
 # 📋 PLAN DE ACCIÓN - PBStudio
 
-**Fecha:** 02 Marzo 2026  
-**Status:** 46 issues identificados, 1 crítico pendiente, 2 resueltos  
-**Timeline:** Fix inmediato → Producción en 1-2 días
+**Fecha actualización:** 05 Marzo 2026  
+**Status:** 50 issues identificados (42 previos + 8 nuevos de reunión 05/03)  
+**Issues resueltos:** 5 ✅  
+**Issues pendientes:** 45 (8 NUEVOS aprobados por DG)  
+**Timeline:** Fix inmediato → Producción en 5-6 días
 
 ---
 
@@ -1406,6 +1408,334 @@ php bin/console doctrine:schema:validate
 curl http://pbstudio.local/
 # Check logs: tail -f var/log/prod.log
 ```
+
+---
+
+## 🆕 NUEVOS ISSUES - REUNIÓN 05/03/2026 (APROBADOS POR DG)
+
+A continuación, los **8 nuevos temas de mejora** identificados en la reunión del Directorio:
+
+---
+
+### Issue #43: 📊 Ver quién canceló en la Info de la Clase (Backend)
+
+**Prioridad:** 🟠 IMPORTANTE  
+**Timeline estimado:** 2-3 horas  
+**Historia de usuario:** Como admin del backend, quiero ver en la información de una clase **quién canceló** una reservación y **cuándo**, para tener control operativo.
+
+**Qué se necesita:**
+- En la vista de detalles de una clase (`/backend/session/{id}`), agregar tabla de **cancelaciones**
+- Mostrar: Nombre del cliente, fecha/hora de cancelación, número de lugar que liberó
+- Si es posible, botón para "ver detalles de esa cancelación" en el historial
+
+**Beneficio:** Transparencia operativa + auditoría de cambios
+
+---
+
+### Issue #44: 📧 Prueba de Correos (Esperar Servidor)
+
+**Prioridad:** 🟠 IMPORTANTE  
+**Timeline estimado:** 1-2 horas (cuando servidor esté activo)  
+**Contexto:** Los correos no se están enviando porque se debe **activar el servidor de correos** (Sendgrid o similar) y **probar que funcione**.
+
+**Qué se necesita:**
+1. Activar acceso a servidor de correos en producción
+2. Probar con `php bin/console mailer:test` 
+3. **Revisar qué correos se DEBEN enviar** en cada escenario:
+   - ¿Cuándo se envía confirmación de reserva?
+   - ¿Cuándo se notifica cancelación?
+   - ¿Cuándo se notifica cambio de clase?
+   - ¿Cuándo se notifica a quien está en lista de espera?
+4. **Qué debe contener cada correo** (asunto, contenido, CTA - call to action)
+5. **Cuándo se envía** (inmediato, batch diario, etc.)
+
+**Dependencias:** Issue #3 (Notificaciones)
+
+---
+
+### Issue #45: ⏰ Horario Abierto en Creación de Clases (Formateable)
+
+**Prioridad:** 🟠 IMPORTANTE  
+**Timeline estimado:** 1.5-2 horas  
+**Problema:** Al crear una clase en backend, el horario debe permitir qualquier entrada pero se **formatea automáticamente** a HH:MM (hora y minuto).
+
+**Qué se necesita:**
+- Campo de "Hora de clase" sin restricción visual (campo abierto)
+- Usuario puede escribir: `9`, `9:30`, `09:00`, `9 y media`, etc.
+- Sistema **normaliza automáticamente** a formato `HH:MM` (ej: 09:00, 09:30)
+- Validación: Si el usuario pone algo inválido (ej: `25:90`), mostrar error claro
+
+**Ejemplo de UX:**
+```
+[Campo abierto] "Hora de inicio: ___"
+Usuario escribe: "9 y media"
+Sistema normaliza y guarda como: "09:30"
+```
+
+**Beneficio:** Flexibilidad para admin + consistencia en datos
+
+---
+
+### Issue #46: ⚠️ Confirmación al Cambiar Clase (Si Tiene Reservas)
+
+**Prioridad:** 🟠 IMPORTANTE  
+**Timeline estimado:** 1.5 horas  
+**Contexto:** Cuando un admin quiere **editar/cambiar datos de una clase que YA tiene reservas**, debe haber **confirmación explícita**.
+
+**Qué se necesita:**
+- Si clase tiene 1+ reservas y se intenta cambiar datos (horario, instructor, salón, capacidad), mostrar diálogo:
+  ```
+  "⚠️ Esta clase tiene X personas registradas
+  
+  Cambiar estos datos notificará a todos los inscritos:
+  - Horario de: 10:00 a 14:00
+  - Instructor de: María a Juan
+  - Salón de: A a B
+  
+  ¿Deseas continuar? [Cancelar] [Confirmar]"
+  ```
+- Si se confirma, mostrar éxito + aviso de que se enviaron notificaciones
+
+**Beneficio:** Previene cambios accidentales + transparencia operativa
+
+---
+
+### Issue #47: 🪑 Mapa Interactivo de Lugares - Drag & Drop (Creación de Clase)
+
+**Prioridad:** 🟠 IMPORTANTE  
+**Timeline estimado:** 5-7 horas (drag & drop + persistencia)  
+**Contexto:** Al crear una clase, el admin **define automáticamente** la cantidad de sillas/camillas y las **acomoda visualmente** en el aula usando drag & drop interactivo.
+
+**Flujo de Usuario (Admin):**
+
+**Paso 1: Definir capacidad**
+```
+"¿Cuántas personas caben en esta clase?"
+[20 ▼]  (selector, default 20)
+[Generar sillas]
+```
+
+**Paso 2: Sistema crea sillas automáticamente**
+- Sistema crea 20 objetos silla (o la cantidad que puse)
+- Cada silla tiene ID único: A1, A2, A3... B1, B2, B3... etc.
+- Se muestran en un área lateral: "Sillas disponibles para acomodar"
+
+**Paso 3: Aula simulada (tablero de ajedrez)**
+- Mostrar canvas con GRID (5x4, 6x4, etc., según sala y capacidad)
+- Cada celda del grid tiene coordenada (ej: fila B, columna 3)
+- Es como un "tablero de ajedrez" vacío esperando que arrastres sillas
+
+**Paso 4: Drag & Drop**
+```
+┌─────────────────────────────────────────────────────┐
+│  SILLAS DISPONIBLES (lateral izquierdo)              │
+│  ┌──┐ ┌──┐ ┌──┐ ┌──┐ ┌──┐                           │
+│  │A1│ │A2│ │A3│ │A4│ │A5│                           │
+│  └──┘ └──┘ └──┘ └──┘ └──┘                           │
+│  ┌──┐ ┌──┐ ... 20 sillas total                      │
+│  │B1│ │B2│                                           │
+│  └──┘ └──┘                                           │
+├─────────────────────────────────────────────────────┤
+│                                                      │
+│   AULA SIMULADA - Tablero de Ajedrez             │
+│   (Admin arrastra sillas a los espacios)           │
+│                                                      │
+│   ┌──┬──┬──┬──┬──┐    ← Cada ☐ es un lugar posible
+│   │🪑│  │  │  │  │    ← Si está 🪑 = silla está ahí
+│   ├──┼──┼──┼──┼──┤    ← Usuario puede reservarla
+│   │  │  │  │  │  │
+│   ├──┼──┼──┼──┼──┤
+│   │  │🪑│  │  │🪑│    ← Solo 3 sillas disponibles
+│   └──┴──┴──┴──┴──┘       en esta configuración
+│
+└─────────────────────────────────────────────────────┘
+
+[Limpiar todo] [Auto-llenar] [Guardar configuración]
+```
+
+**Características de drag & drop:**
+- Admin agarra silla A1 del panel lateral → la arrastra sobre el grid
+- Suelta en celda (B,3) → silla aparece en ese lugar
+- Si suelta en lugar ocupado → cambia de posición o muestra aviso
+- Puede mover la misma silla múltiples veces
+- Cada silla muestra su ID mientras se arrastra (A1, A2, etc.)
+- Visual feedback: color diferente cuando está siendo arrastrada, hover effects
+
+**Lo que se guarda:**
+```json
+{
+  "session_id": 123,
+  "layout_type": "chessboard_5x4",
+  "seat_distribution": {
+    "A1": {"row": 0, "col": 0, "occupied": false},
+    "A2": {"row": 0, "col": 2, "occupied": false},
+    "B1": {"row": 1, "col": 1, "occupied": false},
+    ...
+  },
+  "total_seats": 20,
+  "layout_json": "..."  // JSON de la configuración
+}
+```
+
+**En frontend (usuario ve esto):**
+```
+┌─────────────────────────────────────────────────┐
+│  YOGA - SALA A - Miércoles 10:00 AM            │
+│  Selecciona tu asiento preferido                │
+│                                                  │
+│  PANTALLA/INSTRUCTOR                            │
+│  ════════════════════════                       │
+│                                                  │
+│   ┌────┬────┬────┬────┬────┐                   │
+│   │ A1 │    │    │    │    │  ← Cada silla es  │
+│   │ ✓  │    │    │    │    │     un BOTÓN      │
+│   ├────┼────┼────┼────┼────┤                   │
+│   │    │    │    │    │    │                   │
+│   │    │    │    │    │    │                   │
+│   ├────┼────┼────┼────┼────┤                   │
+│   │    │ B1 │    │    │ C1 │                   │
+│   │    │ ✗  │    │    │ ✗  │                   │
+│   └────┴────┴────┴────┴────┘                   │
+│                                                  │
+│  Leyenda:                                       │
+│  [A1] ✓ = Tu asiento (ya reservado por ti)     │
+│  [B1] ✗ = Ocupado (otro usuario)               │
+│  [   ] = Disponible (puedes hacer click)       │
+│  Sin número = No existe silla en esa posición  │
+│                                                  │
+│  [Confirmar reservación A1] [Cambiar asiento]  │
+└─────────────────────────────────────────────────┘
+```
+
+**Interacción del usuario final:**
+1. Usuario entra a "Reservar clase"
+2. Ve el MAPA VISUAL exactamente como lo configuró el admin
+3. Cada silla disponible es un **botón clickeable** con su número (A1, B1, C2, etc.)
+4. Usuario hace **click en el botón del asiento que quiere**
+5. Botón se marca como "seleccionado" (feedback visual)
+6. Usuario confirma → sistema guarda reservación con ese número de lugar
+7. Si usuario intenta hacer click en silla ocupada (✗) → botón deshabilitado o mensaje "Ya ocupado"
+
+**Estados visuales de cada botón-silla:**
+- **Verde/disponible**: Usuario puede hacer click
+- **Amarillo/seleccionado**: Usuario lo seleccionó (antes de confirmar)
+- **Rojo/ocupado**: Otro usuario ya lo reservó (botón deshabilitado)
+- **Azul/mi asiento**: Este usuario ya tiene ese lugar reservado
+
+**Configuración predefinida (reutilización):**
+- Cuando admin crea primera clase en "Sala A" → guarda distribución
+- Al crear 2da clase en "Sala A" → sistema carga automáticamente esa misma distribución
+- Admin puede **editar** la distribución si quiere cambiarla para esta clase específica
+- ⚠️ **IMPORTANTE:** Si admin edita y marca "Guardar como predefinida" → esa nueva distribución se convierte en el template para futuras clases
+- Permite tener múltiples templates por sala si se desea
+
+**Ejemplo de flujo de configuración:**
+```
+Primera clase en Sala A:
+→ Admin arrastra 20 sillas en grid
+→ Guarda como "Sala A - Distribución estándar"
+→ Se marca como PREDEFINIDA
+
+Segunda clase en Sala A:
+→ Sistema carga automáticamente "Sala A - Distribución estándar"
+→ Admin puede editar (mover sillas) si esta clase es especial
+→ Opciones al guardar:
+  ☐ Solo guardar para ESTA clase
+  ☑ Actualizar como distribución PREDEFINIDA para Sala A
+  
+Si marca "predefinida":
+→ Próximas clases en Sala A usarán esta nueva distribución
+```
+
+**Lo que se guarda:**
+```json
+{
+  "session_id": 123,
+  "layout_type": "chessboard_5x4",
+  "seat_distribution": {
+    "A1": {"row": 0, "col": 0, "occupied": false},
+    "A2": {"row": 0, "col": 2, "occupied": false},
+    "B1": {"row": 1, "col": 1, "occupied": false},
+    ...
+  },
+  "total_seats": 20,
+  "layout_json": "..."  // JSON de la configuración
+}
+```
+
+---
+
+### Issue #48: 📷 Mejorar Info de Foto Instructores (Backend)
+
+**Prioridad:** 🟡 MEDIA  
+**Timeline estimado:** 30 min  
+**Contexto:** En la pantalla de editar foto de instructor, especificar **requisitos de archivo**.
+
+**Qué se necesita:**
+- Agregar texto al lado del campo de foto:
+  ```
+  "Fotografia del Instructor
+  
+  Tipos permitidos: JPG, PNG
+  Tamaño máximo: 5 MB
+  Resolución recomendada: 500x500 px (mínimo)
+  
+  [Seleccionar archivo] [Eliminar foto actual]"
+  ```
+- Validaciones en el upload (tipo, tamaño)
+- Si el usuario intenta subir archivo inválido, mostrar error claro
+
+**Beneficio:** Reduce rechazos de upload + comunicación clara
+
+---
+
+### Issue #49: 🔍 Búsqueda de Usuarios - Nombre Y Apellido (Sin Duplicados)
+
+**Prioridad:** 🟠 IMPORTANTE  
+**Timeline estimado:** 1.5 horas  
+**Contexto:** En backend, la búsqueda de usuarios debe ser **igual para nombre Y apellido** pero **sin duplicados**.
+
+**Problema actual:** 
+- Si busco "Juan" → encuentra en campo `name`
+- Si busco "Pérez" → encuentra en campo `lastname`
+- Pero si busco "Juan Pérez" → busca en NOMBRE completo (nombre + lastname concatenado), puede no encontrar
+
+**Lo que se necesita:**
+- Campo de búsqueda único: busca en **NOMBRE** O **APELLIDO**
+- Resultado: Si hay coincidencia en nombre O apellido, aparece
+- **Sin duplicados:** Si un usuario tiene "Juan" en nombre y "Juan" en apellido, aparece 1 sola vez
+
+**Ejemplo:**
+```
+Búsqueda: "juan"
+Resultados:
+- Juan López (encontrado en nombre)
+- María Juan Gómez (encontrado en apellido)  
+- Juan Juan García (encontrado en ambos, pero aparece 1 sola vez ✓)
+```
+
+**Beneficio:** Búsqueda más flexible + menos confusión para operadores
+
+---
+
+### Issue #50: ⚡ Optimizar Queries - Caja/Pagos (BD - Índices Faltantes)
+
+**Prioridad:** 🔴 CRÍTICO  
+**Timeline estimado:** 1 hora (análisis) + 30 min (implementación)  
+**Contexto:** El formulario de caja/pagos se demora **demasiado** al cargar. Probable causa: **índices faltantes en BD**.
+
+**Qué se necesita:**
+1. Optar las queries que se ejecutan al cargar `/backend/caja` o `/backend/payments`
+2. Usar EXPLAIN para identificar queries lentas
+3. Crear índices en tablas de:
+   - `transaction` (búsqueda por usuario, estado, fecha)
+   - `reservation` (búsqueda por sesión, usuario, estado)
+   - `payment` (si existe), búsqueda por transaction, usuario
+4. Re-probar y validar que carga rápido
+
+**Nota:** Este issue ya estaba marcado como pendiente en documentación anterior
+
+**Beneficio:** Operadores pueden trabajar rápido + experiencia no frustrada
 
 ---
 
