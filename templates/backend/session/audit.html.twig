@@ -1,0 +1,208 @@
+{% extends 'backend/session/profile.html.twig' %}
+
+{% set page_title = 'Auditoría de Deshabilitaciones' %}
+{% set active_tab = 'tab_audit' %}
+
+{% block subcontent %}
+    {% if audits is empty %}
+    <div class="alert alert-info">
+        <i class="fas fa-info-circle"></i> No hay registros de deshabilitaciones para esta sesión.
+    </div>
+    {% else %}
+    <div class="card">
+        <div class="card-header bg-light">
+            <h5 class="mb-0">
+                <i class="fas fa-list"></i> {{ audits|length }} Registro{{ audits|length != 1 ? 's' : '' }} de Auditoría
+            </h5>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th style="width: 80px;">ID</th>
+                        <th style="width: 100px;">Administrador</th>
+                        <th style="width: 150px;">Fecha/Hora</th>
+                        <th style="width: 150px;">Asientos Deshabilitados</th>
+                        <th style="width: 80px;">Afectados</th>
+                        <th style="width: 80px;">Acción</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for audit in audits %}
+                    <tr class="align-middle" id="audit-row-{{ audit.id }}">
+                        <td>
+                            <span class="badge bg-primary">{{ audit.id }}</span>
+                        </td>
+                        <td>
+                            <strong>{{ audit.adminUserIdentifier }}</strong>
+                        </td>
+                        <td>
+                            <small class="text-muted d-block">
+                                {{ audit.createdAt|date('d/m/Y H:i:s') }}
+                            </small>
+                        </td>
+                        <td>
+                            <span class="badge bg-danger">
+                                {% set disabled_count = audit.disabledPlaces|length %}
+                                {{ disabled_count }} asiento{{ disabled_count != 1 ? 's' : '' }}
+                            </span>
+                            <br>
+                            <small class="text-muted">
+                                {{ audit.disabledPlaces|json_encode|slice(1, -1) }}
+                            </small>
+                        </td>
+                        <td>
+                            <span class="badge bg-warning">{{ audit.affectedReservationsCount }}</span>
+                        </td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary" 
+                                    onclick="toggleAuditDetail(this, {{ audit.id }})"
+                                    type="button">
+                                <i class="fas fa-eye"></i> Ver
+                            </button>
+                        </td>
+                    </tr>
+                    <!-- Detail Row -->
+                    <tr id="audit-detail-{{ audit.id }}" class="audit-detail-row d-none">
+                        <td colspan="6">
+                            <div class="p-4">
+                                <!-- Motivo -->
+                                <div class="mb-4">
+                                    <h6 class="fw-bold text-uppercase text-muted mb-2">
+                                        <i class="fas fa-comment"></i> Motivo de Deshabilitación
+                                    </h6>
+                                    <div class="bg-light p-3 rounded border-start border-4 border-info">
+                                        {{ audit.reason }}
+                                    </div>
+                                </div>
+
+                                <!-- Usuarios Afectados -->
+                                <div class="mb-4">
+                                    <h6 class="fw-bold text-uppercase text-muted mb-3">
+                                        <i class="fas fa-users"></i> Usuarios Afectados ({{ audit.affectedUsers|length }})
+                                    </h6>
+                                    <div class="table-responsive">
+                                        <table class="table table-sm table-bordered">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th>ID Usuario</th>
+                                                    <th>Nombre</th>
+                                                    <th>Email</th>
+                                                    <th>Asiento</th>
+                                                    <th>Crédito Devuelto</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for user in audit.affectedUsers %}
+                                                <tr>
+                                                    <td>
+                                                        <code>{{ user.id }}</code>
+                                                    </td>
+                                                    <td>
+                                                        <strong>{{ user.name }}</strong>
+                                                    </td>
+                                                    <td>
+                                                        <code>{{ user.email }}</code>
+                                                    </td>
+                                                    <td>
+                                                        <span class="badge bg-danger">
+                                                            {{ user.place }}
+                                                        </span>
+                                                    </td>
+                                                    <td>
+                                                        <span class="badge bg-success">
+                                                            <i class="fas fa-check"></i> Devuelto
+                                                        </span>
+                                                    </td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+
+                                <!-- Asientos Deshabilitados Detallado -->
+                                <div class="mb-4">
+                                    <h6 class="fw-bold text-uppercase text-muted mb-2">
+                                        <i class="fas fa-chair"></i> Asientos Deshabilitados
+                                    </h6>
+                                    <div class="d-flex flex-wrap gap-2">
+                                        {% for key, seat in audit.disabledPlaces %}
+                                        <span class="badge bg-danger fs-6">
+                                            Asiento {{ seat }}
+                                        </span>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+
+                                <!-- Información Técnica -->
+                                <div class="mb-4">
+                                    <h6 class="fw-bold text-uppercase text-muted mb-2">
+                                        <i class="fas fa-cogs"></i> Información Técnica
+                                    </h6>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <small class="text-muted d-block">
+                                                <strong>Tipo de Acción:</strong> {{ audit.auditType }}
+                                            </small>
+                                            <small class="text-muted d-block">
+                                                <strong>Administrador:</strong> {{ audit.adminUserIdentifier }}
+                                            </small>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <small class="text-muted d-block">
+                                                <strong>Fecha/Hora:</strong> 
+                                                {{ audit.createdAt|date('d/m/Y H:i:s') }}
+                                            </small>
+                                            <small class="text-muted d-block">
+                                                <strong>Reservaciones Canceladas:</strong> 
+                                                {{ audit.affectedReservationsCount }}
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+function toggleAuditDetail(button, auditId) {
+    const detailRow = document.getElementById('audit-detail-' + auditId);
+    const icon = button.querySelector('i');
+    
+    if (detailRow.classList.contains('d-none')) {
+        detailRow.classList.remove('d-none');
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+        button.classList.remove('btn-outline-primary');
+        button.classList.add('btn-primary');
+        button.innerHTML = '<i class="fas fa-eye-slash"></i> Ocultar';
+    } else {
+        detailRow.classList.add('d-none');
+        icon.classList.add('fa-eye');
+        icon.classList.remove('fa-eye-slash');
+        button.classList.add('btn-outline-primary');
+        button.classList.remove('btn-primary');
+        button.innerHTML = '<i class="fas fa-eye"></i> Ver';
+    }
+}
+</script>
+
+<style>
+.audit-detail-row {
+    background-color: #f8f9fa;
+}
+
+.audit-detail-row td {
+    border-top: 2px solid #dee2e6 !important;
+    padding: 1.5rem 0.75rem !important;
+}
+</style>
+{% endblock %}

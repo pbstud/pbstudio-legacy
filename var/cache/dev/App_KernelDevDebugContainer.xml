@@ -1200,7 +1200,7 @@
     </service>
     <service id="argument_resolver.service" class="Symfony\Component\HttpKernel\Controller\ArgumentResolver\ServiceValueResolver">
       <tag priority="-50" name="Symfony\Component\HttpKernel\Controller\ArgumentResolver\ServiceValueResolver">controller.argument_value_resolver</tag>
-      <argument type="service" id=".service_locator.HHdfmPz"/>
+      <argument type="service" id=".service_locator.UrZIIlA"/>
     </service>
     <service id="argument_resolver.default" class="Symfony\Component\HttpKernel\Controller\ArgumentResolver\DefaultValueResolver">
       <tag priority="-100" name="Symfony\Component\HttpKernel\Controller\ArgumentResolver\DefaultValueResolver">controller.argument_value_resolver</tag>
@@ -4111,7 +4111,7 @@
     </service>
     <service id="argument_resolver.not_tagged_controller" class="Symfony\Component\HttpKernel\Controller\ArgumentResolver\NotTaggedControllerValueResolver">
       <tag name="controller.argument_value_resolver" priority="-200"/>
-      <argument type="service" id=".service_locator.HHdfmPz"/>
+      <argument type="service" id=".service_locator.UrZIIlA"/>
     </service>
     <service id="debug.log_processor" class="Symfony\Bridge\Monolog\Processor\DebugProcessor">
       <tag name="kernel.reset" method="reset"/>
@@ -10325,6 +10325,13 @@
         <argument key="session" type="service_closure" id=".errored..service_locator.yuJDwvD.App\Entity\Session"/>
       </argument>
     </service>
+    <service id=".service_locator.6cCdhTN" class="Symfony\Component\DependencyInjection\ServiceLocator">
+      <tag name="container.service_locator"/>
+      <argument type="collection">
+        <argument key="auditRepository" type="service_closure" id="App\Repository\SessionAuditRepository"/>
+        <argument key="session" type="service_closure" id=".errored..service_locator.6cCdhTN.App\Entity\Session"/>
+      </argument>
+    </service>
     <service id=".service_locator.aIca2vz" class="Symfony\Component\DependencyInjection\ServiceLocator">
       <tag name="container.service_locator"/>
       <argument type="collection">
@@ -10669,7 +10676,7 @@
         <argument key="userRepository" type="service_closure" id="App\Repository\UserRepository"/>
       </argument>
     </service>
-    <service id=".service_locator.HHdfmPz" class="Symfony\Component\DependencyInjection\ServiceLocator">
+    <service id=".service_locator.UrZIIlA" class="Symfony\Component\DependencyInjection\ServiceLocator">
       <tag name="container.service_locator"/>
       <argument type="collection">
         <argument key="App\Controller\Backend\BranchOfficeController::edit" type="service_closure" id=".service_locator.aX4WRr4"/>
@@ -10702,6 +10709,7 @@
         <argument key="App\Controller\Backend\PageController::new" type="service_closure" id=".service_locator.9kKwU2t"/>
         <argument key="App\Controller\Backend\ReservationController::attended" type="service_closure" id=".service_locator.rNyJSA0"/>
         <argument key="App\Controller\Backend\SecurityController::login" type="service_closure" id=".service_locator.rSTd.nA"/>
+        <argument key="App\Controller\Backend\SessionController::audit" type="service_closure" id=".service_locator.6cCdhTN"/>
         <argument key="App\Controller\Backend\SessionController::cancel" type="service_closure" id=".service_locator.aIca2vz"/>
         <argument key="App\Controller\Backend\SessionController::edit" type="service_closure" id=".service_locator.dQgwQp4"/>
         <argument key="App\Controller\Backend\SessionController::editConfirm" type="service_closure" id=".service_locator.yuJDwvD"/>
@@ -10799,6 +10807,7 @@
         <argument key="App\Controller\Backend\PageController:new" type="service_closure" id=".service_locator.9kKwU2t"/>
         <argument key="App\Controller\Backend\ReservationController:attended" type="service_closure" id=".service_locator.rNyJSA0"/>
         <argument key="App\Controller\Backend\SecurityController:login" type="service_closure" id=".service_locator.rSTd.nA"/>
+        <argument key="App\Controller\Backend\SessionController:audit" type="service_closure" id=".service_locator.6cCdhTN"/>
         <argument key="App\Controller\Backend\SessionController:cancel" type="service_closure" id=".service_locator.aIca2vz"/>
         <argument key="App\Controller\Backend\SessionController:edit" type="service_closure" id=".service_locator.dQgwQp4"/>
         <argument key="App\Controller\Backend\SessionController:editConfirm" type="service_closure" id=".service_locator.yuJDwvD"/>
@@ -12369,6 +12378,9 @@
     <service id=".errored..service_locator.yuJDwvD.App\Entity\Session" class="App\Entity\Session">
       <tag name="container.error" message="Cannot autowire service &quot;.service_locator.yuJDwvD&quot;: it needs an instance of &quot;App\Entity\Session&quot; but this type has been excluded in &quot;config/services.yaml&quot;."/>
     </service>
+    <service id=".errored..service_locator.6cCdhTN.App\Entity\Session" class="App\Entity\Session">
+      <tag name="container.error" message="Cannot autowire service &quot;.service_locator.6cCdhTN&quot;: it needs an instance of &quot;App\Entity\Session&quot; but this type has been excluded in &quot;config/services.yaml&quot;."/>
+    </service>
     <service id=".errored..service_locator.aIca2vz.App\Entity\Session" class="App\Entity\Session">
       <tag name="container.error" message="Cannot autowire service &quot;.service_locator.aIca2vz&quot;: it needs an instance of &quot;App\Entity\Session&quot; but this type has been excluded in &quot;config/services.yaml&quot;."/>
     </service>
@@ -13702,7 +13714,7 @@
     <service id="Vich\UploaderBundle\Form\Type\VichImageType" alias="vich_uploader.form.type.image"/>
     <service id="container.env_var_processors_locator" alias=".service_locator.w7.f4fT" public="true"/>
     <service id="twig.loader.filesystem" alias="twig.loader.native_filesystem"/>
-    <service id="argument_resolver.controller_locator" alias=".service_locator.HHdfmPz"/>
+    <service id="argument_resolver.controller_locator" alias=".service_locator.UrZIIlA"/>
     <service id="doctrine.id_generator_locator" alias=".service_locator.KLVvNIq"/>
     <service id="twig.loader" alias="twig.loader.native_filesystem"/>
     <service id="Psr\Log\LoggerInterface $requestLogger" alias="monolog.logger.request"/>
@@ -13745,6 +13757,7 @@
     <service id=".service_locator.mrtFW6I" alias=".service_locator.FwjLjkn"/>
     <service id=".service_locator.nDSpKzN" alias=".service_locator.dQgwQp4"/>
     <service id=".service_locator.JnogC9." alias=".service_locator.yuJDwvD"/>
+    <service id=".service_locator.46mzo_Z" alias=".service_locator.6cCdhTN"/>
     <service id=".service_locator.OX8BrYE" alias=".service_locator.aIca2vz"/>
     <service id=".service_locator.5Vp.1pY" alias=".service_locator.BOoxCP4"/>
     <service id=".service_locator._1VQT9t" alias=".service_locator.6R59Vwe"/>
@@ -13775,7 +13788,7 @@
     <service id=".service_locator.ehEEa43" alias=".service_locator.RkGgYme"/>
     <service id=".service_locator.Q5E4rop" alias=".service_locator.DX1YisI"/>
     <service id=".service_locator.zRbaO9A" alias=".service_locator.zgnGHLN"/>
-    <service id=".service_locator.4c8sCq7" alias=".service_locator.HHdfmPz"/>
+    <service id=".service_locator.K852Jxt" alias=".service_locator.UrZIIlA"/>
     <service id=".service_locator.BFrsqsn" alias=".service_locator.F9PKc.7"/>
     <service id=".service_locator..mhmmuG" alias=".service_locator.EHmGhFt"/>
     <service id=".service_locator.cOaqxkB" alias=".service_locator.musdzeW"/>
@@ -13827,6 +13840,7 @@
     <service id=".service_locator.rc2lbw_" alias=".service_locator.FwjLjkn"/>
     <service id=".service_locator.uNU.Bgm" alias=".service_locator.dQgwQp4"/>
     <service id=".service_locator.3_MzEKv" alias=".service_locator.yuJDwvD"/>
+    <service id=".service_locator.A5qdKOa" alias=".service_locator.6cCdhTN"/>
     <service id=".service_locator.TcIhQHp" alias=".service_locator.aIca2vz"/>
     <service id=".service_locator.KzB_nfC" alias=".service_locator.BOoxCP4"/>
     <service id=".service_locator.8QKPaZ2" alias=".service_locator.X46Pzrd"/>

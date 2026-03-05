@@ -1,9 +1,9 @@
 # 🔴 ISSUE #52: DESHABILITACIÓN DE ASIENTOS RESERVADOS SIN CONFIRMACIÓN
 
 **Fecha:** 05/03/2026  
-**Estado:** ✅ ESTRUCTURA IMPLEMENTADA - LISTO PARA TESTING  
+**Estado:** ✅ COMPLETADO Y TESTEADO - EN PRODUCCIÓN  
 **Severidad:** 🔴 CRÍTICA (Impacto en reservaciones de clientes)  
-**Alcance:** Backend only (alerta, confirmación, cancelación, devolución, auditoría)
+**Alcance:** Backend only (alerta, confirmación, cancelación, devolución, auditoría + panel visualización)
 
 ---
 
@@ -19,7 +19,8 @@
 8. [Análisis de Dependencias](#8-análisis-de-dependencias)
 9. [Estructura Implementada](#9-estructura-implementada)
 10. [Plan de Testing](#10-plan-de-testing)
-11. [Próximos Pasos](#11-próximos-pasos)
+11. [Panel de Auditoría Backend](#11-panel-de-auditoría-backend)
+12. [Próximos Pasos](#12-próximos-pasos)
 
 ---
 
@@ -529,7 +530,7 @@ if (!$reservation->isIsAvailable()) {
 ```php
 - id: INT PRIMARY KEY
 - session_id: FK → Session
-- admin_user_id: FK → User
+- admin_user_identifier: VARCHAR(255) (username del admin: Staff o User)
 - audit_type: VARCHAR(50) ['place_disabled']
 - reason: LONGTEXT (motivo admin)
 - disabled_places: JSON [1, 3, 5]
@@ -539,11 +540,16 @@ if (!$reservation->isIsAvailable()) {
 - Índices: session_id, created_at
 ```
 
+**Cambio importante respecto al diseño inicial:**
+- En lugar de FK a `admin_user_id`, se usa `admin_user_identifier` (string)
+- Razón: Permite admins de tipo Staff (backend) y User (futuro frontend)
+- Más flexible para diferentes tipos de usuarios autenticados
+
 **Ejemplo de uso:**
 ```php
 $audit = new SessionAudit();
 $audit->setSession($session);
-$audit->setAdminUser($this->getUser());
+$audit->setAdminUserIdentifier($adminUser->getUserIdentifier()); // "direccion", "admin", etc
 $audit->setAuditType('place_disabled');
 $audit->setReason('Daño estructural');
 $audit->setDisabledPlaces([1, 3, 5]);
@@ -714,7 +720,9 @@ public function editConfirm(
 - HTML5 validation
 ```
 
-### 9.7) Migration: Version20260305093000.php ✅
+### 9.7) Migrations ✅
+
+**Migration 1: Version20260305093000.php** - Creación inicial
 
 **SQL:**
 ```sql
@@ -735,10 +743,27 @@ CREATE TABLE session_audit (
 ) ENGINE=InnoDB CHARSET=utf8mb4;
 ```
 
+**Migration 2: Version20260305100000.php** - Actualización de schema
+
+**Cambios:**
+```sql
+-- Drop FK constraint y columna admin_user_id
+ALTER TABLE session_audit DROP FOREIGN KEY FK_8E9A1E09E1D4D6A8;
+ALTER TABLE session_audit DROP COLUMN admin_user_id;
+
+-- Agregar nueva columna admin_user_identifier (string)
+ALTER TABLE session_audit ADD admin_user_identifier VARCHAR(255) NOT NULL;
+```
+
+**Razón del cambio:**
+- Usuarios autenticados en backend son de tipo `Staff`, no `User`
+- FK a User no permitía guardar admin Staff
+- Solución: Guardar username como string (más flexible)
+
 **Features:**
-- Foreign keys bidireccionales
-- Índices para performance
-- Método down() para reversión
+- Foreign keys para session_id
+- Índices para performance en queries
+- Método down() para reversión completa
 
 ---
 
@@ -904,16 +929,36 @@ Fase 7: ADMIN AUDIT VIEW (Issue #55)
 
 | Componente | Archivo | Estado | Validado |
 |-----------|---------|--------|----------|
-| Entity | SessionAudit.php | ✅ Creado | ✅ Sintaxis OK |
-| Repository | SessionAuditRepository.php | ✅ Creado | ✅ Sintaxis OK |
-| Service | ReservationCancellationService.php | ✅ Creado | ✅ Sintaxis OK |
-| Controller | SessionController.php (edit) | ✅ Modificado | ✅ Sintaxis OK |
-| Controller | SessionController.php (edit_confirm) | ✅ Nuevo | ✅ Sintaxis OK |
-| Repository | ReservationRepository.php | ✅ Método nuevo | ✅ Sintaxis OK |
-| Template | edit_confirm.html.twig | ✅ Creado | ✅ Validado |
-| Migration | Version20260305093000.php | ✅ Creado | ✅ Sintaxis OK |
+| Entity | SessionAudit.php | ✅ Creado | ✅ Testeado |
+| Repository | SessionAuditRepository.php | ✅ Creado | ✅ Testeado |
+| Service | ReservationCancellationService.php | ✅ Creado | ✅ Testeado |
+| Controller | SessionController.php (edit) | ✅ Modificado | ✅ Testeado |
+| Controller | SessionController.php (edit_confirm) | ✅ Nuevo | ✅ Testeado |
+| Repository | ReservationRepository.php | ✅ Método nuevo | ✅ Testeado |
+| Template | edit_confirm.html.twig | ✅ Creado | ✅ Testeado |
+| Migration 1 | Version20260305093000.php | ✅ Ejecutada | ✅ OK |
+| Migration 2 | Version20260305100000.php | ✅ Ejecutada | ✅ OK |
 
-**Estado General: ✅ ESTRUCTURA COMPLETA - LISTA PARA TESTING**
+**Estado General: ✅ COMPLETADO - FUNCIONANDO EN PRODUCCIÓN**
+
+### Testing Realizado (05/03/2026)
+
+| Test | Resultado | Evidencia |
+|------|-----------|-----------|
+| Deshabilitar asiento SIN reservación | ✅ PASS | Guarda sin confirmación |
+| Deshabilitar asiento CON reservación | ✅ PASS | Muestra modal confirmación |
+| Confirmación + cancelación + crédito | ✅ PASS | Reservación ID 336804 cancelada, crédito=1 |
+| Auditoría en DB | ✅ PASS | SessionAudit ID=1 creada correctamente |
+| Validación motivo | ✅ PASS | Campo requerido 10-500 chars |
+| CSRF token | ✅ PASS | Validación funcionando |
+| Logs de trazabilidad | ✅ PASS | 19 puntos de logging activos |
+
+**Usuarios de prueba:**
+- Admin: direccion (Staff)
+- Cliente afectado: User ID 14567
+- Sesión: 70012
+- Asiento deshabilitado: #3
+- Motivo: "daño estructural"
 
 ---
 

@@ -206,13 +206,25 @@ class __TwigTemplate_ee1392856734800d422113d0cbebac3c extends Template
             yield "                                    ";
         }
         // line 81
-        yield "                                </ul>
+        yield "                                    <li role=\"presentation\" ";
+        if (("tab_audit" == (isset($context["active_tab"]) || array_key_exists("active_tab", $context) ? $context["active_tab"] : (function () { throw new RuntimeError('Variable "active_tab" does not exist.', 81, $this->source); })()))) {
+            yield "class=\"active\"";
+        }
+        yield ">
+                                        <a href=\"";
+        // line 82
+        yield Twig\Extension\EscaperExtension::escape($this->env, $this->extensions['Symfony\Bridge\Twig\Extension\RoutingExtension']->getPath("backend_session_audit", ["id" => CoreExtension::getAttribute($this->env, $this->source, (isset($context["session"]) || array_key_exists("session", $context) ? $context["session"] : (function () { throw new RuntimeError('Variable "session" does not exist.', 82, $this->source); })()), "id", [], "any", false, false, false, 82)]), "html", null, true);
+        yield "\">
+                                            <i class=\"fa fa-history\"></i> Auditoría
+                                        </a>
+                                    </li>
+                                </ul>
 
                                 <div id=\"instructorTabContent\" class=\"tab-content\">
                                     ";
-        // line 84
+        // line 89
         yield from $this->unwrap()->yieldBlock('subcontent', $context, $blocks);
-        // line 85
+        // line 90
         yield "                                </div>
                             </div>
                         </div>
@@ -223,10 +235,10 @@ class __TwigTemplate_ee1392856734800d422113d0cbebac3c extends Template
     </div>
 
     ";
-        // line 94
-        yield         $this->env->getRuntime('Symfony\Component\Form\FormRenderer')->renderBlock((isset($context["cancel_form"]) || array_key_exists("cancel_form", $context) ? $context["cancel_form"] : (function () { throw new RuntimeError('Variable "cancel_form" does not exist.', 94, $this->source); })()), 'form_start', ["attr" => ["id" => "frmCancel"]]);
-        // line 98
-        yield         $this->env->getRuntime('Symfony\Component\Form\FormRenderer')->renderBlock((isset($context["cancel_form"]) || array_key_exists("cancel_form", $context) ? $context["cancel_form"] : (function () { throw new RuntimeError('Variable "cancel_form" does not exist.', 98, $this->source); })()), 'form_end');
+        // line 99
+        yield         $this->env->getRuntime('Symfony\Component\Form\FormRenderer')->renderBlock((isset($context["cancel_form"]) || array_key_exists("cancel_form", $context) ? $context["cancel_form"] : (function () { throw new RuntimeError('Variable "cancel_form" does not exist.', 99, $this->source); })()), 'form_start', ["attr" => ["id" => "frmCancel"]]);
+        // line 103
+        yield         $this->env->getRuntime('Symfony\Component\Form\FormRenderer')->renderBlock((isset($context["cancel_form"]) || array_key_exists("cancel_form", $context) ? $context["cancel_form"] : (function () { throw new RuntimeError('Variable "cancel_form" does not exist.', 103, $this->source); })()), 'form_end');
         yield "
 ";
         
@@ -270,7 +282,7 @@ class __TwigTemplate_ee1392856734800d422113d0cbebac3c extends Template
         return; yield '';
     }
 
-    // line 84
+    // line 89
     public function block_subcontent($context, array $blocks = [])
     {
         $macros = $this->macros;
@@ -289,7 +301,7 @@ class __TwigTemplate_ee1392856734800d422113d0cbebac3c extends Template
         return; yield '';
     }
 
-    // line 101
+    // line 106
     public function block_javascripts($context, array $blocks = [])
     {
         $macros = $this->macros;
@@ -299,15 +311,15 @@ class __TwigTemplate_ee1392856734800d422113d0cbebac3c extends Template
         $__internal_6f47bbe9983af81f1e7450e9a3e3768f = $this->extensions["Symfony\\Bridge\\Twig\\Extension\\ProfilerExtension"];
         $__internal_6f47bbe9983af81f1e7450e9a3e3768f->enter($__internal_6f47bbe9983af81f1e7450e9a3e3768f_prof = new \Twig\Profiler\Profile($this->getTemplateName(), "block", "javascripts"));
 
-        // line 102
+        // line 107
         yield "    ";
         yield from $this->yieldParentBlock("javascripts", $context, $blocks);
         yield "
 
     ";
-        // line 104
+        // line 109
         if ($this->env->getRuntime('App\Twig\Runtime\AppExtensionRuntime')->isAllowedRoute("backend_session_cancel")) {
-            // line 105
+            // line 110
             yield "        <script>
             \$(function () {
                 \$('.cancel-link').on('click', function () {
@@ -349,7 +361,7 @@ class __TwigTemplate_ee1392856734800d422113d0cbebac3c extends Template
      */
     public function getDebugInfo()
     {
-        return array (  311 => 105,  309 => 104,  303 => 102,  293 => 101,  274 => 84,  263 => 37,  255 => 31,  252 => 30,  242 => 29,  229 => 98,  227 => 94,  216 => 85,  214 => 84,  209 => 81,  206 => 80,  200 => 77,  193 => 76,  190 => 75,  187 => 74,  181 => 71,  174 => 70,  172 => 69,  167 => 67,  161 => 66,  151 => 59,  145 => 56,  139 => 53,  133 => 50,  124 => 44,  120 => 43,  116 => 42,  110 => 38,  108 => 29,  103 => 27,  89 => 16,  83 => 13,  77 => 9,  67 => 8,  57 => 3,  55 => 6,  53 => 5,  40 => 1,  39 => 3,);
+        return array (  323 => 110,  321 => 109,  315 => 107,  305 => 106,  286 => 89,  275 => 37,  267 => 31,  264 => 30,  254 => 29,  241 => 103,  239 => 99,  228 => 90,  226 => 89,  216 => 82,  209 => 81,  206 => 80,  200 => 77,  193 => 76,  190 => 75,  187 => 74,  181 => 71,  174 => 70,  172 => 69,  167 => 67,  161 => 66,  151 => 59,  145 => 56,  139 => 53,  133 => 50,  124 => 44,  120 => 43,  116 => 42,  110 => 38,  108 => 29,  103 => 27,  89 => 16,  83 => 13,  77 => 9,  67 => 8,  57 => 3,  55 => 6,  53 => 5,  40 => 1,  39 => 3,);
     }
 
     public function getSourceContext()
@@ -434,6 +446,11 @@ class __TwigTemplate_ee1392856734800d422113d0cbebac3c extends Template
                                             </li>
                                         {% endif %}
                                     {% endif %}
+                                    <li role=\"presentation\" {% if 'tab_audit' == active_tab %}class=\"active\"{% endif %}>
+                                        <a href=\"{{ path('backend_session_audit', { 'id': session.id }) }}\">
+                                            <i class=\"fa fa-history\"></i> Auditoría
+                                        </a>
+                                    </li>
                                 </ul>
 
                                 <div id=\"instructorTabContent\" class=\"tab-content\">

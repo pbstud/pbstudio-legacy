@@ -15,6 +15,7 @@ use App\Form\Backend\SessionType;
 use App\Repository\BranchOfficeRepository;
 use App\Repository\ExerciseRoomRepository;
 use App\Repository\ReservationRepository;
+use App\Repository\SessionAuditRepository;
 use App\Repository\SessionRepository;
 use App\Repository\StaffRepository;
 use App\Service\ReservationCancellationService;
@@ -436,6 +437,18 @@ class SessionController extends AbstractController
 
         return $this->redirectToRoute('backend_session_edit', [
             'id' => $session->getId(),
+        ]);
+    }
+
+    #[Route('/{id}/audit', name: 'backend_session_audit', methods: ['GET'])]
+    #[IsGranted('ALLOWED_ROUTE_ACCESS')]
+    public function audit(Session $session, SessionAuditRepository $auditRepository): Response
+    {
+        $audits = $auditRepository->findBy(['session' => $session], ['createdAt' => 'DESC']);
+
+        return $this->render('backend/session/audit.html.twig', [
+            'session' => $session,
+            'audits' => $audits,
         ]);
     }
 
