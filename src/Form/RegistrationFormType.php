@@ -13,6 +13,8 @@ use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 use Symfony\Component\Form\Extension\Core\Type\RepeatedType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints\NotBlank;
+use Symfony\Component\Validator\Constraints\Length;
 
 /**
  * Registration Form Type.
@@ -26,7 +28,23 @@ class RegistrationFormType extends AbstractType
     {
         $builder
             ->add('name')
-            ->add('lastname')
+            ->add('lastname', null, [
+                'required' => true, // Issue #51: Apellido obligatorio
+                'attr' => [
+                    'placeholder' => 'Ej: García López',
+                ],
+                'constraints' => [
+                    new NotBlank([
+                        'message' => 'El apellido es obligatorio',
+                    ]),
+                    new Length([
+                        'min' => 1,
+                        'minMessage' => 'El apellido debe tener al menos 1 carácter',
+                        'max' => 255,
+                        'maxMessage' => 'El apellido no puede exceder 255 caracteres',
+                    ]),
+                ],
+            ])
             ->add('phone')
             ->add('email')
             ->add('plainPassword', RepeatedType::class, [
