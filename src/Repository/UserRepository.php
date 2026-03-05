@@ -39,7 +39,8 @@ class UserRepository extends ServiceEntityRepository
         $qb
             ->addSelect('bo')
             ->leftJoin('u.branchOffice', 'bo')
-            ->orderBy('u.id', 'DESC');
+            ->orderBy('u.id', 'DESC')
+            ->distinct(); // Issue #49: Evitar duplicados en búsqueda integrada
 
         if (!empty($filters['id'])) {
             $qb
@@ -48,18 +49,30 @@ class UserRepository extends ServiceEntityRepository
             ;
         }
 
+        // Issue #49: Buscar nombre en AMBOS campos (name + lastname)
         if (!empty($filters['name'])) {
             $normalizedName = trim($filters['name']);
             $qb
-                ->andWhere($qb->expr()->like('u.name', ':name'))
+                ->andWhere(
+                    $qb->expr()->orX(
+                        $qb->expr()->like('u.name', ':name'),
+                        $qb->expr()->like('u.lastname', ':name')
+                    )
+                )
                 ->setParameter('name', '%'.$normalizedName.'%')
             ;
         }
 
+        // Issue #49: Buscar apellido en AMBOS campos (lastname + name)
         if (!empty($filters['lastname'])) {
             $normalizedLastname = trim($filters['lastname']);
             $qb
-                ->andWhere($qb->expr()->like('u.lastname', ':lastname'))
+                ->andWhere(
+                    $qb->expr()->orX(
+                        $qb->expr()->like('u.lastname', ':lastname'),
+                        $qb->expr()->like('u.name', ':lastname')
+                    )
+                )
                 ->setParameter('lastname', '%'.$normalizedLastname.'%')
             ;
         }
