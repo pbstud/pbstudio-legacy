@@ -9,6 +9,7 @@ use App\Entity\ExerciseRoom;
 use App\Entity\Reservation;
 use App\Entity\Session;
 use App\Entity\Staff;
+use App\Entity\User;
 use App\Event\SessionCanceledEvent;
 use App\Form\Backend\SessionType;
 use App\Repository\BranchOfficeRepository;
@@ -16,15 +17,18 @@ use App\Repository\ExerciseRoomRepository;
 use App\Repository\ReservationRepository;
 use App\Repository\SessionRepository;
 use App\Repository\StaffRepository;
+use App\Service\ReservationCancellationService;
 use App\Util\Schedule;
 use Doctrine\ORM\EntityManagerInterface;
 use Knp\Component\Pager\PaginatorInterface;
+use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Security\Core\Security;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\HttpKernel\Attribute\MapQueryParameter;
 use Symfony\Component\Routing\Attribute\Route;
@@ -223,15 +227,68 @@ class SessionController extends AbstractController
         Request $request,
         Session $session,
         EntityManagerInterface $em,
+        ReservationRepository $reservationRepository,
+        LoggerInterface $logger,
     ): Response {
+        // Guardar estado original para detectar cambios
+        $originalPlaces = $session->getPlacesNotAvailable() ?? [];
+
         $cancelForm = $this->createCancelForm($session);
         $editForm = $this->createForm(SessionType::class, $session);
         $editForm->handleRequest($request);
 
         if ($editForm->isSubmitted() && $editForm->isValid()) {
+            $newPlaces = $session->getPlacesNotAvailable() ?? [];
+
+            // Detectar asientos nuevamente deshabilitados
+            $disabledPlaces = array_diff($newPlaces, $originalPlaces);
+
+            // Si hay asientos deshabilitados, buscar reservaciones activas
+            if (!empty($disabledPlaces)) {
+                $affected = $reservationRepository->findActiveBySessionAndPlaces(
+                    $session,
+                    $disabledPlaces
+                );
+
+                // Si hay conflictos y no fue confirmado, mostrar página de confirmación
+                if (!empty($affected) && !$request->request->has('session_edit_confirmed')) {
+                    $logger->warning('Issue #52: Admin intenta deshabilitar asientos con reservaciones activas', [
+                        'session_id' => $session->getId(),
+                        'admin_user' => $this->getUser()?->getUserIdentifier(),
+                        'disabled_places' => $disabledPlaces,
+                        'affected_count' => count($affected),
+                    ]);
+
+                    // Guardar estado en sesión para recuperarlo después
+                    $request->getSession()->set('session_edit_pending', [
+                        'session_id' => $session->getId(),
+                        'new_places' => $newPlaces,
+                        'disabled_places' => $disabledPlaces,
+                    ]);
+
+                    return $this->render('backend/session/edit_confirm.html.twig', [
+                        'session' => $session,
+                        'affected' => $affected,
+                        'disabled_places' => $disabledPlaces,
+                        'cancel_form' => $this->createCancelForm($session)->createView(),
+                    ]);
+                }
+            }
+
+            // Actualizar capacidad disponible
             $session->updateAvailableCapacity();
 
+            // Guardar cambios normales
             $em->flush();
+
+            // Limpiar sesión si existe
+            $request->getSession()->remove('session_edit_pending');
+
+            $logger->info('Issue #52: Sesión actualizada sin conflictos', [
+                'session_id' => $session->getId(),
+                'admin_user' => $this->getUser()?->getUserIdentifier(),
+                'new_places' => $newPlaces,
+            ]);
 
             $this->addFlash('success', 'La Clase ha sido actualizada.');
 
@@ -244,6 +301,141 @@ class SessionController extends AbstractController
             'session' => $session,
             'edit_form' => $editForm->createView(),
             'cancel_form' => $cancelForm->createView(),
+        ]);
+    }
+
+    #[Route('/{id}/edit-confirm', name: 'backend_session_edit_confirm', methods: ['POST'])]
+    #[IsGranted('ALLOWED_ROUTE_ACCESS')]
+    public function editConfirm(
+        Request $request,
+        Session $session,
+        EntityManagerInterface $em,
+        ReservationRepository $reservationRepository,
+        ReservationCancellationService $cancellationService,
+        LoggerInterface $logger,
+        Security $security,
+    ): Response {
+        $adminUser = $security->getUser();
+        
+        $logger->info('Issue #52: Procesando confirmación de deshabilitación', [
+            'session_id' => $session->getId(),
+            'admin_user' => $adminUser?->getUserIdentifier(),
+        ]);
+
+        // Validar token CSRF
+        if (!$this->isCsrfTokenValid('session_edit_confirm', $request->request->get('_token'))) {
+            $logger->error('Issue #52: Token CSRF inválido en confirmación', [
+                'session_id' => $session->getId(),
+            ]);
+            $this->addFlash('danger', 'Token de seguridad inválido.');
+            return $this->redirectToRoute('backend_session_edit', ['id' => $session->getId()]);
+        }
+
+        // Recuperar datos de la sesión
+        $pendingData = $request->getSession()->get('session_edit_pending');
+
+        if (!$pendingData || $pendingData['session_id'] !== $session->getId()) {
+            $this->addFlash('danger', 'Sesión de edición expirada. Intenta nuevamente.');
+            return $this->redirectToRoute('backend_session_edit', ['id' => $session->getId()]);
+        }
+
+        // Obtener motivo del formulario
+        $reason = trim($request->request->get('reason', ''));
+
+        // Validar motivo
+        if (strlen($reason) < 10 || strlen($reason) > 500) {
+            $logger->warning('Issue #52: Motivo inválido en confirmación', [
+                'session_id' => $session->getId(),
+                'reason_length' => strlen($reason),
+            ]);
+            $this->addFlash('danger', 'El motivo debe tener entre 10 y 500 caracteres.');
+            return $this->redirectToRoute('backend_session_edit', ['id' => $session->getId()]);
+        }
+
+        // Buscar reservaciones afectadas
+        $affected = $reservationRepository->findActiveBySessionAndPlaces(
+            $session,
+            $pendingData['disabled_places']
+        );
+
+        // Si no hay afectadas, solo guardar cambios
+        if (empty($affected)) {
+            $session->setPlacesNotAvailable($pendingData['new_places']);
+            $session->updateAvailableCapacity();
+            $em->flush();
+            $request->getSession()->remove('session_edit_pending');
+
+            $this->addFlash('success', 'La Clase ha sido actualizada.');
+
+            return $this->redirectToRoute('backend_session_edit', ['id' => $session->getId()]);
+        }
+
+        // Cancelar y devolver crédito
+        try {
+            // Validar que existe usuario autenticado
+            if ($adminUser === null) {
+                throw new \LogicException("No hay usuario autenticado");
+            }
+
+            $result = $cancellationService->cancelMultipleAndAudit(
+                $affected,
+                $session,
+                $adminUser,
+                $pendingData['disabled_places'],
+                $reason
+            );
+
+            // Guardar los cambios en placesNotAvailable ahora que todo está procesado
+            $session->setPlacesNotAvailable($pendingData['new_places']);
+            $session->updateAvailableCapacity();
+            $em->flush();
+
+            // Limpiar sesión
+            $request->getSession()->remove('session_edit_pending');
+
+            $success = $result['success'];
+            $failed = $result['failed'];
+
+            if ($failed === 0) {
+                $logger->info('Issue #52: Deshabilitación completada exitosamente', [
+                    'session_id' => $session->getId(),
+                    'admin_user' => $adminUser->getUserIdentifier(),
+                    'success_count' => $success,
+                    'disabled_places' => $pendingData['disabled_places'],
+                    'reason' => substr($reason, 0, 100),
+                ]);
+                $this->addFlash(
+                    'success',
+                    "✅ La Clase ha sido actualizada. {$success} reservación(es) cancelada(s). Créditos devueltos."
+                );
+            } else {
+                $logger->warning('Issue #52: Deshabilitación completada parcialmente', [
+                    'session_id' => $session->getId(),
+                    'admin_user' => $adminUser->getUserIdentifier(),
+                    'success_count' => $success,
+                    'failed_count' => $failed,
+                ]);
+                $this->addFlash(
+                    'warning',
+                    "⚠️ Operación completada parcialmente. {$success} canceladas, {$failed} fallidas."
+                );
+            }
+
+        } catch (\Exception $e) {
+            $logger->error('Issue #52: Error procesando cancelaciones', [
+                'session_id' => $session->getId(),
+                'admin_user' => $adminUser?->getUserIdentifier(),
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            $this->addFlash(
+                'danger',
+                "❌ Error procesando cancelaciones: " . $e->getMessage()
+            );
+        }
+
+        return $this->redirectToRoute('backend_session_edit', [
+            'id' => $session->getId(),
         ]);
     }
 

@@ -91,7 +91,7 @@ class __TwigTemplate_2f59b4f2838940e23128a5e7184c1d97 extends Template
 
         // line 7
         yield "    ";
-        yield from         $this->loadTemplate("backend/transaction/index.html.twig", "backend/transaction/index.html.twig", 7, "4892600")->unwrap()->yield(CoreExtension::arrayMerge($context, ["page_section" => (isset($context["page_section"]) || array_key_exists("page_section", $context) ? $context["page_section"] : (function () { throw new RuntimeError('Variable "page_section" does not exist.', 7, $this->source); })()), "page_title" =>         $this->unwrap()->renderBlock("title", $context, $blocks)]));
+        yield from         $this->loadTemplate("backend/transaction/index.html.twig", "backend/transaction/index.html.twig", 7, "749990352")->unwrap()->yield(CoreExtension::arrayMerge($context, ["page_section" => (isset($context["page_section"]) || array_key_exists("page_section", $context) ? $context["page_section"] : (function () { throw new RuntimeError('Variable "page_section" does not exist.', 7, $this->source); })()), "page_title" =>         $this->unwrap()->renderBlock("title", $context, $blocks)]));
         
         $__internal_6f47bbe9983af81f1e7450e9a3e3768f->leave($__internal_6f47bbe9983af81f1e7450e9a3e3768f_prof);
 
@@ -318,7 +318,7 @@ class __TwigTemplate_2f59b4f2838940e23128a5e7184c1d97 extends Template
 
 
 /* backend/transaction/index.html.twig */
-class __TwigTemplate_2f59b4f2838940e23128a5e7184c1d97___4892600 extends Template
+class __TwigTemplate_2f59b4f2838940e23128a5e7184c1d97___749990352 extends Template
 {
     private $source;
     private $macros = [];

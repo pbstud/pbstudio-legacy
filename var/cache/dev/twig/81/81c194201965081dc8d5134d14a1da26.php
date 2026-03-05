@@ -164,14 +164,14 @@ class __TwigTemplate_e380ab69db7fad687851804a0da1a816 extends Template
         <div class=\"row\">
             ";
         // line 33
-        yield from         $this->loadTemplate("backend/transaction/new.html.twig", "backend/transaction/new.html.twig", 33, "1014911062")->unwrap()->yield(CoreExtension::arrayMerge($context, ["title" => "Forma de pago"]));
+        yield from         $this->loadTemplate("backend/transaction/new.html.twig", "backend/transaction/new.html.twig", 33, "841784793")->unwrap()->yield(CoreExtension::arrayMerge($context, ["title" => "Forma de pago"]));
         // line 106
         yield "        </div>
 
         <div class=\"row\">
             ";
         // line 109
-        yield from         $this->loadTemplate("backend/transaction/new.html.twig", "backend/transaction/new.html.twig", 109, "802497433")->unwrap()->yield(CoreExtension::arrayMerge($context, ["title" => "Detalle de la transacción"]));
+        yield from         $this->loadTemplate("backend/transaction/new.html.twig", "backend/transaction/new.html.twig", 109, "411605154")->unwrap()->yield(CoreExtension::arrayMerge($context, ["title" => "Detalle de la transacción"]));
         // line 230
         yield "        </div>
     ";
@@ -491,7 +491,7 @@ class __TwigTemplate_e380ab69db7fad687851804a0da1a816 extends Template
 
 
 /* backend/transaction/new.html.twig */
-class __TwigTemplate_e380ab69db7fad687851804a0da1a816___1014911062 extends Template
+class __TwigTemplate_e380ab69db7fad687851804a0da1a816___841784793 extends Template
 {
     private $source;
     private $macros = [];
@@ -932,7 +932,7 @@ class __TwigTemplate_e380ab69db7fad687851804a0da1a816___1014911062 extends Templ
 
 
 /* backend/transaction/new.html.twig */
-class __TwigTemplate_e380ab69db7fad687851804a0da1a816___802497433 extends Template
+class __TwigTemplate_e380ab69db7fad687851804a0da1a816___411605154 extends Template
 {
     private $source;
     private $macros = [];
