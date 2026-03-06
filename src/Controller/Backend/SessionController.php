@@ -442,9 +442,38 @@ class SessionController extends AbstractController
 
     #[Route('/{id}/audit', name: 'backend_session_audit', methods: ['GET'])]
     #[IsGranted('ALLOWED_ROUTE_ACCESS')]
-    public function audit(Session $session, SessionAuditRepository $auditRepository): Response
+    public function audit(
+        Session $session,
+        SessionAuditRepository $auditRepository,
+        LoggerInterface $logger,
+    ): Response
     {
         $audits = $auditRepository->findBy(['session' => $session], ['createdAt' => 'DESC']);
+
+        $adminUser = $this->getUser();
+
+        $logger->info('Issue #52: Acceso al panel de auditoria', [
+            'session_id' => $session->getId(),
+            'admin_user' => $adminUser?->getUserIdentifier(),
+            'audit_count' => count($audits),
+        ]);
+
+        $usersWithoutId = 0;
+        foreach ($audits as $audit) {
+            foreach ($audit->getAffectedUsers() as $affectedUser) {
+                if (!isset($affectedUser['id']) || empty($affectedUser['id'])) {
+                    ++$usersWithoutId;
+                }
+            }
+        }
+
+        if ($usersWithoutId > 0) {
+            $logger->warning('Issue #52: Usuarios afectados sin ID en auditoria', [
+                'session_id' => $session->getId(),
+                'admin_user' => $adminUser?->getUserIdentifier(),
+                'users_without_id' => $usersWithoutId,
+            ]);
+        }
 
         return $this->render('backend/session/audit.html.twig', [
             'session' => $session,
