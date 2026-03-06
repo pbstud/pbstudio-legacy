@@ -5,159 +5,184 @@
 
 {% block subcontent %}
     {% if audits is empty %}
-    <div class="alert alert-info">
-        <i class="fas fa-info-circle"></i> No hay registros de deshabilitaciones para esta sesión.
+    <div class="alert alert-info border-0">
+        <i class="fas fa-info-circle"></i> 
+        <strong>Sin registros:</strong> No hay deshabilitaciones en esta sesión.
     </div>
     {% else %}
-    <div class="card">
-        <div class="card-header bg-light">
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-light border-bottom d-flex align-items-center justify-content-between">
             <h5 class="mb-0">
-                <i class="fas fa-list"></i> {{ audits|length }} Registro{{ audits|length != 1 ? 's' : '' }} de Auditoría
+                <i class="fas fa-shield-alt"></i> 
+                Historial de Auditoría
             </h5>
+            <span class="badge bg-primary">{{ audits|length }} registro{{ audits|length != 1 ? 's' : '' }}</span>
         </div>
+        
         <div class="table-responsive">
-            <table class="table table-hover mb-0">
-                <thead class="table-light">
+            <table class="table table-hover mb-0 audit-table">
+                <thead class="bg-light border-bottom">
                     <tr>
-                        <th style="width: 80px;">ID</th>
-                        <th style="width: 100px;">Administrador</th>
-                        <th style="width: 150px;">Fecha/Hora</th>
-                        <th style="width: 150px;">Asientos Deshabilitados</th>
-                        <th style="width: 80px;">Afectados</th>
-                        <th style="width: 80px;">Acción</th>
+                        <th style="width: 70px; text-align: center; font-weight: 600; font-size: 0.95rem;">ID</th>
+                        <th style="font-weight: 600; font-size: 0.95rem;">Administrador</th>
+                        <th style="font-weight: 600; font-size: 0.95rem;">Fecha/Hora</th>
+                        <th style="width: 100px; text-align: center; font-weight: 600; font-size: 0.95rem;">
+                            <i class="fas fa-chair" style="font-size: 1rem;"></i> Asientos
+                        </th>
+                        <th style="width: 100px; text-align: center; font-weight: 600; font-size: 0.95rem;">
+                            <i class="fas fa-user-times" style="font-size: 1rem;"></i> Afectados
+                        </th>
+                        <th style="width: 110px; text-align: center; font-weight: 600; font-size: 0.95rem;">Detalles</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for audit in audits %}
-                    <tr class="align-middle" id="audit-row-{{ audit.id }}">
-                        <td>
-                            <span class="badge bg-primary">{{ audit.id }}</span>
+                    <tr class="align-middle audit-row" id="audit-row-{{ audit.id }}">
+                        <td style="text-align: center;">
+                            <span class="badge bg-primary" style="font-size: 1.1rem; padding: 0.7rem 1rem;">{{ audit.id }}</span>
                         </td>
                         <td>
-                            <strong>{{ audit.adminUserIdentifier }}</strong>
+                            <div class="d-flex align-items-center" style="gap: 0.5rem;">
+                                <i class="fas fa-user-shield" style="font-size: 1.3rem; color: #0d6efd;"></i>
+                                <div>
+                                    <span class="badge bg-primary" style="font-size: 1.15rem; padding: 0.7rem 1.2rem; font-weight: 700; letter-spacing: 0.5px;">{{ audit.adminUserIdentifier }}</span>
+                                </div>
+                            </div>
                         </td>
                         <td>
-                            <small class="text-muted d-block">
-                                {{ audit.createdAt|date('d/m/Y H:i:s') }}
-                            </small>
+                            <div class="d-flex align-items-center" style="gap: 0.5rem;">
+                                <i class="far fa-clock" style="font-size: 1.3rem; color: #198754;"></i>
+                                <div>
+                                    <div class="font-monospace fw-bold" style="font-size: 1.15rem; color: #198754;">{{ audit.createdAt|date('d/m/Y') }}</div>
+                                    <div class="font-monospace fw-bold" style="font-size: 1.15rem; color: #198754;">{{ audit.createdAt|date('H:i:s') }}</div>
+                                </div>
+                            </div>
                         </td>
-                        <td>
-                            <span class="badge bg-danger">
-                                {% set disabled_count = audit.disabledPlaces|length %}
-                                {{ disabled_count }} asiento{{ disabled_count != 1 ? 's' : '' }}
+                        <td style="text-align: center;">
+                            <span class="badge bg-warning text-dark" style="font-size: 1.1rem; padding: 0.7rem 1rem;" title="Cantidad de asientos deshabilitados">
+                                <i class="fas fa-chair" style="font-size: 1rem; margin-right: 0.4rem;"></i>
+                                <strong>{{ audit.disabledPlaces|length }}</strong>
                             </span>
-                            <br>
-                            <small class="text-muted">
-                                {{ audit.disabledPlaces|json_encode|slice(1, -1) }}
-                            </small>
                         </td>
-                        <td>
-                            <span class="badge bg-warning">{{ audit.affectedReservationsCount }}</span>
+                        <td style="text-align: center;">
+                            <span class="badge bg-info text-dark" style="font-size: 1.1rem; padding: 0.7rem 1rem;" title="Cantidad de reservaciones canceladas">
+                                <i class="fas fa-user-times" style="font-size: 1rem; margin-right: 0.4rem;"></i>
+                                <strong>{{ audit.affectedReservationsCount }}</strong>
+                            </span>
                         </td>
-                        <td>
-                            <button class="btn btn-sm btn-outline-primary" 
+                        <td style="text-align: center;">
+                            <button class="btn btn-primary toggle-detail-btn" 
                                     onclick="toggleAuditDetail(this, {{ audit.id }})"
-                                    type="button">
-                                <i class="fas fa-eye"></i> Ver
+                                    type="button"
+                                    data-audit-id="{{ audit.id }}"
+                                    title="Ver detalles de esta auditoría">
+                                <i class="fas fa-plus me-2" style="font-size: 1.05rem;"></i>
+                                <span class="btn-label fw-bold">Ver</span>
                             </button>
                         </td>
                     </tr>
-                    <!-- Detail Row -->
+                    
+                    <!-- Detail Row - Inicialmente oculto -->
                     <tr id="audit-detail-{{ audit.id }}" class="audit-detail-row d-none">
                         <td colspan="6">
-                            <div class="p-4">
-                                <!-- Motivo -->
-                                <div class="mb-4">
-                                    <h6 class="fw-bold text-uppercase text-muted mb-2">
-                                        <i class="fas fa-comment"></i> Motivo de Deshabilitación
-                                    </h6>
-                                    <div class="bg-light p-3 rounded border-start border-4 border-info">
-                                        {{ audit.reason }}
-                                    </div>
-                                </div>
-
-                                <!-- Usuarios Afectados -->
-                                <div class="mb-4">
-                                    <h6 class="fw-bold text-uppercase text-muted mb-3">
-                                        <i class="fas fa-users"></i> Usuarios Afectados ({{ audit.affectedUsers|length }})
-                                    </h6>
-                                    <div class="table-responsive">
-                                        <table class="table table-sm table-bordered">
-                                            <thead class="table-light">
-                                                <tr>
-                                                    <th>ID Usuario</th>
-                                                    <th>Nombre</th>
-                                                    <th>Email</th>
-                                                    <th>Asiento</th>
-                                                    <th>Crédito Devuelto</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {% for user in audit.affectedUsers %}
-                                                <tr>
-                                                    <td>
-                                                        <code>{{ user.id }}</code>
-                                                    </td>
-                                                    <td>
-                                                        <strong>{{ user.name }}</strong>
-                                                    </td>
-                                                    <td>
-                                                        <code>{{ user.email }}</code>
-                                                    </td>
-                                                    <td>
-                                                        <span class="badge bg-danger">
-                                                            {{ user.place }}
-                                                        </span>
-                                                    </td>
-                                                    <td>
-                                                        <span class="badge bg-success">
-                                                            <i class="fas fa-check"></i> Devuelto
-                                                        </span>
-                                                    </td>
-                                                </tr>
-                                                {% endfor %}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-
-                                <!-- Asientos Deshabilitados Detallado -->
-                                <div class="mb-4">
-                                    <h6 class="fw-bold text-uppercase text-muted mb-2">
-                                        <i class="fas fa-chair"></i> Asientos Deshabilitados
-                                    </h6>
-                                    <div class="d-flex flex-wrap gap-2">
-                                        {% for key, seat in audit.disabledPlaces %}
-                                        <span class="badge bg-danger fs-6">
-                                            Asiento {{ seat }}
-                                        </span>
-                                        {% endfor %}
-                                    </div>
-                                </div>
-
-                                <!-- Información Técnica -->
-                                <div class="mb-4">
-                                    <h6 class="fw-bold text-uppercase text-muted mb-2">
-                                        <i class="fas fa-cogs"></i> Información Técnica
-                                    </h6>
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <small class="text-muted d-block">
-                                                <strong>Tipo de Acción:</strong> {{ audit.auditType }}
-                                            </small>
-                                            <small class="text-muted d-block">
-                                                <strong>Administrador:</strong> {{ audit.adminUserIdentifier }}
-                                            </small>
+                            <div class="p-4 bg-white">
+                                <div class="row">
+                                    <!-- Columna Izquierda: Motivo y Asientos -->
+                                    <div class="col-lg-6 mb-5 mb-lg-0">
+                                        <!-- Motivo -->
+                                        <div class="mb-5">
+                                            <label class="fw-bold" style="font-size: 1.2rem; display: block; margin-bottom: 1rem; color: #2c3e50;">
+                                                <i class="fas fa-exclamation-triangle text-info me-2" style="font-size: 1.3rem;"></i>Motivo de Deshabilitación
+                                            </label>
+                                            <div class="bg-light p-5 rounded border-start border-4 border-info" style="font-size: 1.2rem; line-height: 1.95; color: #2c3e50; background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%) !important; white-space: pre-wrap; word-wrap: break-word;">
+                                                <p class="mb-0" style="text-align: justify;">{{ audit.reason }}</p>
+                                            </div>
                                         </div>
-                                        <div class="col-md-6">
-                                            <small class="text-muted d-block">
-                                                <strong>Fecha/Hora:</strong> 
-                                                {{ audit.createdAt|date('d/m/Y H:i:s') }}
-                                            </small>
-                                            <small class="text-muted d-block">
-                                                <strong>Reservaciones Canceladas:</strong> 
-                                                {{ audit.affectedReservationsCount }}
-                                            </small>
+                                        
+                                        <!-- Asientos -->
+                                        <div>
+                                            <label class="fw-bold" style="font-size: 1.2rem; display: block; margin-bottom: 1rem; color: #2c3e50;">
+                                                <i class="fas fa-ban text-danger me-2" style="font-size: 1.3rem;"></i>Asientos Deshabilitados
+                                            </label>
+                                            {% if audit.disabledPlaces|length > 0 %}
+                                            <div class="d-flex flex-wrap gap-3">
+                                                {% for seat in audit.disabledPlaces %}
+                                                <span class="badge bg-danger px-5 py-3" style="font-size: 1.2rem; display: inline-block; box-shadow: 0 3px 8px rgba(220, 53, 69, 0.25);">
+                                                    <i class="fas fa-times-circle" style="font-size: 1.1rem; margin-right: 0.5rem;"></i>Asiento {{ seat }}
+                                                </span>
+                                                {% endfor %}
+                                            </div>
+                                            {% else %}
+                                            <small class="text-muted" style="font-size: 1.1rem;"><em>Sin registros</em></small>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Columna Derecha: Usuarios Afectados -->
+                                    <div class="col-lg-6">
+                                        <label class="fw-bold" style="font-size: 1.2rem; display: block; margin-bottom: 1rem; color: #2c3e50;">
+                                            <i class="fas fa-user-friends text-warning me-2" style="font-size: 1.3rem;"></i>Usuarios Afectados <span class="badge bg-warning text-dark" style="font-size: 1rem; padding: 0.5rem 0.8rem;">{{ audit.affectedUsers|length }}</span>
+                                        </label>
+                                        
+                                        {% if audit.affectedUsers|length > 0 %}
+                                        <div class="table-responsive border rounded-2">
+                                            <table class="table mb-0" style="font-size: 1.1rem;">
+                                                <thead class="bg-light border-bottom">
+                                                    <tr>
+                                                        <th style="font-size: 1.05rem; font-weight: 700; padding: 1.3rem 0.9rem; text-transform: uppercase; letter-spacing: 0.5px;">ID</th>
+                                                        <th style="font-size: 1.05rem; font-weight: 700; padding: 1.3rem 0.9rem; text-transform: uppercase; letter-spacing: 0.5px;">Nombre</th>
+                                                        <th style="font-size: 1.05rem; font-weight: 700; padding: 1.3rem 0.9rem; text-transform: uppercase; letter-spacing: 0.5px; width: 90px;">Asiento</th>
+                                                        <th style="width: 90px; text-align: center; font-size: 1.05rem; font-weight: 700; padding: 1.3rem 0.9rem; text-transform: uppercase; letter-spacing: 0.5px;">Crédito</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {% for user in audit.affectedUsers %}
+                                                    <tr style="border-bottom: 1px solid #e9ecef;">
+                                                        <td style="font-size: 1.1rem; padding: 1.2rem 0.9rem;"><code class="text-muted" style="font-size: 1.05rem; font-weight: 600;">{{ user.id }}</code></td>
+                                                        <td style="font-size: 1.1rem; padding: 1.2rem 0.9rem;">
+                                                            <strong style="display: block; margin-bottom: 0.3rem; font-size: 1.1rem; color: #2c3e50;">{{ user.name }}</strong>
+                                                            <small class="text-muted d-block text-truncate" style="font-size: 1rem;">{{ user.email }}</small>
+                                                        </td>
+                                                        <td style="font-size: 1.1rem; padding: 1.2rem 0.9rem;">
+                                                            <span class="badge bg-danger" style="font-size: 1.05rem; padding: 0.65rem 1rem; font-weight: 600;">{{ user.place }}</span>
+                                                        </td>
+                                                        <td style="text-align: center; font-size: 1.1rem; padding: 1.2rem 0.9rem;">
+                                                            <span class="badge bg-success" style="font-size: 1.05rem; padding: 0.65rem 1rem; font-weight: 600;">
+                                                                <i class="fas fa-check-circle" style="font-size: 1rem;"></i> Devuelto
+                                                            </span>
+                                                        </td>
+                                                    </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        {% else %}
+                                        <small class="text-muted" style="font-size: 1rem;"><em>Sin usuarios registrados</em></small>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <!-- Datos Técnicos -->
+                                <div class="border-top pt-5 mt-5">
+                                    <label class="fw-bold text-muted d-flex align-items-center" style="letter-spacing: 0.5px; font-size: 1.15rem; color: #2c3e50 !important; margin-bottom: 2rem;">
+                                        <i class="fas fa-info-circle text-secondary me-2" style="font-size: 1.3rem;"></i>INFORMACIÓN TÉCNICA
+                                    </label>
+                                    <div class="row">
+                                        <div class="col-6 col-md-3 mb-4">
+                                            <small class="text-muted d-block mb-2" style="font-size: 1.05rem; font-weight: 700; text-transform: uppercase;"><strong>Administrador:</strong></small>
+                                            <code class="text-muted" style="font-size: 1.15rem;">{{ audit.adminUserIdentifier }}</code>
+                                        </div>
+                                        <div class="col-6 col-md-3 mb-4">
+                                            <small class="text-muted d-block mb-2" style="font-size: 1.05rem; font-weight: 700; text-transform: uppercase;"><strong>Registrado:</strong></small>
+                                            <code class="text-muted" style="font-size: 1.15rem;">{{ audit.createdAt|date('d/m H:i:s') }}</code>
+                                        </div>
+                                        <div class="col-6 col-md-3 mb-4">
+                                            <small class="text-muted d-block mb-2" style="font-size: 1.05rem; font-weight: 700; text-transform: uppercase;"><strong>Tipo:</strong></small>
+                                            <span class="badge bg-info text-dark" style="font-size: 1.1rem; padding: 0.7rem 1rem; display: inline-block;">Deshabilitación</span>
+                                        </div>
+                                        <div class="col-6 col-md-3 mb-4">
+                                            <small class="text-muted d-block mb-2" style="font-size: 1.05rem; font-weight: 700; text-transform: uppercase;"><strong>Canceladas:</strong></small>
+                                            <span class="badge bg-warning text-dark" style="font-size: 1.1rem; padding: 0.7rem 1rem; display: inline-block;">{{ audit.affectedReservationsCount }}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -173,36 +198,391 @@
 </div>
 
 <script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Asegurar que todos los detalles estén ocultos al cargar la página
+    const detailRows = document.querySelectorAll('.audit-detail-row');
+    detailRows.forEach(row => {
+        row.classList.add('d-none');
+    });
+});
+
 function toggleAuditDetail(button, auditId) {
     const detailRow = document.getElementById('audit-detail-' + auditId);
-    const icon = button.querySelector('i');
+    if (!detailRow) return;
     
-    if (detailRow.classList.contains('d-none')) {
+    const icon = button.querySelector('i');
+    const label = button.querySelector('.btn-label');
+    const isHidden = detailRow.classList.contains('d-none');
+    
+    if (isHidden) {
+        // Mostrar detalles
         detailRow.classList.remove('d-none');
-        icon.classList.remove('fa-eye');
-        icon.classList.add('fa-eye-slash');
-        button.classList.remove('btn-outline-primary');
-        button.classList.add('btn-primary');
-        button.innerHTML = '<i class="fas fa-eye-slash"></i> Ocultar';
-    } else {
-        detailRow.classList.add('d-none');
-        icon.classList.add('fa-eye');
-        icon.classList.remove('fa-eye-slash');
-        button.classList.add('btn-outline-primary');
+        detailRow.style.animation = 'slideDown 0.3s ease-out';
+        
+        // Cambiar icono y texto
+        icon.classList.remove('fa-plus');
+        icon.classList.add('fa-minus');
+        if (label) label.textContent = 'Ocultar';
+        
+        // Cambiar estilo del botón
         button.classList.remove('btn-primary');
-        button.innerHTML = '<i class="fas fa-eye"></i> Ver';
+        button.classList.add('btn-danger');
+        button.setAttribute('title', 'Ocultar detalles de esta auditoría');
+        
+    } else {
+        // Ocultar detalles
+        detailRow.style.animation = 'slideUp 0.3s ease-out';
+        setTimeout(() => {
+            detailRow.classList.add('d-none');
+        }, 150);
+        
+        // Cambiar icono y texto
+        icon.classList.add('fa-plus');
+        icon.classList.remove('fa-minus');
+        if (label) label.textContent = 'Ver';
+        
+        // Cambiar estilo del botón
+        button.classList.add('btn-primary');
+        button.classList.remove('btn-danger');
+        button.setAttribute('title', 'Ver detalles de esta auditoría');
     }
 }
 </script>
 
 <style>
+/* ===== TABLA PRINCIPAL ===== */
+.audit-table {
+    font-size: 1.2rem;
+    border-collapse: separate;
+    border-spacing: 0;
+    background-color: #ffffff;
+}
+
+.audit-table thead {
+    background: linear-gradient(135deg, #f8f9fa 0%, #f0f1f3 100%);
+    border-bottom: 3px solid #dee2e6;
+}
+
+.audit-table thead th {
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 1.05rem;
+    letter-spacing: 0.7px;
+    padding: 1.6rem 0.9rem;
+    color: #2c3e50;
+    vertical-align: middle;
+}
+
+.audit-table tbody tr {
+    border-bottom: 2px solid #e9ecef;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.audit-table tbody tr:hover {
+    background-color: #f8f9fa;
+    box-shadow: inset 0 0 0 2px #e9ecef;
+}
+
+.audit-table td {
+    padding: 1.5rem 0.9rem;
+    vertical-align: middle;
+    font-size: 1.15rem;
+    color: #2c3e50;
+}
+
+.audit-table .badge {
+    padding: 0.7rem 1.1rem;
+    font-size: 1.08rem;
+    font-weight: 600;
+    border-radius: 0.375rem;
+    white-space: nowrap;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    letter-spacing: 0.3px;
+}
+
+/* ===== BOTÓN DE DETALLES ===== */
+.toggle-detail-btn {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    min-width: 115px;
+    padding: 0.65rem 1.2rem;
+    font-weight: 700;
+    font-size: 1.1rem;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 0.375rem;
+    letter-spacing: 0.4px;
+}
+
+.toggle-detail-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.18);
+}
+
+.toggle-detail-btn:active {
+    transform: translateY(0);
+}
+
+.toggle-detail-btn.btn-primary {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+.toggle-detail-btn.btn-primary:hover {
+    background-color: #0b5ed7;
+    border-color: #0a58ca;
+}
+
+.toggle-detail-btn.btn-danger {
+    background-color: #dc3545;
+    border-color: #dc3545;
+    box-shadow: 0 3px 10px rgba(220, 53, 69, 0.25);
+}
+
+.toggle-detail-btn.btn-danger:hover {
+    background-color: #bd2130;
+    border-color: #b02622;
+    box-shadow: 0 5px 15px rgba(220, 53, 69, 0.35);
+}
+
+.toggle-detail-btn i {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    font-size: 1.05rem;
+    font-weight: bold;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.toggle-detail-btn.btn-danger i {
+    transform: rotate(90deg);
+}
+
+.audit-detail-row.d-none {
+    display: none !important;
+}
+
+/* ===== FILA DE DETALLES ===== */
 .audit-detail-row {
     background-color: #f8f9fa;
 }
 
 .audit-detail-row td {
-    border-top: 2px solid #dee2e6 !important;
-    padding: 1.5rem 0.75rem !important;
+    padding: 0 !important;
+    border-bottom: 3px solid #dee2e6;
+}
+
+.audit-detail-row .p-4 {
+    background-color: #ffffff;
+    padding: 3.5rem !important;
+}
+
+.audit-detail-row .p-5 {
+    padding: 3.5rem !important;
+}
+
+.audit-detail-row label {
+    color: #2c3e50;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.audit-detail-row .bg-light {
+    background-color: #f8f9fa !important;
+    border-radius: 0.375rem;
+}
+
+.audit-detail-row .border-start {
+    border-width: 5px !important;
+    padding-left: 1.2rem;
+}
+
+.audit-detail-row p {
+    font-size: 1.15rem;
+    line-height: 1.85;
+    color: #2c3e50;
+    margin: 0;
+}
+
+/* ===== BADGES EN DETALLES ===== */
+.audit-detail-row .badge {
+    padding: 0.7rem 1.1rem;
+    font-size: 1.08rem;
+    font-weight: 600;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+    border-radius: 0.375rem;
+    letter-spacing: 0.3px;
+    display: inline-block;
+    margin: 0.3rem;
+}
+
+/* ===== TABLA DE USUARIOS ===== */
+.audit-detail-row .table-responsive {
+    border-radius: 0.5rem;
+    border: 2px solid #dee2e6;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+}
+
+.audit-detail-row .table {
+    font-size: 1.1rem;
+    margin-bottom: 0;
+    background-color: #ffffff;
+}
+
+.audit-detail-row .table thead {
+    background: linear-gradient(135deg, #f8f9fa 0%, #f0f1f3 100%);
+    border-bottom: 2px solid #dee2e6;
+}
+
+.audit-detail-row .table thead th {
+    font-size: 1.05rem;
+    font-weight: 700;
+    padding: 1.3rem 0.9rem;
+    background: linear-gradient(135deg, #f8f9fa 0%, #f0f1f3 100%);
+    border-bottom: 2px solid #dee2e6;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #2c3e50;
+}
+
+.audit-detail-row .table tbody tr {
+    border-bottom: 1px solid #e9ecef;
+    transition: all 0.2s ease;
+}
+
+.audit-detail-row .table tbody tr:hover {
+    background-color: #f8f9fa;
+    box-shadow: inset 0 0 0 1px #e9ecef;
+}
+
+.audit-detail-row .table tbody td {
+    padding: 1.2rem 0.9rem;
+    font-size: 1.1rem;
+    vertical-align: middle;
+    color: #2c3e50;
+    font-weight: 500;
+}
+
+.audit-detail-row .table tbody td strong {
+    font-weight: 700;
+    color: #1a1f36;
+}
+
+.audit-detail-row code {
+    font-size: 1.05rem;
+    color: #5a6c7d;
+    background-color: #f1f3f5;
+    padding: 0.35rem 0.6rem;
+    border-radius: 0.3rem;
+    font-family: 'Courier New', monospace;
+    font-weight: 600;
+    border: 1px solid #dee2e6;
+}
+
+.audit-detail-row small {
+    font-size: 1rem !important;
+    color: #5a6c7d;
+}
+
+/* ===== INFORMACIÓN TÉCNICA ===== */
+.audit-detail-row .border-top {
+    border-color: #dee2e6 !important;
+}
+
+.audit-detail-row .border-top label {
+    display: block;
+    font-size: 1.1rem;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #dee2e6;
+}
+
+.audit-detail-row .border-top code {
+    font-size: 1.1rem;
+}
+
+/* ===== ANIMACIONES ===== */
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+    .audit-table {
+        font-size: 1.1rem;
+    }
+
+    .audit-table thead th {
+        font-size: 1rem;
+        padding: 1.3rem 0.6rem;
+        letter-spacing: 0.5px;
+    }
+
+    .audit-table td {
+        padding: 1.2rem 0.6rem;
+        font-size: 1.1rem;
+    }
+
+    .audit-detail-row .p-4,
+    .audit-detail-row .p-5 {
+        padding: 2.5rem !important;
+    }
+
+    .audit-detail-row .col-lg-6 {
+        margin-bottom: 3rem;
+    }
+
+    .toggle-detail-btn {
+        min-width: 110px;
+        padding: 0.6rem 1.1rem;
+        font-size: 1.05rem;
+    }
+
+    .audit-detail-row .table {
+        font-size: 1.05rem;
+    }
+
+    .audit-detail-row .table thead th {
+        font-size: 1rem;
+        padding: 1rem 0.6rem;
+    }
+
+    .audit-detail-row .table tbody td {
+        padding: 1rem 0.6rem;
+        font-size: 1.05rem;
+    }
+}
+
+/* ===== ICONOS NÍTIDOS ===== */
+.fas, .far, .fab {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-style: normal;
+    font-variant: normal;
+    text-rendering: optimizeLegibility;
 }
 </style>
 {% endblock %}
