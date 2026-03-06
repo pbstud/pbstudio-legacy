@@ -1,6 +1,8 @@
 node_modules
 vendor
 var
+var/cache/
+var/log/
 public/build
 .phpunit.result.cache
 .env.local
