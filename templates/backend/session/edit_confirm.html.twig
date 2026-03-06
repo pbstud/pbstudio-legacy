@@ -1,123 +1,145 @@
 {% extends 'backend/session/profile.html.twig' %}
 
 {% set page_title = 'Confirmar Cambios - Deshabilitación de Asientos' %}
+{% set active_tab = 'tab_edit' %}
 
 {% block subcontent %}
-    <div class="alert alert-warning alert-dismissible fade in">
-        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
-        <h4><i class="icon fa fa-warning"></i> ¡Atención!</h4>
-        <p>Se detectaron <strong>{{ affected|length }} reservaciones activas</strong> en los asientos que va a deshabilitar.</p>
-        <p>Estas reservaciones serán <strong>canceladas automáticamente</strong> y se devolverá el crédito a los usuarios.</p>
-    </div>
+    <div class="session-audit-page session-disable-confirm-page">
+        {# ============================================================
+           SECCION A: Encabezado de advertencia
+           ============================================================ #}
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-light border-bottom">
+                <h5 class="mb-0">Confirmación</h5>
+            </div>
+            <div class="card-body confirm-hero-body">
+                <p class="mb-3">
+                    Se detectaron <strong>{{ affected|length }} reservaciones activas</strong> en los asientos que va a deshabilitar.
+                </p>
+                <p class="mb-4">
+                    Estas reservaciones serán <strong>canceladas automáticamente</strong> y el crédito correspondiente se devolverá a cada usuario afectado.
+                </p>
 
-    <div class="box box-warning">
-        <div class="box-header with-border">
-            <h3 class="box-title">Usuarios Afectados</h3>
-        </div>
-        <div class="box-body">
-            <table class="table table-hover table-striped">
-                <thead>
-                    <tr>
-                        <th>Usuario</th>
-                        <th>Email</th>
-                        <th>Asiento</th>
-                        <th style="text-align: center;">Acción</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for reservation in affected %}
-                        <tr>
-                            <td>
-                                <strong>{{ reservation.user.name }} {{ reservation.user.lastname }}</strong>
-                            </td>
-                            <td>
-                                <a href="mailto:{{ reservation.user.email }}">{{ reservation.user.email }}</a>
-                            </td>
-                            <td>
-                                <span class="badge bg-red">{{ reservation.placeNumber }}</span>
-                            </td>
-                            <td style="text-align: center;">
-                                <span class="label label-danger">Será cancelada</span>
-                            </td>
-                        </tr>
+                <div class="confirm-seat-tags">
+                    {% for place in disabled_places %}
+                        <span class="badge bg-danger">Asiento {{ place }}</span>
                     {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <div class="box">
-        <div class="box-header with-border">
-            <h3 class="box-title">Asientos a Deshabilitar</h3>
-        </div>
-        <div class="box-body">
-            <div class="form-group">
-                <div class="col-sm-12">
-                    <p>
-                        {% for place in disabled_places %}
-                            <span class="badge bg-red" style="font-size: 16px; padding: 8px 12px; margin-right: 5px;">
-                                Asiento {{ place }}
-                            </span>
-                        {% endfor %}
-                    </p>
                 </div>
             </div>
         </div>
-    </div>
 
-    <form method="POST" action="{{ path('backend_session_edit_confirm', { 'id': session.id }) }}" class="form-horizontal">
-        <input type="hidden" name="_token" value="{{ csrf_token('session_edit_confirm') }}">
-        <input type="hidden" name="confirmed" value="1">
-
-        <div class="box">
-            <div class="box-header with-border">
-                <h3 class="box-title">Motivo del Cambio</h3>
-                <p class="text-muted" style="font-size: 12px; margin-top: 5px;">Este campo es obligatorio</p>
+        {# ============================================================
+           SECCION B: Tabla de usuarios afectados
+           ============================================================ #}
+        <div class="card border-0 shadow-sm mt-4">
+            <div class="card-header bg-light border-bottom">
+                <h5 class="mb-0">Usuarios Afectados</h5>
             </div>
-            <div class="box-body">
-                <div class="form-group">
-                    <label class="col-sm-2 control-label">Motivo <span class="text-danger">*</span></label>
-                    <div class="col-sm-10">
-                        <textarea 
-                            name="reason" 
-                            class="form-control" 
-                            rows="4" 
-                            placeholder="Ej: Daño estructural, Obstrucción de vista, Mantenimiento programado..."
+
+            <div class="table-responsive">
+                <table class="table table-hover mb-0 audit-table confirm-table">
+                    <thead class="bg-light border-bottom">
+                        <tr>
+                            <th style="width: 80px; text-align: center;">ID</th>
+                            <th>Usuario</th>
+                            <th>Email</th>
+                            <th style="width: 120px; text-align: center;">Asiento</th>
+                            <th style="width: 170px; text-align: center;">Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for reservation in affected %}
+                            <tr>
+                                <td style="text-align: center;">
+                                    {% if reservation.user and reservation.user.id %}
+                                        <a href="{{ path('backend_user_show', { 'id': reservation.user.id }) }}" class="confirm-user-id" title="Ver perfil del usuario">
+                                            {{ reservation.user.id }}
+                                        </a>
+                                    {% else %}
+                                        <span class="confirm-user-id is-empty">N/A</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <strong>{{ reservation.user.name }} {{ reservation.user.lastname }}</strong>
+                                </td>
+                                <td>
+                                    <a href="mailto:{{ reservation.user.email }}">{{ reservation.user.email }}</a>
+                                </td>
+                                <td style="text-align: center;">
+                                    <span class="badge bg-danger text-white confirm-seat-badge">{{ reservation.placeNumber }}</span>
+                                </td>
+                                <td style="text-align: center;">
+                                    <span class="badge bg-danger text-white confirm-action-badge">Se cancela</span>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        {# ============================================================
+           SECCION C: Formulario de motivo y confirmación
+           ============================================================ #}
+        <form method="POST" action="{{ path('backend_session_edit_confirm', { 'id': session.id }) }}" class="confirm-disable-form mt-4">
+            <input type="hidden" name="_token" value="{{ csrf_token('session_edit_confirm') }}">
+            <input type="hidden" name="confirmed" value="1">
+
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-light border-bottom">
+                    <h5 class="mb-0">Motivo del Cambio</h5>
+                </div>
+                <div class="card-body">
+                    <div class="form-group reason-group mb-0">
+                        <label for="disable-reason" class="confirm-label">Motivo <span class="text-danger">*</span></label>
+                        <textarea
+                            id="disable-reason"
+                            name="reason"
+                            class="form-control confirm-reason-input"
+                            rows="5"
+                            placeholder="Ej: Daño estructural, obstrucción de vista, mantenimiento programado..."
                             required
                             minlength="10"
                             maxlength="500"
                         ></textarea>
-                        <small class="form-text text-muted">
-                            Mínimo 10 caracteres, máximo 500. Este registro quedará en auditoría.
-                        </small>
+                        <div class="confirm-reason-meta d-flex align-items-center justify-content-between mt-2">
+                            <small class="text-muted">Mínimo 10 caracteres, máximo 500. Este registro quedará en auditoría.</small>
+                            <small class="text-muted reason-counter" data-role="reason-counter">0 / 500</small>
+                        </div>
+                        <small class="text-danger d-none" data-role="reason-feedback">Escribe al menos 10 caracteres en el motivo.</small>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <div class="form-group">
-            <div class="col-sm-12">
-                <div class="pull-right">
-                    <a href="{{ path('backend_session_edit', { 'id': session.id }) }}" class="btn btn-default">
-                        <i class="fa fa-times"></i> Cancelar
-                    </a>
-                    <button type="submit" class="btn btn-danger" onclick="return confirm('¿Confirma la cancelación de {{ affected|length }} reservación(es) y devolución de crédito?');">
-                        <i class="fa fa-check"></i> Confirmar y Procesar
-                    </button>
+            {# ========================================================
+               SECCION D: Resumen de impacto
+               ======================================================== #}
+            <div class="card border-0 shadow-sm mt-4">
+                <div class="card-header bg-light border-bottom">
+                    <h5 class="mb-0">Resumen de lo que sucederá</h5>
                 </div>
-                <div class="clearfix"></div>
+                <div class="card-body">
+                    <ul class="confirm-impact-list mb-0">
+                        <li><strong>Cancelaciones:</strong> {{ affected|length }} reservación(es) serán canceladas.</li>
+                        <li><strong>Créditos:</strong> Se devolverá 1 cupón/clase a cada usuario afectado.</li>
+                        <li><strong>Auditoría:</strong> Se registrará quién, cuándo, por qué y qué usuarios fueron afectados.</li>
+                        <li><strong>Aplicación:</strong> Los cambios se ejecutarán inmediatamente al confirmar.</li>
+                    </ul>
+                </div>
             </div>
-        </div>
-    </form>
 
-    <div class="alert alert-info">
-        <h5><i class="fa fa-info-circle"></i> Resumen de lo que sucederá:</h5>
-        <ul>
-            <li><strong>Cancelaciones:</strong> {{ affected|length }} reservación(es) serán canceladas</li>
-            <li><strong>Créditos:</strong> Se devolverá 1 cupón/clase a cada usuario afectado</li>
-            <li><strong>Auditoría:</strong> Se registrará quién, cuándo, por qué y qué usuarios fueron afectados</li>
-            <li><strong>Notificación:</strong> Los usuarios serán afectados inmediatamente (futuro: email de notificación)</li>
-        </ul>
+            {# ========================================================
+               SECCION E: Acciones
+               ======================================================== #}
+            <div class="confirm-actions d-flex align-items-center justify-content-end gap-3 mt-4">
+                <a href="{{ path('backend_session_edit', { 'id': session.id }) }}" class="btn btn-default confirm-cancel-btn">
+                    Volver a edición
+                </a>
+                <button type="submit" class="btn btn-danger confirm-submit-btn" data-confirm-message="¿Confirma la cancelación de {{ affected|length }} reservación(es) y devolución de crédito?">
+                    Confirmar y Procesar
+                </button>
+            </div>
+        </form>
     </div>
 {% endblock %}
 
@@ -125,15 +147,51 @@
     {{ parent() }}
     <script>
         $(function() {
-            // Validar que el motivo tenga al menos 10 caracteres
-            $('textarea[name="reason"]').on('change', function() {
-                var value = $(this).val().trim();
-                if (value.length < 10) {
-                    $(this).closest('.form-group').addClass('has-error');
+            var $form = $('.confirm-disable-form');
+            var $reason = $('textarea[name="reason"]');
+            var $counter = $('[data-role="reason-counter"]');
+            var $feedback = $('[data-role="reason-feedback"]');
+
+            function updateReasonState(showError) {
+                var value = ($reason.val() || '').trim();
+                var length = value.length;
+                var isValid = length >= 10 && length <= 500;
+
+                $counter.text(length + ' / 500');
+
+                if (!isValid) {
+                    $reason.closest('.reason-group').addClass('has-error');
+                    if (showError) {
+                        $feedback.removeClass('d-none');
+                    }
                 } else {
-                    $(this).closest('.form-group').removeClass('has-error');
+                    $reason.closest('.reason-group').removeClass('has-error');
+                    $feedback.addClass('d-none');
+                }
+
+                return isValid;
+            }
+
+            $reason.on('input blur', function(event) {
+                updateReasonState(event.type === 'blur');
+            });
+
+            $form.on('submit', function(event) {
+                var isValid = updateReasonState(true);
+                if (!isValid) {
+                    event.preventDefault();
+                    $reason.trigger('focus');
+                    return false;
+                }
+
+                var confirmationMessage = $('.confirm-submit-btn').data('confirm-message');
+                if (!window.confirm(confirmationMessage)) {
+                    event.preventDefault();
+                    return false;
                 }
             });
+
+            updateReasonState(false);
         });
     </script>
 {% endblock %}
