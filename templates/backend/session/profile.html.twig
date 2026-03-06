@@ -78,6 +78,11 @@
                                             </li>
                                         {% endif %}
                                     {% endif %}
+                                    <li role="presentation" {% if 'tab_audit' == active_tab %}class="active"{% endif %}>
+                                        <a href="{{ path('backend_session_audit', { 'id': session.id }) }}">
+                                            <i class="fa fa-history"></i> Auditoría
+                                        </a>
+                                    </li>
                                 </ul>
 
                                 <div id="instructorTabContent" class="tab-content">

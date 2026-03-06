@@ -1,0 +1,281 @@
+{% extends 'backend/session/profile.html.twig' %}
+
+{% set page_title = 'Auditoría de Deshabilitaciones/Cancelaciones' %}
+{% set active_tab = 'tab_audit' %}
+
+{% block subcontent %}
+<div class="session-audit-page">
+    {# ============================================================
+       SECCION A: Estado vacio (sin auditorias)
+       Editar aqui: mensaje cuando no hay registros
+       ============================================================ #}
+    {% if audits is empty %}
+    {{ include('backend/default/partials/not_records.html.twig') }}
+    {% else %}
+    {# ============================================================
+       SECCION B: Contenedor principal del panel de auditoria
+       Editar aqui: titulo, contador y layout general
+       ============================================================ #}
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-light border-bottom d-flex align-items-center justify-content-between">
+            <h5 class="mb-0">
+                Historial de Auditoría
+            </h5>
+            <span class="badge bg-primary">{{ audits|length }} registro{{ audits|length != 1 ? 's' : '' }}</span>
+        </div>
+        
+        {# ============================================================
+           SECCION C: Tabla resumen de auditorias
+           Editar aqui: columnas y valores visibles en la fila principal
+           ============================================================ #}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 audit-table">
+                <thead class="bg-light border-bottom">
+                    <tr>
+                        <th style="width: 70px; text-align: center; font-weight: 600; font-size: 0.95rem;">ID</th>
+                        <th style="font-weight: 600; font-size: 0.95rem;">Administrador</th>
+                        <th style="font-weight: 600; font-size: 0.95rem;">Fecha/Hora</th>
+                        <th style="width: 100px; text-align: center; font-weight: 600; font-size: 0.95rem;">Asientos</th>
+                        <th style="width: 100px; text-align: center; font-weight: 600; font-size: 0.95rem;">Afectados</th>
+                        <th style="width: 110px; text-align: center; font-weight: 600; font-size: 0.95rem;">Detalles</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {# ====================================================
+                       SECCION D: Loop por auditoria
+                       Editar aqui: fila principal + fila expandible
+                       ==================================================== #}
+                    {% for audit in audits %}
+                    <tr class="align-middle audit-row" id="audit-row-{{ audit.id }}">
+                        <td style="text-align: center;">
+                            <span class="badge bg-primary" style="font-size: 1.1rem; padding: 0.7rem 1rem;">{{ audit.id }}</span>
+                        </td>
+                        <td>
+                            <span class="badge bg-primary" style="font-size: 1.15rem; padding: 0.7rem 1.2rem; font-weight: 700; letter-spacing: 0.5px;">{{ audit.adminUserIdentifier }}</span>
+                        </td>
+                        <td>
+                            <div>
+                                <div class="font-monospace fw-bold" style="font-size: 1.15rem; color: #198754;">{{ audit.createdAt|date('d/m/Y') }}</div>
+                                <div class="font-monospace fw-bold" style="font-size: 1.15rem; color: #198754;">{{ audit.createdAt|date('H:i:s') }}</div>
+                            </div>
+                        </td>
+                        <td style="text-align: center;">
+                            <span class="badge bg-warning text-dark" style="font-size: 1.1rem; padding: 0.7rem 1rem;" title="Cantidad de asientos deshabilitados">
+                                <strong>{{ audit.disabledPlaces|length }}</strong>
+                            </span>
+                        </td>
+                        <td style="text-align: center;">
+                            <span class="badge bg-info text-dark" style="font-size: 1.1rem; padding: 0.7rem 1rem;" title="Cantidad de reservaciones canceladas">
+                                <strong>{{ audit.affectedReservationsCount }}</strong>
+                            </span>
+                        </td>
+                        <td style="text-align: center;">
+                            <button class="btn btn-primary toggle-detail-btn" 
+                                    onclick="toggleAuditDetail(this, {{ audit.id }})"
+                                    type="button"
+                                    data-audit-id="{{ audit.id }}"
+                                    title="Ver detalles de esta auditoría">
+                                <span class="btn-label fw-bold">Ver</span>
+                            </button>
+                        </td>
+                    </tr>
+                    
+                    <!-- =====================================================
+                         SECCION E: Fila de detalle (expandible)
+                         Editar aqui: motivo, asientos, usuarios y datos tecnicos
+                         ===================================================== -->
+                    <tr id="audit-detail-{{ audit.id }}" class="audit-detail-row d-none">
+                        <td colspan="6">
+                            <div class="p-4 bg-white">
+                                <div class="row">
+                                    <!-- Columna Izquierda: Motivo y Asientos -->
+                                    <div class="col-lg-6 mb-5 mb-lg-0">
+                                        <!-- Motivo -->
+                                        <div class="mb-5">
+                                            <label class="fw-bold" style="font-size: 1.2rem; display: block; margin-bottom: 1rem; color: #2c3e50;">
+                                                Motivo de Deshabilitación
+                                            </label>
+                                            <div class="bg-light p-5 rounded border-start border-4 border-info" style="font-size: 1.2rem; line-height: 1.95; color: #2c3e50; background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%) !important; white-space: pre-wrap; word-wrap: break-word;">
+                                                <p class="mb-0" style="text-align: justify;">{{ audit.reason }}</p>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Asientos -->
+                                        <div>
+                                            <label class="fw-bold" style="font-size: 1.2rem; display: block; margin-bottom: 1rem; color: #2c3e50;">
+                                                Asientos Deshabilitados
+                                            </label>
+                                            {% if audit.disabledPlaces|length > 0 %}
+                                            <div class="d-flex flex-wrap gap-3">
+                                                {% for seat in audit.disabledPlaces %}
+                                                <span class="badge bg-danger px-5 py-3" style="font-size: 1.2rem; display: inline-block; box-shadow: 0 3px 8px rgba(220, 53, 69, 0.25);">
+                                                    Asiento {{ seat }}
+                                                </span>
+                                                {% endfor %}
+                                            </div>
+                                            {% else %}
+                                            <small class="text-muted" style="font-size: 1.1rem;"><em>Sin registros</em></small>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Columna Derecha: Usuarios Afectados -->
+                                    <div class="col-lg-6">
+                                        <label class="fw-bold" style="font-size: 1.2rem; display: block; margin-bottom: 1rem; color: #2c3e50;">
+                                            Usuarios Afectados <span class="badge bg-warning text-dark" style="font-size: 1rem; padding: 0.5rem 0.8rem;">{{ audit.affectedUsers|length }}</span>
+                                        </label>
+                                        
+                                        {% if audit.affectedUsers|length > 0 %}
+                                        <div class="table-responsive border rounded-2">
+                                            <table class="table mb-0" style="font-size: 1.1rem;">
+                                                <thead class="bg-light border-bottom">
+                                                    <tr>
+                                                        <th style="font-size: 1.05rem; font-weight: 700; padding: 1.3rem 0.9rem; text-transform: uppercase; letter-spacing: 0.5px;">ID</th>
+                                                        <th style="font-size: 1.05rem; font-weight: 700; padding: 1.3rem 0.9rem; text-transform: uppercase; letter-spacing: 0.5px;">Nombre</th>
+                                                        <th style="font-size: 1.05rem; font-weight: 700; padding: 1.3rem 0.9rem; text-transform: uppercase; letter-spacing: 0.5px; width: 90px;">Asiento</th>
+                                                        <th style="width: 90px; text-align: center; font-size: 1.05rem; font-weight: 700; padding: 1.3rem 0.9rem; text-transform: uppercase; letter-spacing: 0.5px;">Crédito</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {% for user in audit.affectedUsers %}
+                                                    <tr style="border-bottom: 1px solid #e9ecef;">
+                                                        <td style="font-size: 1.1rem; padding: 1.2rem 0.9rem;">
+                                                            {% if user.id is defined and user.id %}
+                                                            <a href="{{ path('backend_user_show', { 'id': user.id }) }}" title="Ver perfil del usuario">
+                                                                <code class="text-muted" style="font-size: 1.05rem; font-weight: 600;"><u>{{ user.id }}</u></code>
+                                                            </a>
+                                                            {% else %}
+                                                            <code class="text-muted" style="font-size: 1.05rem; font-weight: 600;">N/A</code>
+                                                            {% endif %}
+                                                        </td>
+                                                        <td style="font-size: 1.1rem; padding: 1.2rem 0.9rem;">
+                                                            <strong style="display: block; margin-bottom: 0.3rem; font-size: 1.1rem; color: #2c3e50;">{{ user.name }}</strong>
+                                                            <small class="text-muted d-block text-truncate" style="font-size: 1rem;">{{ user.email }}</small>
+                                                        </td>
+                                                        <td style="font-size: 1.1rem; padding: 1.2rem 0.9rem;">
+                                                            <span class="badge bg-danger" style="font-size: 1.05rem; padding: 0.65rem 1rem; font-weight: 600;">{{ user.place }}</span>
+                                                        </td>
+                                                        <td style="text-align: center; font-size: 1.1rem; padding: 1.2rem 0.9rem;">
+                                                            <span class="badge bg-success" style="font-size: 1.05rem; padding: 0.65rem 1rem; font-weight: 600;">
+                                                                Devuelto
+                                                            </span>
+                                                        </td>
+                                                    </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        {% else %}
+                                        <small class="text-muted" style="font-size: 1rem;"><em>Sin usuarios registrados</em></small>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <!-- Datos Técnicos -->
+                                <div class="border-top pt-5 mt-5">
+                                    <label class="fw-bold text-muted d-flex align-items-center" style="letter-spacing: 0.5px; font-size: 1.15rem; color: #2c3e50 !important; margin-bottom: 2rem;">
+                                        INFORMACIÓN TÉCNICA
+                                    </label>
+                                    <div class="row">
+                                        <div class="col-6 col-md-3 mb-4">
+                                            <small class="text-muted d-block mb-2" style="font-size: 1.05rem; font-weight: 700; text-transform: uppercase;"><strong>Administrador:</strong></small>
+                                            <code class="text-muted" style="font-size: 1.15rem;">{{ audit.adminUserIdentifier }}</code>
+                                        </div>
+                                        <div class="col-6 col-md-3 mb-4">
+                                            <small class="text-muted d-block mb-2" style="font-size: 1.05rem; font-weight: 700; text-transform: uppercase;"><strong>Registrado:</strong></small>
+                                            <code class="text-muted" style="font-size: 1.15rem;">{{ audit.createdAt|date('d/m H:i:s') }}</code>
+                                        </div>
+                                        <div class="col-6 col-md-3 mb-4">
+                                            <small class="text-muted d-block mb-2" style="font-size: 1.05rem; font-weight: 700; text-transform: uppercase;"><strong>Tipo:</strong></small>
+                                            <span class="badge bg-info text-dark" style="font-size: 1.1rem; padding: 0.7rem 1rem; display: inline-block;">Deshabilitación</span>
+                                        </div>
+                                        <div class="col-6 col-md-3 mb-4">
+                                            <small class="text-muted d-block mb-2" style="font-size: 1.05rem; font-weight: 700; text-transform: uppercase;"><strong>Canceladas:</strong></small>
+                                            <span class="badge bg-warning text-dark" style="font-size: 1.1rem; padding: 0.7rem 1rem; display: inline-block;">{{ audit.affectedReservationsCount }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- =============================================================
+     SECCION F: Logica JS del panel
+     Editar aqui: comportamiento Ver/Ocultar y animaciones
+     ============================================================= -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const logAuditFlow = function(event, payload) {
+        console.info('[session-audit]', event, payload || {});
+    };
+
+    // Asegurar que todos los detalles estén ocultos al cargar la página
+    const detailRows = document.querySelectorAll('.audit-detail-row');
+    detailRows.forEach(row => {
+        row.classList.add('d-none');
+    });
+
+    logAuditFlow('panel_loaded', { total_audits: detailRows.length });
+
+    // Exponer logger para reutilizarlo en toggle
+    window.sessionAuditLogFlow = logAuditFlow;
+});
+
+function toggleAuditDetail(button, auditId) {
+    const logAuditFlow = window.sessionAuditLogFlow || function() {};
+    const detailRow = document.getElementById('audit-detail-' + auditId);
+    if (!detailRow) {
+        logAuditFlow('detail_row_not_found', { audit_id: auditId });
+        return;
+    }
+    
+    const label = button.querySelector('.btn-label');
+    const isHidden = detailRow.classList.contains('d-none');
+    
+    if (isHidden) {
+        // Mostrar detalles
+        detailRow.classList.remove('d-none');
+        detailRow.style.animation = 'sessionAuditSlideDown 0.3s ease-out';
+
+        // Cambiar texto
+        if (label) label.textContent = 'Ocultar';
+        
+        // Cambiar estilo del botón
+        button.classList.remove('btn-primary');
+        button.classList.add('btn-danger');
+        button.setAttribute('title', 'Ocultar detalles de esta auditoría');
+
+        logAuditFlow('detail_opened', { audit_id: auditId });
+        
+    } else {
+        // Ocultar detalles
+        detailRow.style.animation = 'sessionAuditSlideUp 0.3s ease-out';
+        setTimeout(() => {
+            detailRow.classList.add('d-none');
+        }, 150);
+
+        // Cambiar texto
+        if (label) label.textContent = 'Ver';
+        
+        // Cambiar estilo del botón
+        button.classList.add('btn-primary');
+        button.classList.remove('btn-danger');
+        button.setAttribute('title', 'Ver detalles de esta auditoría');
+
+        logAuditFlow('detail_closed', { audit_id: auditId });
+    }
+}
+</script>
+
+{# =============================================================
+   SECCION G: Estilos CSS del panel
+   Ubicacion definitiva: assets/styles/backend/custom.scss
+   ============================================================= #}
+{% endblock %}

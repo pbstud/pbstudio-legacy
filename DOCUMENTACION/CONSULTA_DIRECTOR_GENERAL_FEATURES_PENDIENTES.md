@@ -7,12 +7,6 @@
 
 ---
 
-## 🎯 RESUMEN EJECUTIVO
-
-Hemos identificado **5 features/mejoras** que requieren aprobación o clarificación sobre las **reglas de negocio** antes de implementar. Algunas implican cambios en políticas comerciales, otras afectan operación diaria.
-
-**Este documento NO es técnico** — es para definir **CÓMO DEBE FUNCIONAR EL NEGOCIO** en cada caso.
-
 ---
 
 ## ✅ TRABAJO REALIZADO - PROBLEMAS SOLUCIONADOS
@@ -54,32 +48,6 @@ En las últimos dias, se identificó **5 problemas** en el sistema y ya se han *
 
 ---
 
-## 🚨 PROBLEMAS CRÍTICOS PENDIENTES DE DECISIÓN
-
-Durante el análisis del código, encontramos **3 problemas graves** que requieren decisión de negocio:
-
-| # | Problema | Impacto | Urgencia | Requiere Decisión DG |
-|---|----------|---------|----------|----------------------|
-| **A** | **Overbooking** - Sistema vende más cupones que asientos disponibles | Clientes llegan a clase sin silla | 🔴 CRÍTICO | ¿Max 1 asiento por usuario? |
-| **B** | **Sin validación de tiempo** - Cancelaciones permitidas fuera de ventana | Operación impredecible | 🔴 CRÍTICO | ¿Cuántas horas antes se permite? |
-| **C** | **No hay notificaciones** - Clientes no se enteran de cambios de clase | Asistencia baja, frustración | 🟠 ALTA | ¿Qué cambios notificar? |
-
-**Detalle de estos 3 problemas AND sus opciones:** Ver secciones 1, 2 y 3 más abajo.
-
----
-
-## 📊 ÍNDICE DE CONSULTAS
-
-| # | Feature | Tipo | Decisión Requerida | Prioridad |
-|---|---------|------|-------------------|-----------|
-| 1 | [Cancelación/cambio sin devolución](#1-cancelación-y-cambio-de-clase-sin-devolución-de-dinero) | Política Operativa | ¿Qué parámetros ajustar? | 🟠 Alta |
-| 2 | [Validación de reservas (doble asiento)](#2-validación-de-reservas-prevenir-doble-asiento-por-usuario) | Bug de Validación | ¿Máx 1 asiento por usuario? | 🔴 Urgente |
-| 3 | [Notificación de cambios](#3-notificación-automática-de-cambios-en-clases) | Comunicación | ¿Qué cambios notificar? | 🟡 Media |
-| 4 | [Carga masiva de horarios](#4-carga-masiva-de-horarios) | Operación Admin | ¿Aprobar herramienta? | 🟡 Media |
-| 5 | [Correos lista de espera](#5-correos-automáticos-de-lista-de-espera) | Comunicación | ¿Validar implementación? | 🟢 Baja |
-
----
-
 ## 1️⃣ CANCELACIÓN Y CAMBIO DE CLASE (SIN DEVOLUCIÓN DE DINERO)
 
 ### 📌 Contexto Técnico Actual
@@ -88,33 +56,10 @@ Durante el análisis del código, encontramos **3 problemas graves** que requier
 - **NO se devuelve dinero** a tarjeta, transferencia ni efectivo.
 - El ajuste de política será solo sobre **parámetros operativos** de cancelación y cambio.
 
-**Flujo hoy (base sobre la cual se ajusta):**
-- Ruta de cancelación: `/reservacion/{id}/cancelar` (`ProfileController::reservationCancel()`)
-- `ReservationService::cancel()` libera lugar y gestiona estado de la transacción
-- Sistema permite gestionar la reservación desde perfil del cliente
-- El tema pendiente es definir **qué ventanas y restricciones** aplican
-
-**Código relevante:**
-- `src/Service/Reservation/ReservationService.php::cancel()`
-- `src/Controller/ProfileController.php::reservationCancel()`
-- `src/Entity/Transaction.php` (estados: PENDING, PAID, DENIED, CANCEL)
-
----
-
 ### ❓ PREGUNTAS PARA CLARIFICAR REQUERIMIENTO
-
-#### **Pregunta 1: Confirmación de política fija**
-
-¿Confirmamos oficialmente que la política será siempre:
-
-- **Sin devolución de dinero en ningún escenario**
-- Solo se ajustan reglas de cancelación/cambio (tiempos, límites, excepciones)
-
-**→ ¿Confirmado?** ☐ Sí ☐ No
-
 ---
 
-#### **Pregunta 2: ¿Cuál será la ventana para CANCELAR clase?**
+#### **Pregunta 1: ¿Cuál será la ventana para CANCELAR clase?**
 
 **Ejemplo de ajuste solicitado:** pasar de 2 horas a 12 horas antes de la clase.
 
@@ -132,8 +77,6 @@ Durante el análisis del código, encontramos **3 problemas graves** que requier
 **Opción D:** Cambiar a `24h` antes
 - ✅ Operación más estable
 - ❌ Política más estricta para cliente
-
-**→ ¿Ventana oficial para CANCELAR?** ___________________
 
 ---
 
@@ -215,7 +158,6 @@ Durante el análisis del código, encontramos **3 problemas graves** que requier
 **Sugerencia del equipo técnico (alineada a tu indicación):**
 - Mantener política fija: **nunca devolución de dinero**
 - Ajustar ventana de cancelación de `2h` a `12h` (si DG lo aprueba)
-- Usar misma ventana para cambio para evitar confusión
 - Fuera de ventana: bloquear autoservicio y dejar excepción por admin
 - Límite recomendado: 1 cambio por reservación
 - **Timeline estimado:** 2-3 horas (ajuste de reglas y mensajes)
@@ -243,15 +185,6 @@ Durante el análisis del código, encontramos **3 problemas graves** que requier
 6. Base de datos: "¿Existe asiento #11?" ✓ SÍ
 7. Guarda: `INSERT INTO reservation (user_id=14567, session_id=69999, place_number=11)` ← **2do BUG**
 
-**Código relevante (hallazgos técnicos):**
-- `src/Service/Reservation/ReservationService.php::reservate()` (línea ~145)
-  - NO hace WHERE `user_id=X AND session_id=Y` antes de INSERT
-  - NO tiene SELECT ... FOR UPDATE (lock transaccional)
-- `src/Entity/Reservation.php` (línea ~23)
-  - Constante `MAX_UNLIMITED_RESERVATIONS = 2` existe **pero NO se usa en código**
-- Base de datos: 
-  - Sin restricción UNIQUE `(user_id, session_id)` que previniese duplicados
-  - Sin constraint de integridad referencial para limitaciones
 
 **Escenarios del problema confirmados:**
 1. **Doble asiento en misma sesión:** Usuario ID 14567 tiene asientos #1 Y #11 en sesión #69999 (caso real)
@@ -274,28 +207,8 @@ Durante el análisis del código, encontramos **3 problemas graves** que requier
 **Contexto técnico:** Actualmente el sistema permite N asientos sin validar.
 
 **Opción A:** 1 asiento máximo por usuario por clase (Regla estricta)
-- Un usuario = una clase = una fila/lugar (modelo 1:1)
-- Sistema bloquea intento de 2º asiento: "Ya tienes otro asiento en esta clase"
-- + Validación en BD: `UNIQUE(user_id, session_id)` + error en trigger
-- ✅ Evita overbooking 100%, arquitectura simple
-- ❌ No permite que pareja/hermanos se sienten juntos desde 1 perfil
-- ❌ Grupos deben coordinarse (cada uno reserva desde su perfil)
 
 **Opción B:** 2-3 asientos máximo (Para grupos pequeños)
-- Usuario puede tener 2-3 lugares EN MISMO BLOQUE (ej: fila 2, asientos 5-6-7)
-- Sistema requiere: Validar que asientos sean **contiguos** + **misma válida**
-- + UI: Mostrar selector "¿Cuántos asientos para tu grupo? (1-3)"
-- ✅ Mejora experiencia para familias/parejas
-- ⚠️ Overbooking si alguien reserva 3 y no va = 3 lugares vacíos
-- ⚠️ Complejidad en BD: necesita lógica de "asientos contiguos"
-
-**Opción C:** Clases privadas como excepción
-- Clases grupales = 1 asiento por usuario
-- Clases privadas = usuario=instructor=no tiene límite (paquete personal)
-- ✅ Diferencia casos de uso
-- ⚠️ Más lógica condicional
-
-**→ ¿Cuál modelo es correcto para tu negocio?** ___________________
 
 **Pregunta adicional - Paquetes ilimitados:**
 Si un cliente compra "Ilimitado" ¿puede tener múltiples asientos en UNA clase?

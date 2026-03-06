@@ -466,4 +466,33 @@ class ReservationRepository extends ServiceEntityRepository
 
         return $qb->getQuery()->getScalarResult();
     }
+
+    /**
+     * Encuentra reservaciones activas en sesión con lugares específicos
+     * Utilizado para detectar conflictos cuando se deshabilitan asientos
+     * 
+     * @param Session $session Sesión a evaluar
+     * @param array $placeNumbers Asientos a verificar [1, 3, 5]
+     * @return Reservation[] Array de reservaciones afectadas
+     */
+    public function findActiveBySessionAndPlaces(Session $session, array $placeNumbers): array
+    {
+        if (empty($placeNumbers)) {
+            return [];
+        }
+
+        return $this->createQueryBuilder('r')
+            ->addSelect('u', 't')  // Eager load de User y Transaction para evitar N+1
+            ->join('r.user', 'u')
+            ->join('r.transaction', 't')
+            ->where('r.session = :session')
+            ->andWhere('r.isAvailable = :isAvailable')
+            ->andWhere('r.placeNumber IN (:places)')
+            ->setParameter('session', $session)
+            ->setParameter('isAvailable', true)
+            ->setParameter('places', $placeNumbers)
+            ->orderBy('r.placeNumber', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
 }

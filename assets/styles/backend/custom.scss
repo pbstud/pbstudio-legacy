@@ -492,3 +492,349 @@ input[switch="danger"]:checked + label {
 .x_panel.x_panel_detail .x_content .table > tbody > tr > th {
   width: 60%;
 }
+
+/**
+ * Session audit panel (migrado desde templates/backend/session/audit.html.twig)
+ */
+.session-audit-page .card-header {
+  padding: 1.3rem 1.5rem;
+}
+
+.session-audit-page .card-header h5 {
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+
+.session-audit-page .card-header .badge {
+  font-size: 1.05rem;
+  padding: 0.55rem 0.9rem;
+}
+
+.session-audit-page .audit-table {
+  font-size: 1.3rem;
+  border-collapse: separate;
+  border-spacing: 0;
+  background-color: #ffffff;
+}
+
+.session-audit-page .audit-table thead {
+  background: linear-gradient(135deg, #f8f9fa 0%, #f0f1f3 100%);
+  border-bottom: 3px solid #dee2e6;
+}
+
+.session-audit-page .audit-table thead th {
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 1.15rem !important;
+  letter-spacing: 0.7px;
+  padding: 1.85rem 1rem !important;
+  color: #2c3e50;
+  vertical-align: middle;
+}
+
+.session-audit-page .audit-table tbody tr {
+  border-bottom: 2px solid #e9ecef;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.session-audit-page .audit-table tbody tr:hover {
+  background-color: #f8f9fa;
+  box-shadow: inset 0 0 0 2px #e9ecef;
+}
+
+.session-audit-page .audit-table td {
+  padding: 1.65rem 1rem;
+  vertical-align: middle;
+  font-size: 1.2rem;
+  color: #2c3e50;
+}
+
+.session-audit-page .audit-table .badge {
+  padding: 0.8rem 1.2rem;
+  font-size: 1.15rem;
+  font-weight: 600;
+  border-radius: 0.375rem;
+  white-space: nowrap;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  letter-spacing: 0.3px;
+}
+
+.session-audit-page .toggle-detail-btn {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  min-width: 120px;
+  padding: 0.72rem 1.25rem;
+  font-weight: 700;
+  font-size: 1.12rem;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 0.375rem;
+  letter-spacing: 0.4px;
+}
+
+.session-audit-page .toggle-detail-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.18);
+}
+
+.session-audit-page .toggle-detail-btn:active {
+  transform: translateY(0);
+}
+
+.session-audit-page .toggle-detail-btn.btn-primary {
+  background-color: #0d6efd;
+  border-color: #0d6efd;
+}
+
+.session-audit-page .toggle-detail-btn.btn-primary:hover {
+  background-color: #0b5ed7;
+  border-color: #0a58ca;
+}
+
+.session-audit-page .toggle-detail-btn.btn-danger {
+  background-color: #dc3545;
+  border-color: #dc3545;
+  box-shadow: 0 3px 10px rgba(220, 53, 69, 0.25);
+}
+
+.session-audit-page .toggle-detail-btn.btn-danger:hover {
+  background-color: #bd2130;
+  border-color: #b02622;
+  box-shadow: 0 5px 15px rgba(220, 53, 69, 0.35);
+}
+
+.session-audit-page .toggle-detail-btn i {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  font-size: 1.05rem;
+  font-weight: bold;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.session-audit-page .toggle-detail-btn.btn-danger i {
+  transform: rotate(90deg);
+}
+
+.session-audit-page .audit-detail-row.d-none {
+  display: none !important;
+}
+
+.session-audit-page .audit-detail-row {
+  background-color: #f8f9fa;
+}
+
+.session-audit-page .audit-detail-row td {
+  padding: 0 !important;
+  border-bottom: 3px solid #dee2e6;
+}
+
+.session-audit-page .audit-detail-row .p-4 {
+  background-color: #ffffff;
+  padding: 3.8rem !important;
+}
+
+.session-audit-page .audit-detail-row .p-5 {
+  padding: 3.8rem !important;
+}
+
+.session-audit-page .audit-detail-row label {
+  font-size: 1.22rem !important;
+  color: #2c3e50;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.session-audit-page .audit-detail-row .bg-light {
+  background-color: #f8f9fa !important;
+  border-radius: 0.375rem;
+}
+
+.session-audit-page .audit-detail-row .border-start {
+  border-width: 5px !important;
+  padding-left: 1.2rem;
+}
+
+.session-audit-page .audit-detail-row p {
+  font-size: 1.22rem;
+  line-height: 1.9;
+  color: #2c3e50;
+  margin: 0;
+}
+
+.session-audit-page .audit-detail-row .badge {
+  padding: 0.8rem 1.2rem;
+  font-size: 1.15rem;
+  font-weight: 600;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+  border-radius: 0.375rem;
+  letter-spacing: 0.3px;
+  display: inline-block;
+  margin: 0.3rem;
+}
+
+.session-audit-page .audit-detail-row .table-responsive {
+  border-radius: 0.5rem;
+  border: 2px solid #dee2e6;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+
+.session-audit-page .audit-detail-row .table {
+  font-size: 1.15rem;
+  margin-bottom: 0;
+  background-color: #ffffff;
+}
+
+.session-audit-page .audit-detail-row .table thead {
+  background: linear-gradient(135deg, #f8f9fa 0%, #f0f1f3 100%);
+  border-bottom: 2px solid #dee2e6;
+}
+
+.session-audit-page .audit-detail-row .table thead th {
+  font-size: 1.14rem !important;
+  font-weight: 700;
+  padding: 1.45rem 1rem !important;
+  background: linear-gradient(135deg, #f8f9fa 0%, #f0f1f3 100%);
+  border-bottom: 2px solid #dee2e6;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #2c3e50;
+}
+
+.session-audit-page .audit-detail-row .table tbody tr {
+  border-bottom: 1px solid #e9ecef;
+  transition: all 0.2s ease;
+}
+
+.session-audit-page .audit-detail-row .table tbody tr:hover {
+  background-color: #f8f9fa;
+  box-shadow: inset 0 0 0 1px #e9ecef;
+}
+
+.session-audit-page .audit-detail-row .table tbody td {
+  padding: 1.3rem 1rem !important;
+  font-size: 1.15rem !important;
+  vertical-align: middle;
+  color: #2c3e50;
+  font-weight: 500;
+}
+
+.session-audit-page .audit-detail-row .table tbody td strong {
+  font-weight: 700;
+  color: #1a1f36;
+}
+
+.session-audit-page .audit-detail-row code {
+  font-size: 1.12rem;
+  color: #5a6c7d;
+  background-color: #f1f3f5;
+  padding: 0.35rem 0.6rem;
+  border-radius: 0.3rem;
+  font-family: 'Courier New', monospace;
+  font-weight: 600;
+  border: 1px solid #dee2e6;
+}
+
+.session-audit-page .audit-detail-row small {
+  font-size: 1.06rem !important;
+  color: #5a6c7d;
+}
+
+.session-audit-page .audit-detail-row .border-top {
+  border-color: #dee2e6 !important;
+}
+
+.session-audit-page .audit-detail-row .border-top label {
+  display: block;
+  font-size: 1.18rem !important;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #dee2e6;
+}
+
+.session-audit-page .audit-detail-row .border-top code {
+  font-size: 1.1rem;
+}
+
+@media (max-width: 768px) {
+  .session-audit-page .audit-table {
+    font-size: 1.15rem;
+  }
+
+  .session-audit-page .audit-table thead th {
+    font-size: 1.08rem !important;
+    padding: 1.45rem 0.75rem !important;
+    letter-spacing: 0.5px;
+  }
+
+  .session-audit-page .audit-table td {
+    padding: 1.3rem 0.75rem;
+    font-size: 1.12rem;
+  }
+
+  .session-audit-page .audit-detail-row .p-4,
+  .session-audit-page .audit-detail-row .p-5 {
+    padding: 3rem !important;
+  }
+
+  .session-audit-page .audit-detail-row .col-lg-6 {
+    margin-bottom: 3rem;
+  }
+
+  .session-audit-page .toggle-detail-btn {
+    min-width: 116px;
+    padding: 0.65rem 1.15rem;
+    font-size: 1.08rem;
+  }
+
+  .session-audit-page .audit-detail-row .table {
+    font-size: 1.1rem;
+  }
+
+  .session-audit-page .audit-detail-row .table thead th {
+    font-size: 1.05rem !important;
+    padding: 1.1rem 0.75rem !important;
+  }
+
+  .session-audit-page .audit-detail-row .table tbody td {
+    padding: 1.1rem 0.75rem !important;
+    font-size: 1.08rem !important;
+  }
+}
+
+.session-audit-page .fas,
+.session-audit-page .far,
+.session-audit-page .fab {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-style: normal;
+  font-variant: normal;
+  text-rendering: optimizeLegibility;
+}
+
+@keyframes sessionAuditSlideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes sessionAuditSlideUp {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+}

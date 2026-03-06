@@ -600,6 +600,41 @@
         <argument>Staff create</argument>
       </call>
     </service>
+    <service id="App\Command\TestAnomalousDataCommand" class="App\Command\TestAnomalousDataCommand" autowire="true" autoconfigure="true">
+      <tag name="console.command"/>
+      <tag name="container.no_preload"/>
+      <argument type="service" id="doctrine.orm.default_entity_manager"/>
+      <argument type="service" id="App\Repository\UserRepository"/>
+      <call method="setName">
+        <argument>app:test:anomalous-data</argument>
+      </call>
+      <call method="setDescription">
+        <argument>Test de búsquedas para usuarios con datos anómalos (nombre completo en name sin lastname)</argument>
+      </call>
+    </service>
+    <service id="App\Command\TestUserSearchCommand" class="App\Command\TestUserSearchCommand" autowire="true" autoconfigure="true">
+      <tag name="console.command"/>
+      <tag name="container.no_preload"/>
+      <argument type="service" id="doctrine.orm.default_entity_manager"/>
+      <argument type="service" id="App\Repository\UserRepository"/>
+      <call method="setName">
+        <argument>app:test:user-search</argument>
+      </call>
+      <call method="setDescription">
+        <argument>Test de búsquedas de usuarios con múltiples variaciones - TODOS los usuarios por batches</argument>
+      </call>
+    </service>
+    <service id="App\Command\TestWhitespaceSearchCommand" class="App\Command\TestWhitespaceSearchCommand" autowire="true" autoconfigure="true">
+      <tag name="console.command"/>
+      <tag name="container.no_preload"/>
+      <argument type="service" id="App\Repository\UserRepository"/>
+      <call method="setName">
+        <argument>app:test:whitespace-search</argument>
+      </call>
+      <call method="setDescription">
+        <argument>Valida filtros backend cuando el término de búsqueda tiene espacios al inicio/fin</argument>
+      </call>
+    </service>
     <service id="App\Command\TransactionCheckExpirationCommand" class="App\Command\TransactionCheckExpirationCommand" autowire="true" autoconfigure="true">
       <tag name="console.command"/>
       <tag name="container.no_preload"/>
@@ -1000,6 +1035,10 @@
       <tag name="doctrine.repository_service"/>
       <argument type="service" id="doctrine"/>
     </service>
+    <service id="App\Repository\SessionAuditRepository" class="App\Repository\SessionAuditRepository" autowire="true" autoconfigure="true">
+      <tag name="doctrine.repository_service"/>
+      <argument type="service" id="doctrine"/>
+    </service>
     <service id="App\Repository\SessionRepository" class="App\Repository\SessionRepository" autowire="true" autoconfigure="true">
       <tag name="doctrine.repository_service"/>
       <argument type="service" id="doctrine"/>
@@ -1077,6 +1116,10 @@
     </service>
     <service id="App\Service\Mailer\WaitingListMailer" class="App\Service\Mailer\WaitingListMailer" autowire="true" autoconfigure="true">
       <argument type="service" id="mailer.mailer"/>
+      <argument type="service" id="monolog.logger"/>
+    </service>
+    <service id="App\Service\ReservationCancellationService" class="App\Service\ReservationCancellationService" autowire="true" autoconfigure="true">
+      <argument type="service" id="doctrine.orm.default_entity_manager"/>
       <argument type="service" id="monolog.logger"/>
     </service>
     <service id="App\Service\Reservation\ReservationException" class="App\Service\Reservation\ReservationException" autowire="true" autoconfigure="true"/>
@@ -1157,7 +1200,7 @@
     </service>
     <service id="argument_resolver.service" class="Symfony\Component\HttpKernel\Controller\ArgumentResolver\ServiceValueResolver">
       <tag priority="-50" name="Symfony\Component\HttpKernel\Controller\ArgumentResolver\ServiceValueResolver">controller.argument_value_resolver</tag>
-      <argument type="service" id=".service_locator.G3O.XCK"/>
+      <argument type="service" id=".service_locator.UrZIIlA"/>
     </service>
     <service id="argument_resolver.default" class="Symfony\Component\HttpKernel\Controller\ArgumentResolver\DefaultValueResolver">
       <tag priority="-100" name="Symfony\Component\HttpKernel\Controller\ArgumentResolver\DefaultValueResolver">controller.argument_value_resolver</tag>
@@ -4068,7 +4111,7 @@
     </service>
     <service id="argument_resolver.not_tagged_controller" class="Symfony\Component\HttpKernel\Controller\ArgumentResolver\NotTaggedControllerValueResolver">
       <tag name="controller.argument_value_resolver" priority="-200"/>
-      <argument type="service" id=".service_locator.G3O.XCK"/>
+      <argument type="service" id=".service_locator.UrZIIlA"/>
     </service>
     <service id="debug.log_processor" class="Symfony\Bridge\Monolog\Processor\DebugProcessor">
       <tag name="kernel.reset" method="reset"/>
@@ -5895,7 +5938,7 @@
     <service id="doctrine.orm.configuration" class="Doctrine\ORM\Configuration" abstract="true"/>
     <service id="doctrine.orm.entity_manager.abstract" class="Doctrine\ORM\EntityManager" lazy="true" abstract="true"/>
     <service id="doctrine.orm.container_repository_factory" class="Doctrine\Bundle\DoctrineBundle\Repository\ContainerRepositoryFactory">
-      <argument type="service" id=".service_locator.4nlpZV7"/>
+      <argument type="service" id=".service_locator.2msP8mg"/>
     </service>
     <service id="doctrine.orm.manager_configurator.abstract" class="Doctrine\Bundle\DoctrineBundle\ManagerConfigurator" abstract="true">
       <argument type="collection"/>
@@ -9450,6 +9493,12 @@
     <service id=".abstract.instanceof.App\Command\SessionAutoClosingCommand" class="App\Command\SessionAutoClosingCommand" autowire="true" autoconfigure="true" abstract="true"/>
     <service id=".instanceof.Symfony\Component\Console\Command\Command.0.App\Command\StaffCreateCommand" class="App\Command\StaffCreateCommand" autowire="true" abstract="true"/>
     <service id=".abstract.instanceof.App\Command\StaffCreateCommand" class="App\Command\StaffCreateCommand" autowire="true" autoconfigure="true" abstract="true"/>
+    <service id=".instanceof.Symfony\Component\Console\Command\Command.0.App\Command\TestAnomalousDataCommand" class="App\Command\TestAnomalousDataCommand" autowire="true" abstract="true"/>
+    <service id=".abstract.instanceof.App\Command\TestAnomalousDataCommand" class="App\Command\TestAnomalousDataCommand" autowire="true" autoconfigure="true" abstract="true"/>
+    <service id=".instanceof.Symfony\Component\Console\Command\Command.0.App\Command\TestUserSearchCommand" class="App\Command\TestUserSearchCommand" autowire="true" abstract="true"/>
+    <service id=".abstract.instanceof.App\Command\TestUserSearchCommand" class="App\Command\TestUserSearchCommand" autowire="true" autoconfigure="true" abstract="true"/>
+    <service id=".instanceof.Symfony\Component\Console\Command\Command.0.App\Command\TestWhitespaceSearchCommand" class="App\Command\TestWhitespaceSearchCommand" autowire="true" abstract="true"/>
+    <service id=".abstract.instanceof.App\Command\TestWhitespaceSearchCommand" class="App\Command\TestWhitespaceSearchCommand" autowire="true" autoconfigure="true" abstract="true"/>
     <service id=".instanceof.Symfony\Component\Console\Command\Command.0.App\Command\TransactionCheckExpirationCommand" class="App\Command\TransactionCheckExpirationCommand" autowire="true" abstract="true"/>
     <service id=".abstract.instanceof.App\Command\TransactionCheckExpirationCommand" class="App\Command\TransactionCheckExpirationCommand" autowire="true" autoconfigure="true" abstract="true"/>
     <service id=".instanceof.Symfony\Component\Console\Command\Command.0.App\Command\WaitingListExpireCommand" class="App\Command\WaitingListExpireCommand" autowire="true" abstract="true"/>
@@ -9614,6 +9663,8 @@
     <service id=".abstract.instanceof.App\Repository\PostRepository" class="App\Repository\PostRepository" autowire="true" autoconfigure="true" abstract="true"/>
     <service id=".instanceof.Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepositoryInterface.0.App\Repository\ReservationRepository" class="App\Repository\ReservationRepository" autowire="true" abstract="true"/>
     <service id=".abstract.instanceof.App\Repository\ReservationRepository" class="App\Repository\ReservationRepository" autowire="true" autoconfigure="true" abstract="true"/>
+    <service id=".instanceof.Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepositoryInterface.0.App\Repository\SessionAuditRepository" class="App\Repository\SessionAuditRepository" autowire="true" abstract="true"/>
+    <service id=".abstract.instanceof.App\Repository\SessionAuditRepository" class="App\Repository\SessionAuditRepository" autowire="true" autoconfigure="true" abstract="true"/>
     <service id=".instanceof.Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepositoryInterface.0.App\Repository\SessionRepository" class="App\Repository\SessionRepository" autowire="true" abstract="true"/>
     <service id=".abstract.instanceof.App\Repository\SessionRepository" class="App\Repository\SessionRepository" autowire="true" autoconfigure="true" abstract="true"/>
     <service id=".instanceof.Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepositoryInterface.0.App\Repository\StaffProfileRepository" class="App\Repository\StaffProfileRepository" autowire="true" abstract="true"/>
@@ -10254,11 +10305,31 @@
         <argument key="staffRepository" type="service_closure" id="App\Repository\StaffRepository"/>
       </argument>
     </service>
-    <service id=".service_locator.BOoxCP4" class="Symfony\Component\DependencyInjection\ServiceLocator">
+    <service id=".service_locator.dQgwQp4" class="Symfony\Component\DependencyInjection\ServiceLocator">
       <tag name="container.service_locator"/>
       <argument type="collection">
         <argument key="em" type="service_closure" id="doctrine.orm.default_entity_manager"/>
-        <argument key="session" type="service_closure" id=".errored..service_locator.BOoxCP4.App\Entity\Session"/>
+        <argument key="logger" type="service_closure" id="monolog.logger"/>
+        <argument key="reservationRepository" type="service_closure" id="App\Repository\ReservationRepository"/>
+        <argument key="session" type="service_closure" id=".errored..service_locator.dQgwQp4.App\Entity\Session"/>
+      </argument>
+    </service>
+    <service id=".service_locator.yuJDwvD" class="Symfony\Component\DependencyInjection\ServiceLocator">
+      <tag name="container.service_locator"/>
+      <argument type="collection">
+        <argument key="cancellationService" type="service_closure" id="App\Service\ReservationCancellationService"/>
+        <argument key="em" type="service_closure" id="doctrine.orm.default_entity_manager"/>
+        <argument key="logger" type="service_closure" id="monolog.logger"/>
+        <argument key="reservationRepository" type="service_closure" id="App\Repository\ReservationRepository"/>
+        <argument key="security" type="service_closure" id="security.helper"/>
+        <argument key="session" type="service_closure" id=".errored..service_locator.yuJDwvD.App\Entity\Session"/>
+      </argument>
+    </service>
+    <service id=".service_locator.6cCdhTN" class="Symfony\Component\DependencyInjection\ServiceLocator">
+      <tag name="container.service_locator"/>
+      <argument type="collection">
+        <argument key="auditRepository" type="service_closure" id="App\Repository\SessionAuditRepository"/>
+        <argument key="session" type="service_closure" id=".errored..service_locator.6cCdhTN.App\Entity\Session"/>
       </argument>
     </service>
     <service id=".service_locator.aIca2vz" class="Symfony\Component\DependencyInjection\ServiceLocator">
@@ -10267,6 +10338,13 @@
         <argument key="em" type="service_closure" id="doctrine.orm.default_entity_manager"/>
         <argument key="eventDispatcher" type="service_closure" id="debug.event_dispatcher"/>
         <argument key="session" type="service_closure" id=".errored..service_locator.aIca2vz.App\Entity\Session"/>
+      </argument>
+    </service>
+    <service id=".service_locator.BOoxCP4" class="Symfony\Component\DependencyInjection\ServiceLocator">
+      <tag name="container.service_locator"/>
+      <argument type="collection">
+        <argument key="em" type="service_closure" id="doctrine.orm.default_entity_manager"/>
+        <argument key="session" type="service_closure" id=".errored..service_locator.BOoxCP4.App\Entity\Session"/>
       </argument>
     </service>
     <service id=".service_locator.X46Pzrd" class="Symfony\Component\DependencyInjection\ServiceLocator">
@@ -10598,7 +10676,7 @@
         <argument key="userRepository" type="service_closure" id="App\Repository\UserRepository"/>
       </argument>
     </service>
-    <service id=".service_locator.G3O.XCK" class="Symfony\Component\DependencyInjection\ServiceLocator">
+    <service id=".service_locator.UrZIIlA" class="Symfony\Component\DependencyInjection\ServiceLocator">
       <tag name="container.service_locator"/>
       <argument type="collection">
         <argument key="App\Controller\Backend\BranchOfficeController::edit" type="service_closure" id=".service_locator.aX4WRr4"/>
@@ -10631,8 +10709,10 @@
         <argument key="App\Controller\Backend\PageController::new" type="service_closure" id=".service_locator.9kKwU2t"/>
         <argument key="App\Controller\Backend\ReservationController::attended" type="service_closure" id=".service_locator.rNyJSA0"/>
         <argument key="App\Controller\Backend\SecurityController::login" type="service_closure" id=".service_locator.rSTd.nA"/>
+        <argument key="App\Controller\Backend\SessionController::audit" type="service_closure" id=".service_locator.6cCdhTN"/>
         <argument key="App\Controller\Backend\SessionController::cancel" type="service_closure" id=".service_locator.aIca2vz"/>
-        <argument key="App\Controller\Backend\SessionController::edit" type="service_closure" id=".service_locator.BOoxCP4"/>
+        <argument key="App\Controller\Backend\SessionController::edit" type="service_closure" id=".service_locator.dQgwQp4"/>
+        <argument key="App\Controller\Backend\SessionController::editConfirm" type="service_closure" id=".service_locator.yuJDwvD"/>
         <argument key="App\Controller\Backend\SessionController::getJson" type="service_closure" id=".service_locator.oi.oBtW"/>
         <argument key="App\Controller\Backend\SessionController::index" type="service_closure" id=".service_locator.FwjLjkn"/>
         <argument key="App\Controller\Backend\SessionController::new" type="service_closure" id=".service_locator.9kKwU2t"/>
@@ -10727,8 +10807,10 @@
         <argument key="App\Controller\Backend\PageController:new" type="service_closure" id=".service_locator.9kKwU2t"/>
         <argument key="App\Controller\Backend\ReservationController:attended" type="service_closure" id=".service_locator.rNyJSA0"/>
         <argument key="App\Controller\Backend\SecurityController:login" type="service_closure" id=".service_locator.rSTd.nA"/>
+        <argument key="App\Controller\Backend\SessionController:audit" type="service_closure" id=".service_locator.6cCdhTN"/>
         <argument key="App\Controller\Backend\SessionController:cancel" type="service_closure" id=".service_locator.aIca2vz"/>
-        <argument key="App\Controller\Backend\SessionController:edit" type="service_closure" id=".service_locator.BOoxCP4"/>
+        <argument key="App\Controller\Backend\SessionController:edit" type="service_closure" id=".service_locator.dQgwQp4"/>
+        <argument key="App\Controller\Backend\SessionController:editConfirm" type="service_closure" id=".service_locator.yuJDwvD"/>
         <argument key="App\Controller\Backend\SessionController:getJson" type="service_closure" id=".service_locator.oi.oBtW"/>
         <argument key="App\Controller\Backend\SessionController:index" type="service_closure" id=".service_locator.FwjLjkn"/>
         <argument key="App\Controller\Backend\SessionController:new" type="service_closure" id=".service_locator.9kKwU2t"/>
@@ -11113,7 +11195,7 @@
         <argument key="vich_uploader.listener.upload.staff_profile" type="service_closure" id="vich_uploader.listener.upload.staff_profile"/>
       </argument>
     </service>
-    <service id=".service_locator.4nlpZV7" class="Symfony\Component\DependencyInjection\ServiceLocator">
+    <service id=".service_locator.2msP8mg" class="Symfony\Component\DependencyInjection\ServiceLocator">
       <tag name="container.service_locator"/>
       <argument type="collection">
         <argument key="App\Repository\BranchOfficeRepository" type="service_closure" id="App\Repository\BranchOfficeRepository"/>
@@ -11125,6 +11207,7 @@
         <argument key="App\Repository\PackageRepository" type="service_closure" id="App\Repository\PackageRepository"/>
         <argument key="App\Repository\PostRepository" type="service_closure" id="App\Repository\PostRepository"/>
         <argument key="App\Repository\ReservationRepository" type="service_closure" id="App\Repository\ReservationRepository"/>
+        <argument key="App\Repository\SessionAuditRepository" type="service_closure" id="App\Repository\SessionAuditRepository"/>
         <argument key="App\Repository\SessionRepository" type="service_closure" id="App\Repository\SessionRepository"/>
         <argument key="App\Repository\StaffProfileRepository" type="service_closure" id="App\Repository\StaffProfileRepository"/>
         <argument key="App\Repository\StaffRepository" type="service_closure" id="App\Repository\StaffRepository"/>
@@ -12289,11 +12372,20 @@
     <service id=".errored..service_locator.rNyJSA0.App\Entity\Reservation" class="App\Entity\Reservation">
       <tag name="container.error" message="Cannot autowire service &quot;.service_locator.rNyJSA0&quot;: it needs an instance of &quot;App\Entity\Reservation&quot; but this type has been excluded in &quot;config/services.yaml&quot;."/>
     </service>
-    <service id=".errored..service_locator.BOoxCP4.App\Entity\Session" class="App\Entity\Session">
-      <tag name="container.error" message="Cannot autowire service &quot;.service_locator.BOoxCP4&quot;: it needs an instance of &quot;App\Entity\Session&quot; but this type has been excluded in &quot;config/services.yaml&quot;."/>
+    <service id=".errored..service_locator.dQgwQp4.App\Entity\Session" class="App\Entity\Session">
+      <tag name="container.error" message="Cannot autowire service &quot;.service_locator.dQgwQp4&quot;: it needs an instance of &quot;App\Entity\Session&quot; but this type has been excluded in &quot;config/services.yaml&quot;."/>
+    </service>
+    <service id=".errored..service_locator.yuJDwvD.App\Entity\Session" class="App\Entity\Session">
+      <tag name="container.error" message="Cannot autowire service &quot;.service_locator.yuJDwvD&quot;: it needs an instance of &quot;App\Entity\Session&quot; but this type has been excluded in &quot;config/services.yaml&quot;."/>
+    </service>
+    <service id=".errored..service_locator.6cCdhTN.App\Entity\Session" class="App\Entity\Session">
+      <tag name="container.error" message="Cannot autowire service &quot;.service_locator.6cCdhTN&quot;: it needs an instance of &quot;App\Entity\Session&quot; but this type has been excluded in &quot;config/services.yaml&quot;."/>
     </service>
     <service id=".errored..service_locator.aIca2vz.App\Entity\Session" class="App\Entity\Session">
       <tag name="container.error" message="Cannot autowire service &quot;.service_locator.aIca2vz&quot;: it needs an instance of &quot;App\Entity\Session&quot; but this type has been excluded in &quot;config/services.yaml&quot;."/>
+    </service>
+    <service id=".errored..service_locator.BOoxCP4.App\Entity\Session" class="App\Entity\Session">
+      <tag name="container.error" message="Cannot autowire service &quot;.service_locator.BOoxCP4&quot;: it needs an instance of &quot;App\Entity\Session&quot; but this type has been excluded in &quot;config/services.yaml&quot;."/>
     </service>
     <service id=".errored..service_locator.X46Pzrd.App\Entity\Session" class="App\Entity\Session">
       <tag name="container.error" message="Cannot autowire service &quot;.service_locator.X46Pzrd&quot;: it needs an instance of &quot;App\Entity\Session&quot; but this type has been excluded in &quot;config/services.yaml&quot;."/>
@@ -12386,6 +12478,27 @@
       <argument>Staff create</argument>
       <argument>false</argument>
       <argument type="service_closure" id="App\Command\StaffCreateCommand"/>
+    </service>
+    <service id=".App\Command\TestAnomalousDataCommand.lazy" class="Symfony\Component\Console\Command\LazyCommand">
+      <argument>app:test:anomalous-data</argument>
+      <argument type="collection"/>
+      <argument>Test de búsquedas para usuarios con datos anómalos (nombre completo en name sin lastname)</argument>
+      <argument>false</argument>
+      <argument type="service_closure" id="App\Command\TestAnomalousDataCommand"/>
+    </service>
+    <service id=".App\Command\TestUserSearchCommand.lazy" class="Symfony\Component\Console\Command\LazyCommand">
+      <argument>app:test:user-search</argument>
+      <argument type="collection"/>
+      <argument>Test de búsquedas de usuarios con múltiples variaciones - TODOS los usuarios por batches</argument>
+      <argument>false</argument>
+      <argument type="service_closure" id="App\Command\TestUserSearchCommand"/>
+    </service>
+    <service id=".App\Command\TestWhitespaceSearchCommand.lazy" class="Symfony\Component\Console\Command\LazyCommand">
+      <argument>app:test:whitespace-search</argument>
+      <argument type="collection"/>
+      <argument>Valida filtros backend cuando el término de búsqueda tiene espacios al inicio/fin</argument>
+      <argument>false</argument>
+      <argument type="service_closure" id="App\Command\TestWhitespaceSearchCommand"/>
     </service>
     <service id=".App\Command\TransactionCheckExpirationCommand.lazy" class="Symfony\Component\Console\Command\LazyCommand">
       <argument>app:transaction:checkexpiration</argument>
@@ -13024,10 +13137,13 @@
     </service>
     <service id="console.command_loader" class="Symfony\Component\Console\CommandLoader\ContainerCommandLoader" public="true">
       <tag name="container.no_preload"/>
-      <argument type="service" id=".service_locator.5g8wCSv"/>
+      <argument type="service" id=".service_locator.acIYPth"/>
       <argument type="collection">
         <argument key="app:session:autoclosing">App\Command\SessionAutoClosingCommand</argument>
         <argument key="app:staff:create">App\Command\StaffCreateCommand</argument>
+        <argument key="app:test:anomalous-data">App\Command\TestAnomalousDataCommand</argument>
+        <argument key="app:test:user-search">App\Command\TestUserSearchCommand</argument>
+        <argument key="app:test:whitespace-search">App\Command\TestWhitespaceSearchCommand</argument>
         <argument key="app:transaction:checkexpiration">App\Command\TransactionCheckExpirationCommand</argument>
         <argument key="app:waiting-list:expire">App\Command\WaitingListExpireCommand</argument>
         <argument key="about">console.command.about</argument>
@@ -13147,11 +13263,14 @@
         <argument key="make:webhook">maker.auto_command.make_webhook</argument>
       </argument>
     </service>
-    <service id=".service_locator.5g8wCSv" class="Symfony\Component\DependencyInjection\ServiceLocator">
+    <service id=".service_locator.acIYPth" class="Symfony\Component\DependencyInjection\ServiceLocator">
       <tag name="container.service_locator"/>
       <argument type="collection">
         <argument key="App\Command\SessionAutoClosingCommand" type="service_closure" id=".App\Command\SessionAutoClosingCommand.lazy"/>
         <argument key="App\Command\StaffCreateCommand" type="service_closure" id=".App\Command\StaffCreateCommand.lazy"/>
+        <argument key="App\Command\TestAnomalousDataCommand" type="service_closure" id=".App\Command\TestAnomalousDataCommand.lazy"/>
+        <argument key="App\Command\TestUserSearchCommand" type="service_closure" id=".App\Command\TestUserSearchCommand.lazy"/>
+        <argument key="App\Command\TestWhitespaceSearchCommand" type="service_closure" id=".App\Command\TestWhitespaceSearchCommand.lazy"/>
         <argument key="App\Command\TransactionCheckExpirationCommand" type="service_closure" id=".App\Command\TransactionCheckExpirationCommand.lazy"/>
         <argument key="App\Command\WaitingListExpireCommand" type="service_closure" id=".App\Command\WaitingListExpireCommand.lazy"/>
         <argument key="console.command.about" type="service_closure" id=".console.command.about.lazy"/>
@@ -13595,7 +13714,7 @@
     <service id="Vich\UploaderBundle\Form\Type\VichImageType" alias="vich_uploader.form.type.image"/>
     <service id="container.env_var_processors_locator" alias=".service_locator.w7.f4fT" public="true"/>
     <service id="twig.loader.filesystem" alias="twig.loader.native_filesystem"/>
-    <service id="argument_resolver.controller_locator" alias=".service_locator.G3O.XCK"/>
+    <service id="argument_resolver.controller_locator" alias=".service_locator.UrZIIlA"/>
     <service id="doctrine.id_generator_locator" alias=".service_locator.KLVvNIq"/>
     <service id="twig.loader" alias="twig.loader.native_filesystem"/>
     <service id="Psr\Log\LoggerInterface $requestLogger" alias="monolog.logger.request"/>
@@ -13636,8 +13755,11 @@
     <service id=".service_locator.3ARE5eh" alias=".service_locator.w_4AxDf"/>
     <service id=".service_locator.cGKPhEE" alias=".service_locator.rNyJSA0"/>
     <service id=".service_locator.mrtFW6I" alias=".service_locator.FwjLjkn"/>
-    <service id=".service_locator.5Vp.1pY" alias=".service_locator.BOoxCP4"/>
+    <service id=".service_locator.nDSpKzN" alias=".service_locator.dQgwQp4"/>
+    <service id=".service_locator.JnogC9." alias=".service_locator.yuJDwvD"/>
+    <service id=".service_locator.46mzo_Z" alias=".service_locator.6cCdhTN"/>
     <service id=".service_locator.OX8BrYE" alias=".service_locator.aIca2vz"/>
+    <service id=".service_locator.5Vp.1pY" alias=".service_locator.BOoxCP4"/>
     <service id=".service_locator._1VQT9t" alias=".service_locator.6R59Vwe"/>
     <service id=".service_locator.bv3xzCi" alias=".service_locator.uqspY_A"/>
     <service id=".service_locator.2c_UNS2" alias=".service_locator.bKOc_cY"/>
@@ -13666,7 +13788,7 @@
     <service id=".service_locator.ehEEa43" alias=".service_locator.RkGgYme"/>
     <service id=".service_locator.Q5E4rop" alias=".service_locator.DX1YisI"/>
     <service id=".service_locator.zRbaO9A" alias=".service_locator.zgnGHLN"/>
-    <service id=".service_locator..dfjq9B" alias=".service_locator.G3O.XCK"/>
+    <service id=".service_locator.K852Jxt" alias=".service_locator.UrZIIlA"/>
     <service id=".service_locator.BFrsqsn" alias=".service_locator.F9PKc.7"/>
     <service id=".service_locator..mhmmuG" alias=".service_locator.EHmGhFt"/>
     <service id=".service_locator.cOaqxkB" alias=".service_locator.musdzeW"/>
@@ -13716,8 +13838,11 @@
     <service id=".service_locator.7NIAq8D" alias=".service_locator.rSTd.nA"/>
     <service id=".service_locator.iDj06_t" alias=".service_locator.oi.oBtW"/>
     <service id=".service_locator.rc2lbw_" alias=".service_locator.FwjLjkn"/>
-    <service id=".service_locator.KzB_nfC" alias=".service_locator.BOoxCP4"/>
+    <service id=".service_locator.uNU.Bgm" alias=".service_locator.dQgwQp4"/>
+    <service id=".service_locator.3_MzEKv" alias=".service_locator.yuJDwvD"/>
+    <service id=".service_locator.A5qdKOa" alias=".service_locator.6cCdhTN"/>
     <service id=".service_locator.TcIhQHp" alias=".service_locator.aIca2vz"/>
+    <service id=".service_locator.KzB_nfC" alias=".service_locator.BOoxCP4"/>
     <service id=".service_locator.8QKPaZ2" alias=".service_locator.X46Pzrd"/>
     <service id=".service_locator.TQYug_W" alias=".service_locator.s0ihxg9"/>
     <service id=".service_locator.qeCwGLR" alias=".service_locator.6R59Vwe"/>

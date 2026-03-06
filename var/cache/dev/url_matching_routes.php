@@ -122,75 +122,79 @@ return [
                         .'|ession(?'
                             .'|/([^/]++)(?'
                                 .'|/(?'
-                                    .'|edit(*:628)'
-                                    .'|reservations(*:648)'
-                                    .'|waitinglist(*:667)'
-                                    .'|places(*:681)'
+                                    .'|edit(?'
+                                        .'|(*:631)'
+                                        .'|\\-confirm(*:648)'
+                                    .')'
+                                    .'|audit(*:662)'
+                                    .'|reservations(*:682)'
+                                    .'|waitinglist(*:701)'
+                                    .'|places(*:715)'
                                 .')'
-                                .'|(*:690)'
+                                .'|(*:724)'
                             .')'
-                            .'|\\-day/edit/([^/]++)/([^/]++)(*:727)'
+                            .'|\\-day/edit/([^/]++)/([^/]++)(*:761)'
                         .')'
                         .'|taff/([^/]++)(?'
                             .'|/(?'
-                                .'|edit(*:760)'
-                                .'|password(*:776)'
+                                .'|edit(*:794)'
+                                .'|password(*:810)'
                             .')'
-                            .'|(*:785)'
+                            .'|(*:819)'
                         .')'
                     .')'
                     .'|transaction/([^/]++)(?'
-                        .'|(*:818)'
+                        .'|(*:852)'
                         .'|/(?'
-                            .'|cancel(*:836)'
-                            .'|edit\\-expiration(*:860)'
+                            .'|cancel(*:870)'
+                            .'|edit\\-expiration(*:894)'
                         .')'
                     .')'
                     .'|user/([^/]++)(?'
-                        .'|(*:886)'
+                        .'|(*:920)'
                         .'|/(?'
-                            .'|edit(*:902)'
+                            .'|edit(*:936)'
                             .'|rese(?'
-                                .'|t\\-password(*:928)'
+                                .'|t\\-password(*:962)'
                                 .'|rvations(?'
-                                    .'|(*:947)'
+                                    .'|(*:981)'
                                     .'|/(?'
-                                        .'|new(*:962)'
+                                        .'|new(*:996)'
                                         .'|([^/]++)(?'
-                                            .'|(*:981)'
-                                            .'|/cancel(*:996)'
+                                            .'|(*:1015)'
+                                            .'|/cancel(*:1031)'
                                         .')'
                                     .')'
                                 .')'
                             .')'
-                            .'|stats(*:1013)'
-                            .'|transactions(*:1034)'
+                            .'|stats(*:1049)'
+                            .'|transactions(*:1070)'
                         .')'
                     .')'
                 .')'
-                .'|/coupon/([^/]++)/validate(*:1071)'
+                .'|/coupon/([^/]++)/validate(*:1107)'
                 .'|/p(?'
-                    .'|aquete/([^/]++)/comprar(*:1108)'
-                    .'|/([^/]++)(*:1126)'
+                    .'|aquete/([^/]++)/comprar(*:1144)'
+                    .'|/([^/]++)(*:1162)'
                 .')'
                 .'|/mi\\-cuenta/(?'
                     .'|reservacion/([^/]++)/ca(?'
-                        .'|ncelar(*:1183)'
+                        .'|ncelar(*:1219)'
                         .'|mbiar(?'
-                            .'|(*:1200)'
-                            .'|/([^/]++)(*:1218)'
+                            .'|(*:1236)'
+                            .'|/([^/]++)(*:1254)'
                         .')'
                     .')'
-                    .'|waiting\\-list/([^/]++)/remove(*:1258)'
+                    .'|waiting\\-list/([^/]++)/remove(*:1294)'
                 .')'
                 .'|/res(?'
                     .'|erva(?'
-                        .'|r\\-clase(?:/([^/]++))?(*:1304)'
-                        .'|cion\\-clase/([^/]++)(*:1333)'
+                        .'|r\\-clase(?:/([^/]++))?(*:1340)'
+                        .'|cion\\-clase/([^/]++)(*:1369)'
                     .')'
-                    .'|tablecer/([^/]++)(*:1360)'
+                    .'|tablecer/([^/]++)(*:1396)'
                 .')'
-                .'|/lista\\-de\\-espera/([^/]++)(*:1397)'
+                .'|/lista\\-de\\-espera/([^/]++)(*:1433)'
             .')/?$}sDu',
     ],
     [ // $dynamicRoutes
@@ -215,41 +219,43 @@ return [
         538 => [[['_route' => 'backend_page_edit', '_controller' => 'App\\Controller\\Backend\\PageController::edit'], ['id'], ['GET' => 0, 'POST' => 1], null, false, false, null]],
         546 => [[['_route' => 'backend_page_delete', '_controller' => 'App\\Controller\\Backend\\PageController::delete'], ['id'], ['DELETE' => 0], null, false, true, null]],
         575 => [[['_route' => 'backend_reservation_attended', '_controller' => 'App\\Controller\\Backend\\ReservationController::attended'], ['id'], ['POST' => 0], null, false, false, null]],
-        628 => [[['_route' => 'backend_session_edit', '_controller' => 'App\\Controller\\Backend\\SessionController::edit'], ['id'], ['GET' => 0, 'POST' => 1], null, false, false, null]],
-        648 => [[['_route' => 'backend_session_reservations', '_controller' => 'App\\Controller\\Backend\\SessionController::reservations'], ['id'], ['GET' => 0], null, false, false, null]],
-        667 => [[['_route' => 'backend_session_waitinglist', '_controller' => 'App\\Controller\\Backend\\SessionController::waitingList'], ['id'], ['GET' => 0], null, false, false, null]],
-        681 => [[['_route' => 'backend_session_places', '_controller' => 'App\\Controller\\Backend\\SessionController::places'], ['id'], ['GET' => 0], null, false, false, null]],
-        690 => [[['_route' => 'backend_session_cancel', '_controller' => 'App\\Controller\\Backend\\SessionController::cancel'], ['id'], ['POST' => 0], null, false, true, null]],
-        727 => [[['_route' => 'backend_session_day_edit', '_controller' => 'App\\Controller\\Backend\\SessionDayController::editDay'], ['editDate', 'branchOfficeId'], ['GET' => 0, 'POST' => 1], null, false, true, null]],
-        760 => [[['_route' => 'backend_staff_edit', '_controller' => 'App\\Controller\\Backend\\StaffController::edit'], ['id'], ['GET' => 0, 'POST' => 1], null, false, false, null]],
-        776 => [[['_route' => 'backend_staff_password', '_controller' => 'App\\Controller\\Backend\\StaffController::password'], ['id'], ['GET' => 0, 'POST' => 1], null, false, false, null]],
-        785 => [[['_route' => 'backend_staff_delete', '_controller' => 'App\\Controller\\Backend\\StaffController::delete'], ['id'], ['DELETE' => 0], null, false, true, null]],
-        818 => [[['_route' => 'backend_transaction_show', '_controller' => 'App\\Controller\\Backend\\TransactionController::show'], ['id'], ['GET' => 0], null, false, true, null]],
-        836 => [[['_route' => 'backend_transaction_cancel', '_controller' => 'App\\Controller\\Backend\\TransactionController::cancel'], ['id'], ['POST' => 0], null, false, false, null]],
-        860 => [[['_route' => 'backend_transaction_edit_expiration', '_controller' => 'App\\Controller\\Backend\\TransactionController::editExpiration'], ['id'], ['POST' => 0], null, false, false, null]],
-        886 => [
+        631 => [[['_route' => 'backend_session_edit', '_controller' => 'App\\Controller\\Backend\\SessionController::edit'], ['id'], ['GET' => 0, 'POST' => 1], null, false, false, null]],
+        648 => [[['_route' => 'backend_session_edit_confirm', '_controller' => 'App\\Controller\\Backend\\SessionController::editConfirm'], ['id'], ['POST' => 0], null, false, false, null]],
+        662 => [[['_route' => 'backend_session_audit', '_controller' => 'App\\Controller\\Backend\\SessionController::audit'], ['id'], ['GET' => 0], null, false, false, null]],
+        682 => [[['_route' => 'backend_session_reservations', '_controller' => 'App\\Controller\\Backend\\SessionController::reservations'], ['id'], ['GET' => 0], null, false, false, null]],
+        701 => [[['_route' => 'backend_session_waitinglist', '_controller' => 'App\\Controller\\Backend\\SessionController::waitingList'], ['id'], ['GET' => 0], null, false, false, null]],
+        715 => [[['_route' => 'backend_session_places', '_controller' => 'App\\Controller\\Backend\\SessionController::places'], ['id'], ['GET' => 0], null, false, false, null]],
+        724 => [[['_route' => 'backend_session_cancel', '_controller' => 'App\\Controller\\Backend\\SessionController::cancel'], ['id'], ['POST' => 0], null, false, true, null]],
+        761 => [[['_route' => 'backend_session_day_edit', '_controller' => 'App\\Controller\\Backend\\SessionDayController::editDay'], ['editDate', 'branchOfficeId'], ['GET' => 0, 'POST' => 1], null, false, true, null]],
+        794 => [[['_route' => 'backend_staff_edit', '_controller' => 'App\\Controller\\Backend\\StaffController::edit'], ['id'], ['GET' => 0, 'POST' => 1], null, false, false, null]],
+        810 => [[['_route' => 'backend_staff_password', '_controller' => 'App\\Controller\\Backend\\StaffController::password'], ['id'], ['GET' => 0, 'POST' => 1], null, false, false, null]],
+        819 => [[['_route' => 'backend_staff_delete', '_controller' => 'App\\Controller\\Backend\\StaffController::delete'], ['id'], ['DELETE' => 0], null, false, true, null]],
+        852 => [[['_route' => 'backend_transaction_show', '_controller' => 'App\\Controller\\Backend\\TransactionController::show'], ['id'], ['GET' => 0], null, false, true, null]],
+        870 => [[['_route' => 'backend_transaction_cancel', '_controller' => 'App\\Controller\\Backend\\TransactionController::cancel'], ['id'], ['POST' => 0], null, false, false, null]],
+        894 => [[['_route' => 'backend_transaction_edit_expiration', '_controller' => 'App\\Controller\\Backend\\TransactionController::editExpiration'], ['id'], ['POST' => 0], null, false, false, null]],
+        920 => [
             [['_route' => 'backend_user_show', '_controller' => 'App\\Controller\\Backend\\UserController::show'], ['id'], ['GET' => 0], null, false, true, null],
             [['_route' => 'backend_user_toggle_enable', '_controller' => 'App\\Controller\\Backend\\UserController::toggleEnable'], ['id'], ['POST' => 0], null, false, true, null],
         ],
-        902 => [[['_route' => 'backend_user_edit', '_controller' => 'App\\Controller\\Backend\\UserController::edit'], ['id'], ['GET' => 0, 'POST' => 1], null, false, false, null]],
-        928 => [[['_route' => 'backend_user_reset_password', '_controller' => 'App\\Controller\\Backend\\UserController::resetPassword'], ['id'], ['POST' => 0], null, false, false, null]],
-        947 => [[['_route' => 'backend_user_reservations', '_controller' => 'App\\Controller\\Backend\\UserController::reservations'], ['id'], ['GET' => 0], null, false, false, null]],
-        962 => [[['_route' => 'backend_user_reservation_new', '_controller' => 'App\\Controller\\Backend\\UserController::reservationNew'], ['id'], ['GET' => 0, 'POST' => 1], null, false, false, null]],
-        981 => [[['_route' => 'backend_user_reservation_detail', '_controller' => 'App\\Controller\\Backend\\UserController::reservationDetail'], ['id', 'reservation'], ['GET' => 0], null, false, true, null]],
-        996 => [[['_route' => 'backend_user_reservation_cancel', '_controller' => 'App\\Controller\\Backend\\UserController::reservationCancel'], ['id', 'reservation'], ['POST' => 0], null, false, false, null]],
-        1013 => [[['_route' => 'backend_user_stats', '_controller' => 'App\\Controller\\Backend\\UserController::stats'], ['id'], ['GET' => 0], null, false, false, null]],
-        1034 => [[['_route' => 'backend_user_transactions', '_controller' => 'App\\Controller\\Backend\\UserController::transactions'], ['id'], ['GET' => 0], null, false, false, null]],
-        1071 => [[['_route' => 'coupon_validate', '_controller' => 'App\\Controller\\CouponController::validate'], ['id'], null, null, false, false, null]],
-        1108 => [[['_route' => 'package_checkout', '_controller' => 'App\\Controller\\PackageController::checkout'], ['id'], ['GET' => 0, 'POST' => 1], null, false, false, null]],
-        1126 => [[['_route' => 'page', '_controller' => 'App\\Controller\\PageController::index'], ['slug'], null, null, false, true, null]],
-        1183 => [[['_route' => 'reservation_cancel', '_controller' => 'App\\Controller\\ProfileController::reservationCancel'], ['id'], ['GET' => 0, 'POST' => 1], null, false, false, null]],
-        1200 => [[['_route' => 'reservation_change', '_controller' => 'App\\Controller\\ProfileController::reservationChange'], ['id'], ['GET' => 0], null, false, false, null]],
-        1218 => [[['_route' => 'reservation_change_session', '_controller' => 'App\\Controller\\ProfileController::reservationChangeSession'], ['id', 'sessionId'], ['GET' => 0, 'POST' => 1], null, false, true, null]],
-        1258 => [[['_route' => 'waiting_list_remove', '_controller' => 'App\\Controller\\ProfileController::waitingListRemove'], ['sessionId'], ['POST' => 0], null, false, false, null]],
-        1304 => [[['_route' => 'reservation_calendar', 'slug' => null, '_controller' => 'App\\Controller\\ReservationController::calendar'], ['slug'], null, null, false, true, null]],
-        1333 => [[['_route' => 'reservation_confirm', '_controller' => 'App\\Controller\\ReservationController::confirm'], ['id'], ['GET' => 0, 'POST' => 1], null, false, true, null]],
-        1360 => [[['_route' => 'resetting_reset', '_controller' => 'App\\Controller\\ResettingController::reset'], ['token'], ['GET' => 0, 'POST' => 1], null, false, true, null]],
-        1397 => [
+        936 => [[['_route' => 'backend_user_edit', '_controller' => 'App\\Controller\\Backend\\UserController::edit'], ['id'], ['GET' => 0, 'POST' => 1], null, false, false, null]],
+        962 => [[['_route' => 'backend_user_reset_password', '_controller' => 'App\\Controller\\Backend\\UserController::resetPassword'], ['id'], ['POST' => 0], null, false, false, null]],
+        981 => [[['_route' => 'backend_user_reservations', '_controller' => 'App\\Controller\\Backend\\UserController::reservations'], ['id'], ['GET' => 0], null, false, false, null]],
+        996 => [[['_route' => 'backend_user_reservation_new', '_controller' => 'App\\Controller\\Backend\\UserController::reservationNew'], ['id'], ['GET' => 0, 'POST' => 1], null, false, false, null]],
+        1015 => [[['_route' => 'backend_user_reservation_detail', '_controller' => 'App\\Controller\\Backend\\UserController::reservationDetail'], ['id', 'reservation'], ['GET' => 0], null, false, true, null]],
+        1031 => [[['_route' => 'backend_user_reservation_cancel', '_controller' => 'App\\Controller\\Backend\\UserController::reservationCancel'], ['id', 'reservation'], ['POST' => 0], null, false, false, null]],
+        1049 => [[['_route' => 'backend_user_stats', '_controller' => 'App\\Controller\\Backend\\UserController::stats'], ['id'], ['GET' => 0], null, false, false, null]],
+        1070 => [[['_route' => 'backend_user_transactions', '_controller' => 'App\\Controller\\Backend\\UserController::transactions'], ['id'], ['GET' => 0], null, false, false, null]],
+        1107 => [[['_route' => 'coupon_validate', '_controller' => 'App\\Controller\\CouponController::validate'], ['id'], null, null, false, false, null]],
+        1144 => [[['_route' => 'package_checkout', '_controller' => 'App\\Controller\\PackageController::checkout'], ['id'], ['GET' => 0, 'POST' => 1], null, false, false, null]],
+        1162 => [[['_route' => 'page', '_controller' => 'App\\Controller\\PageController::index'], ['slug'], null, null, false, true, null]],
+        1219 => [[['_route' => 'reservation_cancel', '_controller' => 'App\\Controller\\ProfileController::reservationCancel'], ['id'], ['GET' => 0, 'POST' => 1], null, false, false, null]],
+        1236 => [[['_route' => 'reservation_change', '_controller' => 'App\\Controller\\ProfileController::reservationChange'], ['id'], ['GET' => 0], null, false, false, null]],
+        1254 => [[['_route' => 'reservation_change_session', '_controller' => 'App\\Controller\\ProfileController::reservationChangeSession'], ['id', 'sessionId'], ['GET' => 0, 'POST' => 1], null, false, true, null]],
+        1294 => [[['_route' => 'waiting_list_remove', '_controller' => 'App\\Controller\\ProfileController::waitingListRemove'], ['sessionId'], ['POST' => 0], null, false, false, null]],
+        1340 => [[['_route' => 'reservation_calendar', 'slug' => null, '_controller' => 'App\\Controller\\ReservationController::calendar'], ['slug'], null, null, false, true, null]],
+        1369 => [[['_route' => 'reservation_confirm', '_controller' => 'App\\Controller\\ReservationController::confirm'], ['id'], ['GET' => 0, 'POST' => 1], null, false, true, null]],
+        1396 => [[['_route' => 'resetting_reset', '_controller' => 'App\\Controller\\ResettingController::reset'], ['token'], ['GET' => 0, 'POST' => 1], null, false, true, null]],
+        1433 => [
             [['_route' => 'reservation_waitinglist', '_controller' => 'App\\Controller\\ReservationController::waitingList'], ['id'], ['POST' => 0], null, false, true, null],
             [null, null, null, null, false, false, 0],
         ],
