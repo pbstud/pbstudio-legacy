@@ -1,10 +1,423 @@
 # 📋 PROGRESO DEL PROYECTO - PB STUDIO
 
-**Última actualización:** 02/03/2026 18:05  
-**Estado General:** 🟢 AVANZADO (52% Completado)  
+**Última actualización:** 09/03/2026  
+**Estado General:** 🟢 ACTIVO - Seguimiento consolidado y actualizado por documentación  
 **Equipo:** Desarrollo + Technical Documentation  
 
 ---
+
+## 🔎 PARTE 1 - ESTADO MAESTRO CONSOLIDADO (09/03/2026)
+
+### Objetivo de esta actualización
+
+Este bloque consolida el estado real del proyecto usando como fuente principal:
+
+- `DOCUMENTACION/`
+- `DOCUMENTACION/FIXES/`
+- `DOCUMENTACION/FIXES_PENDIENTES/`
+
+Notas importantes de control para este documento:
+
+- Se mantiene el histórico anterior en el mismo archivo (no se borra).
+- Este seguimiento es documental y técnico interno.
+- No se agrega vínculo operativo con tableros externos en este reporte.
+
+---
+
+## 🧩 PARTE 2 - INVENTARIO DOCUMENTAL ACTUAL
+
+### 2.1 Inventario de documentación general (`DOCUMENTACION/`)
+
+Este bloque concentra los documentos de referencia transversal (arquitectura, auditoría, guías y planeación).
+
+| Documento | Rol principal | Estado de vigencia | Observación de uso |
+|---|---|---|---|
+| `README.md` | Índice maestro de documentación | Vigente | Debe mantenerse sincronizado con estructura de carpetas |
+| `RESUMEN.md` | Resumen ejecutivo de hallazgos | Vigente | Útil para visión rápida de estado y prioridades |
+| `PLAN_ACCION.md` | Plan técnico de ejecución | Vigente | Base para tareas técnicas y checklist de ejecución |
+| `progreso.md` | Bitácora maestra de avance | Vigente | Documento de seguimiento por partes |
+| `AUDITORIA_TECNICA_INTEGRAL.md` | Auditoría técnica profunda | Vigente | Fuente de hallazgos técnicos estructurales |
+| `ARQUITECTURA_FLUJO_DATOS.md` | Arquitectura y flujo end-to-end | Vigente | Referencia para onboarding y debugging de flujo |
+| `ANALISIS_PROFUNDO_VALIDACIONES_04-03-2026.md` | Hallazgos de validación adicionales | Vigente | Contiene issues técnicos #47, #48, #49 |
+| `DOCUMENTACION_COMPLETA.md` | Documento integral de proyecto | Vigente | Referencia general multi-área |
+| `DOCUMENTACION_EXPANSION_COMPLETA.md` | Expansión de casos y troubleshooting | Vigente | Cobertura extensa de escenarios y operación |
+| `GUIA_TECNICA_DESARROLLO.md` | Guía práctica para desarrollo | Vigente | Setup, comandos y patrones de trabajo |
+| `DIAGRAMA_RELACIONES.md` | Modelo relacional documentado | Vigente | Soporte para decisiones de datos y queries |
+| `CONSULTA_DIRECTOR_GENERAL_FEATURES_PENDIENTES.md` | Definiciones de negocio pendientes | Vigente | Insumo clave para cerrar reglas funcionales |
+| `JIRA_GUIA_UNICA_JSON_API.md` | Guía operativa técnica de Jira | Vigente | Uso operativo, no como fuente de estado funcional |
+
+Resumen de esta subparte:
+- Documentos generales detectados: **13**
+- Cobertura: arquitectura, operación, calidad, negocio y ejecución técnica
+
+### 2.2 Inventario de fixes y estado real (`DOCUMENTACION/FIXES/`)
+
+| Documento | Tipo | Estado según encabezado/documento | Avance estimado |
+|---|---|---|---|
+| `CSRF_PROTECTION_SECURITY_FIX.md` | Seguridad/Fix | Implementado y validado | 100% |
+| `DATETIME_IMMUTABILITY_FIX.md` | Fix técnico | Completado | 100% |
+| `FEATURE_BUSQUEDA_USUARIOS_MEJORADA.md` | Feature/Fix | Implementado y en producción | 100% |
+| `FEATURE_EDITAR_FOTO_INSTRUCTORES.md` | Feature/Fix | Completado y desplegado | 100% |
+| `FEATURE_HORARIOS_PRECISOS.md` | Feature/Fix | Completado y desplegado | 100% |
+| `FEATURE_VALIDACION_REGISTRO_APELLIDO.md` | Feature | Análisis/pre-implementación | 30% |
+| `ISSUE_52_DESHABILITACION_ASIENTOS_RESERVADOS.md` | Issue/Fix | Completado y testeado en producción | 100% |
+| `ISSUE_52_REGISTRO_CANCELACIONES_CAMBIOS_USUARIO.md` | Issue | En planificación | 60% |
+
+Resumen de esta subparte:
+- Documentos en `FIXES`: **8**
+- Cerrados/implementados: **6**
+- En planificación o pre-implementación: **2**
+
+### 2.3 Inventario de pendientes activos (`DOCUMENTACION/FIXES_PENDIENTES/`)
+
+| Documento | Tipo | Prioridad | Estado funcional | Avance estimado | Bloqueante principal |
+|---|---|---|---|---|---|
+| `ISSUE_CARGA_MASIVA_HORARIOS.md` | Issue | Alta | Bug reportado sobre flujo existente | 25% | Falta error exacto + stack trace + corrección |
+| `ISSUE_CAMBIO_RESERVACION_SIN_CLASES_DISPONIBLES.md` | Issue | Alta | Pendiente de implementación final | 40% | Definición de modelo de negocio con Dirección |
+| `FEATURE_NOTIFICACION_CAMBIO_CLASE.md` | Feature | Importante | Documentado, pendiente implementación | 35% | Validación real de correo en servidor |
+| `FEATURE_CORREOS_LISTA_ESPERA.md` | Feature | Importante | Base parcial implementada | 80% | Cierre de validación integral y edge cases |
+
+Archivo de control:
+- `INDICE_FEATURES_PENDIENTES.md` (índice vigente de pendientes activos)
+
+Resumen de esta subparte:
+- Pendientes activos: **4**
+- Issues: **2**
+- Features: **2**
+- Bloqueantes repetidos: reglas de negocio y entorno de correo
+
+### 2.4 Hallazgos de consistencia documental para seguimiento
+
+1. Hay documentación histórica con estado antiguo que no debe usarse como estado actual de ejecución.
+2. El estado real debe priorizarse desde:
+   - encabezados de `FIXES` y `FIXES_PENDIENTES`
+   - índice de pendientes vigente
+   - este `progreso.md` en su sección consolidada
+3. Cada cierre técnico debe actualizar primero el documento fuente del item y luego reflejarse aquí.
+
+### 2.5 Listado maestro de issues (cruce `progreso.md` + `PLAN_ACCION.md`)
+
+Este listado se construye por bloques para no perder issues por numeración reutilizada.
+
+#### Bloque A - Issues técnicos base numerados (#1 a #46)
+
+1. Issue #1 - DateTime Immutability (resuelto)
+2. Issue #2 - Missing Database Indices
+3. Issue #3 - PHP Memory Exhausted (resuelto)
+4. Issue #4 - MAILER_DSN (fix de entorno ya aplicado)
+5. Issue #5 - Phone Field / Privacy Compliance
+6. Issue #6 - Logging & Audits (mejorado)
+7. Issue #7 - Validaciones adicionales
+8. Issue #8 - Riesgo de doble reservación (concurrencia)
+9. Issue #9 - Mutación de dateStart en WaitingList
+10. Issue #10 - DATEADD en DQL (compatibilidad)
+11. Issue #11 - Endpoints backend sin control de acceso
+12. Issue #12 - Ruta debug expone phpinfo()
+13. Issue #13 - Tipo de clase en ExerciseRoomController
+14. Issue #14 - Reuso de DateTime en SessionDayController
+15. Issue #15 - ADDTIME en DQL (WaitingListRepository)
+16. Issue #16 - getFirstPublic() puede retornar null
+17. Issue #17 - Validación tipo `digit` en User
+18. Issue #18 - IFELSE en DQL (TransactionRepository)
+19. Issue #19 - WaitingList sin control de autenticación
+20. Issue #20 - Contacto depende de configuración existente
+21. Issue #21 - WaitingList duplicada
+22. Issue #22 - DATE/DAYNAME en DQL
+23. Issue #23 - FormView no renderizado
+24. Issue #24 - Nullable + NotBlank
+25. Issue #25 - WaitingList remove por GET sin CSRF
+26. Issue #26 - Acciones POST sin CSRF
+27. Issue #27 - Acciones sensibles por GET
+28. Issue #28 - Falta de tests automatizados
+29. Issue #29 - N+1 queries en listados
+30. Issue #30 - Checkout sin usuario autenticado
+31. Issue #31 - Enumeración de usuarios (reset password)
+32. Issue #32 - Configuración sin CSRF
+33. Issue #33 - Uploads sin validación en configuración
+34. Issue #34 - TokenGenerator con fallback débil
+35. Issue #35 - Fecha inválida rompe configuración
+36. Issue #36 - Fechas inválidas rompen filtros
+37. Issue #37 - Excepciones silenciadas
+38. Issue #38 - Doble asiento por falta de validación
+39. Issue #39 - Expiración sin hora en transacciones
+40. Issue #40 - Reservas en sesiones cerradas/canceladas
+41. Issue #41 - Cancelación reabre sesiones o deja status incorrecto
+42. Issue #42 - Actualización de capacidad con errores silenciados
+43. Issue #43 - Sesiones de hoy omitidas en agrupación
+44. Issue #44 - SessionDay solo considera STATUS_OPEN
+45. Issue #45 - Ruta backend session-day sin control de acceso
+46. Issue #46 - Cupón no incrementa uso en transacción backend
+
+#### Bloque B - Issues funcionales N (serie N-1 a N-7 en `PLAN_ACCION.md`)
+
+1. Issue N-1 - Subir horario masivo del día
+2. Issue N-2 - Cambiar o cancelar clase hasta 2h antes
+3. Issue N-3 - Editar foto en backend
+4. Issue N-4 - Correo por cambios en clase a asistentes
+5. Issue N-5 - Buscar usuario con errores (tipografía)
+6. Issue N-6 - Correo en lista de espera
+7. Issue N-7 - Crear horario por hora (no por orden de ingreso)
+
+#### Bloque C - Issues de mejora funcional/producto (numeración reutilizada #43 a #50)
+
+1. Issue #43 - Ver quién canceló en la info de clase (backend)
+2. Issue #44 - Prueba de correos (esperar servidor)
+3. Issue #45 - Horario abierto en creación de clases (formateable)
+4. Issue #46 - Confirmación al cambiar clase si tiene reservas
+5. Issue #47 - Mapa interactivo de lugares (drag & drop)
+6. Issue #48 - Mejorar info de foto de instructores (backend)
+7. Issue #49 - Búsqueda de usuarios nombre + apellido (sin duplicados)
+8. Issue #50 - Optimizar queries de caja/pagos (índices faltantes)
+
+#### Bloque D - Issues técnicos adicionales documentados en análisis profundo
+
+1. Issue #47 - `ReservationController::confirm()` null-unsafe
+2. Issue #48 - Múltiples controllers con `find()` sin null-check
+3. Issue #49 - `WaitingListService::checkAndReserve()` sin transacción atómica
+
+#### Bloque E - Issues activos de ejecución inmediata (documentos de pendientes)
+
+1. Issue: Error en carga masiva de horarios
+2. Issue: Cambio de reservación sin clases disponibles
+
+#### Nota de control de numeración
+
+- Existen IDs repetidos en distintas capas del plan (ejemplo: #43-#49), por eso este reporte los separa por bloques.
+- Para ejecución operativa se recomienda usar además el nombre del issue + bloque, no solo el número.
+
+---
+
+## 📊 PARTE 3 - MATRIZ DE PROGRESO (SEGÚN DOCUMENTACIÓN)
+
+Base de seguimiento funcional/técnico (sin contar índices):
+
+- Total items registrados: **12**
+  - 8 en `FIXES`
+  - 4 en `FIXES_PENDIENTES`
+
+Distribución actual:
+
+1. ✅ Completados/implementados: **8**
+2. 🟡 En planificación/pre-implementación: **0**
+3. 🔴 Pendientes activos: **4**
+
+Avance estimado por estado documental:
+
+- Completado: **66.6%**
+- Planificación: **0%**
+- Pendiente: **33.3%**
+
+---
+
+## 🚧 PARTE 4 - BLOQUEANTES VIGENTES
+
+1. Confirmación de reglas de negocio (cambio de reservación)
+   - Pendiente de validación directiva
+   - Impacta implementación final del issue de cambio de reservación
+
+2. Entorno de correo para validación real
+   - En local no queda validado todo el flujo de notificaciones
+   - Se requiere prueba en servidor para cerrar features de correo
+
+3. Reproducción controlada de error en carga masiva
+   - Falta captura exacta de error y trazabilidad completa en logs
+
+---
+
+## 🗺️ PARTE 5 - PLAN DE EJECUCIÓN EN PARTES
+
+### Parte A (inmediata)
+
+1. Cerrar definición de negocio para cambio de reservación.
+2. Aplicar fix de consulta y validaciones de acuerdo con definición cerrada.
+3. Reproducir y corregir error de carga masiva con evidencia técnica.
+
+### Parte B (siguiente)
+
+1. Validar infraestructura de correo en entorno servidor.
+2. Completar feature de notificación de cambio de clase.
+3. Cerrar validación end-to-end de correos de lista de espera.
+
+### Parte C (consolidación)
+
+1. Cerrar los 4 pendientes activos.
+2. Mover documentación cerrada a bloque de completados.
+3. Recalcular matriz de avance en este mismo archivo.
+
+---
+
+## ✅ PARTE 6 - CHECKLIST DE CONTROL DE ESTE REPORTE
+
+- [x] Inventario documental actualizado.
+- [x] Inventario de issues/features actualizado.
+- [x] Estado por item documentado.
+- [x] Bloqueantes explícitos listados.
+- [x] Plan por etapas definido.
+- [ ] Actualizar porcentaje al cerrar el siguiente issue activo.
+
+---
+
+## 🧠 PARTE 7 - DETALLE ITEM POR ITEM (SIN SALTOS)
+
+### 7.1 ISSUE ACTIVO A - Carga masiva de horarios
+
+Documento fuente: `FIXES_PENDIENTES/ISSUE_CARGA_MASIVA_HORARIOS.md`
+
+Estado actual:
+- Bug real sobre funcionalidad ya visible en UI.
+- El flujo existe (botón + modal), pero falla al ejecutar confirmación.
+
+Qué ya está claro:
+- No es feature nueva; es corrección sobre algo implementado.
+- El impacto operativo es alto por fallback manual repetitivo.
+
+Qué falta cerrar:
+1. Reproducir el error exacto.
+2. Capturar stack trace y línea de falla.
+3. Validar causa raíz (validación, constraint, relación, transacción).
+4. Aplicar fix y ejecutar pruebas simples + masivas.
+
+Riesgo principal:
+- Mantener la funcionalidad visible pero fallando degrada confianza de operación.
+
+Criterio de cierre:
+- Flujo completo ejecuta sin error y crea sesiones correctas en múltiples fechas.
+
+---
+
+### 7.2 ISSUE ACTIVO B - Cambio de reservación sin clases disponibles
+
+Documento fuente: `FIXES_PENDIENTES/ISSUE_CAMBIO_RESERVACION_SIN_CLASES_DISPONIBLES.md`
+
+Estado actual:
+- Diagnóstico técnico documentado.
+- Pendiente de implementación final por validación de reglas de negocio.
+
+Qué ya está claro:
+- Consulta actual filtra demasiado y no devuelve alternativas suficientes.
+- Problema afecta directamente la funcionalidad de cambio para usuarios.
+
+Bloqueante funcional:
+- Confirmación directiva de reglas finales (rango, restricciones, límites, ventana y costo).
+
+Qué falta cerrar:
+1. Cerrar definición de negocio.
+2. Ajustar query y validaciones complementarias.
+3. Probar casos de uso completos de cambio.
+
+Riesgo principal:
+- Corregir solo la query sin política cerrada puede generar regresiones funcionales.
+
+Criterio de cierre:
+- Usuario ve alternativas válidas y puede completar cambio con reglas aprobadas.
+
+---
+
+### 7.3 FEATURE ACTIVA C - Notificación por cambio de clase
+
+Documento fuente: `FIXES_PENDIENTES/FEATURE_NOTIFICACION_CAMBIO_CLASE.md`
+
+Estado actual:
+- Especificación funcional y técnica lista.
+- Implementación pendiente.
+
+Qué ya está claro:
+- Deben notificarse cambios de horario/salón/instructor/cancelación/reprogramación.
+- Se propone detección de cambios relevantes + listener + mailer dedicado.
+
+Bloqueante técnico:
+- Falta validación completa en entorno con correo operativo real.
+
+Qué falta cerrar:
+1. Implementar evento y listener final.
+2. Completar plantilla de notificación.
+3. Validar envíos reales y comportamiento ante fallas.
+
+Riesgo principal:
+- Sin notificación automática, suben inasistencias y quejas por cambios no comunicados.
+
+Criterio de cierre:
+- Cambio operativo de clase genera notificación consistente y trazable.
+
+---
+
+### 7.4 FEATURE ACTIVA D - Correos de lista de espera
+
+Documento fuente: `FIXES_PENDIENTES/FEATURE_CORREOS_LISTA_ESPERA.md`
+
+Estado actual:
+- Base avanzada (mailer/listeners/eventos base identificados).
+- Falta validación integral y pruebas de borde.
+
+Qué ya está claro:
+- Hay cobertura parcial, pero no está cerrado el ciclo completo.
+- Faltan pruebas de promoción, expiración y robustez ante errores SMTP.
+
+Qué falta cerrar:
+1. Verificar eventos pendientes.
+2. Validar templates finales.
+3. Probar flujo completo registro -> promoción -> expiración.
+4. Confirmar envío real y manejo de errores.
+
+Riesgo principal:
+- Creer que está terminado por tener 80% base sin validar la experiencia end-to-end.
+
+Criterio de cierre:
+- Flujo de lista de espera notifica correctamente en escenarios nominales y edge.
+
+---
+
+### 7.5 Items en planificación (no cerrados)
+
+1. `FIXES/FEATURE_VALIDACION_REGISTRO_APELLIDO.md`
+- Estado: análisis y diseño; falta pasar a ejecución.
+
+2. `FIXES/ISSUE_52_REGISTRO_CANCELACIONES_CAMBIOS_USUARIO.md`
+- Estado: planificación de trazabilidad/auditoría extendida; falta implementación final.
+
+---
+
+### 7.6 Items cerrados con estado estable
+
+1. `FIXES/CSRF_PROTECTION_SECURITY_FIX.md`
+2. `FIXES/DATETIME_IMMUTABILITY_FIX.md`
+3. `FIXES/FEATURE_BUSQUEDA_USUARIOS_MEJORADA.md`
+4. `FIXES/FEATURE_EDITAR_FOTO_INSTRUCTORES.md`
+5. `FIXES/FEATURE_HORARIOS_PRECISOS.md`
+6. `FIXES/ISSUE_52_DESHABILITACION_ASIENTOS_RESERVADOS.md`
+
+Validación documental:
+- Todos marcan estado de completado/implementado en sus encabezados.
+
+---
+
+## 🧭 PARTE 8 - CONTROL DE EJECUCIÓN Y ACTUALIZACIÓN CONTINUA
+
+Frecuencia recomendada de actualización de este archivo:
+
+- Diario, si hay ejecución técnica activa.
+- Inmediato, cada vez que se cierre o re-clasifique un issue/feature.
+
+Regla de actualización por cambio:
+
+1. Actualizar estado del item en su documento fuente.
+2. Reflejar el cambio en la matriz de este `progreso.md`.
+3. Actualizar bloqueantes/riesgos si cambian.
+4. Recalcular porcentajes de avance.
+
+Formato recomendado de bitácora por avance nuevo:
+
+- Fecha
+- Item
+- Cambio aplicado
+- Evidencia técnica
+- Estado resultante
+
+---
+
+## 🗃️ HISTÓRICO PREVIO (SE CONSERVA SIN BORRAR)
+
+> Nota de vigencia: este bloque es histórico/archivado. El estado operativo vigente está en las Partes 1 a 8 de este mismo documento.
 
 ## 🎯 PLAN DETALLADO - LO QUE QUERÍAMOS HACER
 
@@ -243,7 +656,7 @@
    ├─ Best practices implemented
    └─ 25+ real code examples
 
-STATUS: 15,000+ PALABRAS | 60+ EJEMPLOS | 20+ DIAGRAMAS (✅ 40% COMPLETO)
+STATUS HISTÓRICO (captura original): 15,000+ PALABRAS | 60+ EJEMPLOS | 20+ DIAGRAMAS (✅ 40% COMPLETO en ese corte)
 ```
 
 ### ✨ FASE 4: Identificación de Errores
@@ -252,7 +665,7 @@ STATUS: 15,000+ PALABRAS | 60+ EJEMPLOS | 20+ DIAGRAMAS (✅ 40% COMPLETO)
    └─ Session.php::getDateTimeStart() 
       • Error: "Undefined method 'setTime'"
       • Causa: DateTime/DateTimeImmutable inconsistency
-      • Status: 🔴 REPORTADO, PENDIENTE SOLUCIÓN
+      • Status: ✅ RESUELTO (02/03/2026) - pendiente solo en registro histórico original
    └─ PHP Memory Exhausted (pagos page)
       • Error: "Allowed memory size of 134217728 bytes exhausted"
       • Causa: Servidor usando memory_limit 128M (insuficiente para Twig)
@@ -923,137 +1336,21 @@ Estado: 🔵 DOCUMENTADO - Requiere revisión de formularios
 
 ---
 
-## � ISSUES IDENTIFICADOS - FIXES PENDIENTES
+## 📦 BLOQUES HISTÓRICOS DEPURADOS
 
-### 🔴 ALTA PRIORIDAD
+Se removieron del histórico los siguientes bloques por duplicidad o desactualización:
 
-#### Issue #1: Cambio de Reservación sin Clases Disponibles
-- **Estado:** Pendiente
-- **Archivo:** `FIXES_PENDIENTES/ISSUE_CAMBIO_RESERVACION_SIN_CLASES_DISPONIBLES.md`
-- **Descripción:** Cuando un usuario intenta cambiar una reservación, no aparecen clases disponibles
-- **Causa:** `SessionRepository::getForChange()` solo busca clases del mismo día (`dateStart = :dateStart`)
-- **Solución:** Cambiar consulta para buscar clases futuras (próximos 30 días): `dateStart >= :dateStart AND dateStart <= :dateEnd`
-- **Impacto:** Funcionalidad de cambio completamente bloqueada para todos los usuarios
-- **Workaround:** Cancelar y crear nueva reservación (pierde beneficio de cambio)
-- **Archivos Afectados:**
-  - `src/Repository/SessionRepository.php` (línea 246-265)
-  - `src/Controller/ProfileController.php` (método `reservationChange()`)
+- `ISSUES IDENTIFICADOS - FIXES PENDIENTES` (duplicado respecto a Partes 2.3, 2.5 y 7).
+- `RESUMEN ESTADÍSTICO` con métricas antiguas (`~48%`, `0/1`, etc.).
+- Dos versiones de `PRÓXIMOS PASOS` que repetían tareas ya resueltas o reemplazadas por la Parte 5 vigente.
 
----
+El detalle vigente de pendientes y ejecución está consolidado en:
 
-## �📊 RESUMEN ESTADÍSTICO
+- Parte 2.3 (pendientes activos)
+- Parte 2.5 (listado maestro de issues)
+- Parte 5 (plan de ejecución por partes)
+- Parte 7 (detalle item por item)
 
-| Categoría | Completado | % |
-|-----------|-----------|---|
-| **BD Setup** | 3/3 fases | 100% ✅ |
-| **Análisis Técnico** | 4/4 fases | 100% ✅ |
-| **Documentación** | 5/5 documentos | 100% ✅ |
-| **Testing** | 2/10 validaciones | 20% 🟡 |
-| **Bugs/Errors Resueltos** | 3/3 | 100% ✅ |
-| **Issues Pendientes** | 0/1 | 0% 🔴 |
-| **Features** | 0/12 faltantes | 0% |
-| **DevOps** | 0/8 tareas | 0% |
-| **Producción** | 0/15 checklist | 0% |
-| **TOTAL GENERAL** | | **~48%** |
-
----
-
-## 🚀 PRÓXIMOS PASOS (Orden de Prioridad)
-
-### INMEDIATO:
-```
-1. 🔴 (PENDIENTE) Cambio de Reservación - No aparecen clases disponibles
-   └─ Problema: getForChange() solo busca clases del mismo día
-   └─ Fix: Cambiar WHERE dateStart = :date por dateStart >= :date AND dateStart <= :dateEnd
-   └─ Archivo: src/Repository/SessionRepository.php línea 256
-   └─ Impact: Funcionalidad completamente bloqueada para usuarios
-   └─ Doc: FIXES_PENDIENTES/ISSUE_CAMBIO_RESERVACION_SIN_CLASES_DISPONIBLES.md
-
-2. ✅ (RESUELTO 27/02) Mailer DSN no configurado  
-   └─ Error: Environment variable not found: MAILER_DSN
-   └─ Fix: MAILER_DSN=null://default en .env
-   └─ Status: 200 OK - Registro formulario carga correctamente
-   
-3. ✅ (RESUELTO 02/03) PHP Memory Exhausted en página de pagos
-   └─ Error: Allowed memory size of 134217728 bytes exhausted
-   └─ Fix: Reiniciar servidor con php -d memory_limit=512M -S 127.0.0.1:8000 -t public
-   └─ Status: ✅ Servidor corriendo con 512MB
-   
-4. (PENDIENTE) Problema de setTime() en Session.php
-   └─ Fix: $dateStart = $dateStart->setTime(...)
-   └─ Test: php -l + doctrine:schema:validate
-   └─ Impact: Desbloquea calendar y reservations
-   
-5. 🧪 Validar rutas públicas funcionan
-   └─ GET /reservar-clase (calendar)
-   └─ GET /login (show form)
-   └─ POST /register (✅ VALIDADO)
-```
-
-### CORTO PLAZO:
-```
-3. 🧪 Testing de flujos de pago
-   └─ Conekta integration test
-   └─ Mock payment flow
-
-4. 📝 Crear deployment guide
-   └─ Basado en DOCUMENTACION_EXPANSION_COMPLETA.md
-```
-
-### MEDIANO PLAZO:
-```
-5. 🐳 Docker setup
-6. 🔐 Security hardening
-7. ⚡ Performance optimization
-```
-
-### LARGO PLAZO:
-```
-8. 🚀 CI/CD pipeline
-9. 📊 Monitoring setup
-10. 🎓 Team training
-```
-
----
-
-## 🚀 PRÓXIMOS PASOS (Orden de Prioridad)
-
-### 🔴 INMEDIATO:
-```
-1. Problema de setTime() en Session.php
-   └─ Fix: $dateStart = $dateStart->setTime(...)
-   └─ Test: php -l + doctrine:schema:validate
-   └─ Impact: Desbloquea calendar y reservations
-   
-2. Testing de rutas públicas
-   └─ GET /reservar-clase (calendar)
-   └─ GET /login (show form)
-   └─ GET /carrito/checkout
-```
-
-### 🟡 CORTO PLAZO (Esta Semana):
-```
-3. Implementar Logging Strategy (Phase 1-2)
-   └─ LoggerFactory + Controller logging
-   └─ Impact: Visibilidad en errores
-   
-4. Testing de rutas públicas
-   └─ GET /reservar-clase, /login, /carrito/checkout
-   └─ Impact: Validación de flujos básicos
-   
-5. Auditoría de Entity Mappings
-   └─ Eager loading fixes
-   └─ FK constraint validation
-   └─ Impact: Estabilidad de flujos complejos
-```
-
-### 🟠 MEDIANO PLAZO (2-3 Semanas):
-```
-6. Docker setup y docker-compose
-7. Security hardening (rate limiting, CORS)
-8. Performance optimization (Redis, caching)
-9. CI/CD pipeline (GitHub Actions)
-```
 ---
 
 ## 📝 NOTAS DE ACTUALIZACIÓN
@@ -1426,5 +1723,3 @@ Manual práctico para desarrolladores incluyendo:
 | **Ver relaciones** | Abrir `DIAGRAMA_RELACIONES.md` |
 | **Guía desarrollo** | Abrir `GUIA_TECNICA_DESARROLLO.md` |
 //MargotPBStudio251512
-
-//agregar otro detalle para revisar, cuando se queire cancelar una clase que esta en horario de cambio y no hay mas clases disponibles ese dia, no te deja ni cancelar ni cambiar, hay que consultar al modelo de negocio ese detalle, si se puede cmambiar para otro dia
