@@ -5,7 +5,7 @@
 **Severidad:** 🔴 CRÍTICA (Impacto en reservaciones de clientes)  
 **Alcance:** Backend only (alerta, confirmación, cancelación, devolución, auditoría + panel visualización)
 
----/// falta seguir emjroando el visual, sobre todo el tamano de las letras, arreglar el icono que esta saliendo delante de las palabras y botones, arreglar el comportamiento para pantallas chicas, ajustar los fondos de las palabras que es todo muy oscuro, acomodar el motivo de la deshabiklitacion porque queda en un texto muy amplio muy poco contenido, deberia ajustarse al espacio que ocuparia o un poco mas grande nada mas, la informacion de los usuarios afectados deberia salir mas grande, ya que es bastante en comparacion con el resto, es decir, deberia ocupoar mas espacio esa tabla, en los detalles se esta repitiendo informaciopn que ya se mostraba en la parte superior del historial, quitar informacion doble, mejorar los padding
+---
 
 ## 📑 ÍNDICE.
 
