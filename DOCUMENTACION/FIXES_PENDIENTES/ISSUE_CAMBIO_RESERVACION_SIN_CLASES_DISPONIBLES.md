@@ -3,11 +3,52 @@
 **Estado:** Pendiente  
 **Prioridad:** Alta  
 **Fecha Detectado:** 09 de Marzo de 2026  
-**Reportado por:** Usuario (pruebas funcionales)
+**Reportado por:** Usuario (pruebas funcionales)  
+**Jira:** SCRUM-23  
+**Sprint:** Sprint 1 (9-16 Marzo 2026)  
+**⚠️ BLOQUEANTE:** Requiere confirmación del modelo de negocio con Director General
 
 ## Descripción del Problema
 
 Cuando un usuario intenta cambiar una reservación existente (en lugar de cancelarla), el sistema no muestra clases alternativas disponibles para realizar el cambio, mostrando el mensaje "Lo sentimos, no hay clases disponibles."
+
+## ⚠️ CONFIRMACIÓN REQUERIDA CON DIRECTOR GENERAL
+
+Antes de implementar el fix técnico, se requiere validar el MODELO DE NEGOCIO con el Director General:
+
+### Preguntas para el DG:
+
+1. **Rango de fechas:** ¿Está correcto mostrar clases de los próximos 30 días para cambiar?
+   - ¿O debería ser 7 días? ¿15 días? ¿60 días?
+   
+2. **Restricciones de cambio:** ¿El usuario puede cambiar a CUALQUIER clase disponible o hay restricciones?
+   - ¿Solo clases de la misma disciplina? (Ej: Yoga → solo Yoga)
+   - ¿Solo en la misma sucursal?
+   - ¿Solo del mismo paquete/tipo?
+   
+3. **Límite de cambios:** ¿Cuántas veces puede un usuario cambiar su reservación?
+   - ¿Ilimitado?
+   - ¿Máximo 1 cambio por reservación?
+   - ¿Máximo N cambios por semana/mes?
+   
+4. **Ventana de tiempo:** ¿El usuario puede cambiar hasta cuándo?
+   - ¿Hasta 2h antes de la clase original?
+   - ¿Hasta 24h antes?
+   - ¿Sin límite?
+
+5. **Costo del cambio:** ¿El cambio de reservación tiene costo adicional?
+   - ¿Gratuito?
+   - ¿Cargo por cambio?
+
+### Impacto de la Decisión
+
+La respuesta del DG determinará:
+- Lógica de filtrado en `SessionRepository::getForChange()`
+- Validaciones adicionales en `ProfileController::reservationChange()`
+- Mensajes al usuario sobre restricciones
+- Posibles cambios en la UI
+
+---
 
 ## Comportamiento Actual
 
@@ -129,6 +170,15 @@ Después de implementar el fix:
 
 ## Referencias
 
-- Conversación: 09 de Marzo 2026
-- Log analizado: No hay INSERT a session_audit porque el flujo nunca llega a completarse
-- Controller: ProfileController::reservationChange() línea 224
+- **Jira:** [SCRUM-23](https://devpbstudio.atlassian.net/browse/SCRUM-23)
+- **Sprint:** Sprint 1 (9-16 Marzo 2026)
+- **Conversación:** 09 de Marzo 2026
+- **Log analizado:** No hay INSERT a session_audit porque el flujo nunca llega a completarse
+- **Controller:** ProfileController::reservationChange() línea 224
+- **Repository:** SessionRepository::getForChange() línea 246-265
+
+---
+
+## 🚨 SIGUIENTE PASO
+
+**ANTES DE IMPLEMENTAR:** Agendar reunión con Director General para validar modelo de negocio de cambio de reservaciones.
