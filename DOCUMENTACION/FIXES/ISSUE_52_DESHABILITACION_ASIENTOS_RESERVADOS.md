@@ -53,8 +53,9 @@
 2. Automatic cancellation + credit refund
 3. Complete audit trail (who, when, why, affected users)
 4. Panel de auditoría backend para visualizar historial
-5. NO frontend panel (future)
-6. NO emails yet (future)
+5. Registro de cancelaciones y cambios de usuarios (sin motivo, solo acción)
+6. NO frontend panel (future)
+7. NO emails yet (future)
 
 ---
 
@@ -548,11 +549,16 @@ if (!$reservation->isIsAvailable()) {
 ```
 
 **Cambio importante respecto al diseño inicial:**
-- En lugar de FK a `admin_user_id`, se usa `admin_user_identifier` (string)
-- Razón: Permite admins de tipo Staff (backend) y User (futuro frontend)
+- En lugar de FK a `admin_user_id`, se usa un campo string genérico para identificar quién realiza la acción
+- Razón: Permite registrar acciones de múltiples tipos de actores (admin, staff, usuarios)
 - Más flexible para diferentes tipos de usuarios autenticados
 
-**Ejemplo de uso:**
+**Tipos de auditoría soportados:**
+- `'place_disabled'` - Admin deshabilita asiento (incluye motivo)
+- `'user_cancelled'` - Usuario cancela su reserva (sin motivo)
+- `'user_changed'` - Usuario cambia a otra sesión (sin motivo)
+
+**Ejemplo de uso (Deshabilitación por admin):**
 ```php
 $audit = new SessionAudit();
 $audit->setSession($session);
@@ -563,6 +569,20 @@ $audit->setDisabledPlaces([1, 3, 5]);
 $audit->setAffectedUsers([
     ['id' => 1, 'name' => 'Juan García', 'email' => 'juan@...', 'place' => 3],
 ]);
+$em->persist($audit);
+```
+
+**Ejemplo de uso (Cancelación por usuario):**
+```php
+$audit = new SessionAudit();
+$audit->setSession($session);
+$audit->setUserIdentifier($user->getUserIdentifier()); // "juan.garcia", etc
+$audit->setAuditType('user_cancelled');
+$audit->setReason(null); // Sin motivo
+$audit->setAffectedUsers([
+    ['id' => $user->getId(), 'name' => $user->getName(), 'email' => $user->getEmail(), 'place' => $reservation->getPlaceNumber()],
+]);
+$audit->setAffectedReservationsCount(1);
 $em->persist($audit);
 ```
 
@@ -949,6 +969,15 @@ created_at: 2026-03-05 17:03:23
 - **Nombre de ruta:** `backend_session_audit`
 - **Integración:** Pestaña "Auditoría" en perfil de sesión
 
+### Tipos de eventos registrados
+
+**Admin/Staff:**
+- `place_disabled`: Deshabilita asientos → Muestra motivo, usuarios afectados, detalles expandibles
+
+**Usuarios:**
+- `user_cancelled`: Usuario cancela su reserva → Fecha, usuario, hora (sin detalles)
+- `user_changed`: Usuario cambia a otra sesión → Fecha, usuario, hora (sin detalles)
+
 ### Vista: audit.html.twig
 
 **Ubicación:** `templates/backend/session/audit.html.twig`
@@ -966,72 +995,90 @@ created_at: 2026-03-05 17:03:23
         <thead>
             <tr>
                 <th>ID</th>
-                <th>Admin</th>
+                <th>Usuario/Admin</th>
                 <th>Fecha/Hora</th>
-                <th>Asientos Deshabilitados</th>
-                <th>Usuarios Afectados</th>
+                <th>Tipo de Acción</th>
+                <th>Afectados</th>
                 <th>Acciones</th>
             </tr>
         </thead>
         <tbody>
             {% for audit in audits %}
-                <tr>
-                    <td>{{ audit.id }}</td>
-                    <td>{{ audit.adminUserIdentifier }}</td>
-                    <td>{{ audit.createdAt|date('d/m/Y H:i:s') }}</td>
-                    <td>
-                        {% for place in audit.disabledPlaces %}
-                            <span class="badge badge-warning">{{ place }}</span>
-                        {% endfor %}
-                    </td>
-                    <td>{{ audit.affectedReservationsCount }}</td>
-                    <td>
-                        <button class="btn btn-sm btn-info" onclick="toggleDetails({{ audit.id }})">
-                            <i class="fa fa-eye"></i> Ver Detalles
-                        </button>
-                    </td>
-                </tr>
-                <tr id="details-{{ audit.id }}" style="display:none;" class="audit-details-row">
-                    <td colspan="6">
-                        <div class="card">
-                            <div class="card-body">
-                                <h5>Motivo de Deshabilitación:</h5>
-                                <p>{{ audit.reason }}</p>
-                                
-                                <h5>Usuarios Afectados:</h5>
-                                <table class="table table-sm">
-                                    <thead>
-                                        <tr>
-                                            <th>ID Usuario</th>
-                                            <th>Nombre</th>
-                                            <th>Email</th>
-                                            <th>Asiento</th>
-                                            <th>Crédito Devuelto</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {% for user in audit.affectedUsers %}
+                {% if audit.auditType == 'place_disabled' %}
+                    {# Deshabilitación por Admin (con detalles expandibles) #}
+                    <tr class="table-warning">
+                        <td>{{ audit.id }}</td>
+                        <td>{{ audit.adminUserIdentifier }}</td>
+                        <td>{{ audit.createdAt|date('d/m/Y H:i:s') }}</td>
+                        <td>
+                            <span class="badge badge-warning">Deshabilitar</span>
+                            Asientos: 
+                            {% for place in audit.disabledPlaces %}
+                                <span class="badge badge-danger">{{ place }}</span>
+                            {% endfor %}
+                        </td>
+                        <td>{{ audit.affectedReservationsCount }}</td>
+                        <td>
+                            <button class="btn btn-sm btn-info" onclick="toggleDetails({{ audit.id }})">
+                                <i class="fa fa-eye"></i> Ver Detalles
+                            </button>
+                        </td>
+                    </tr>
+                    <tr id="details-{{ audit.id }}" style="display:none;" class="audit-details-row">
+                        <td colspan="6">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5>Motivo de Deshabilitación:</h5>
+                                    <p>{{ audit.reason }}</p>
+                                    
+                                    <h5>Usuarios Afectados:</h5>
+                                    <table class="table table-sm">
+                                        <thead>
                                             <tr>
-                                                <td>{{ user.id }}</td>
-                                                <td>{{ user.name }}</td>
-                                                <td>{{ user.email }}</td>
-                                                <td><span class="badge badge-danger">{{ user.place }}</span></td>
-                                                <td><span class="badge badge-success">✓ Sí</span></td>
+                                                <th>ID Usuario</th>
+                                                <th>Nombre</th>
+                                                <th>Email</th>
+                                                <th>Asiento</th>
+                                                <th>Crédito Devuelto</th>
                                             </tr>
-                                        {% endfor %}
-                                    </tbody>
-                                </table>
-                                
-                                <h5>Información Técnica:</h5>
-                                <ul>
-                                    <li><strong>Tipo de Auditoría:</strong> {{ audit.auditType }}</li>
-                                    <li><strong>Timestamp:</strong> {{ audit.createdAt|date('Y-m-d H:i:s') }}</li>
-                                    <li><strong>Total Afectados:</strong> {{ audit.affectedReservationsCount }}</li>
-                                </ul>
+                                        </thead>
+                                        <tbody>
+                                            {% for user in audit.affectedUsers %}
+                                                <tr>
+                                                    <td>{{ user.id }}</td>
+                                                    <td>{{ user.name }}</td>
+                                                    <td>{{ user.email }}</td>
+                                                    <td><span class="badge badge-danger">{{ user.place }}</span></td>
+                                                    <td><span class="badge badge-success">✓ Sí</span></td>
+                                                </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
-                        </div>
-                    </td>
-                </tr>
+                        </td>
+                    </tr>
+                {% elseif audit.auditType == 'user_cancelled' %}
+                    {# Cancelación por Usuario (sin detalles) #}
+                    <tr class="table-danger">
+                        <td>{{ audit.id }}</td>
+                        <td>{{ audit.userIdentifier }}</td>
+                        <td>{{ audit.createdAt|date('d/m/Y H:i:s') }}</td>
+                        <td><span class="badge badge-danger">Canceló</span></td>
+                        <td>{{ audit.affectedReservationsCount }}</td>
+                        <td>-</td>
+                    </tr>
+                {% elseif audit.auditType == 'user_changed' %}
+                    {# Cambio por Usuario (sin detalles) #}
+                    <tr class="table-info">
+                        <td>{{ audit.id }}</td>
+                        <td>{{ audit.userIdentifier }}</td>
+                        <td>{{ audit.createdAt|date('d/m/Y H:i:s') }}</td>
+                        <td><span class="badge badge-info">Cambió</span></td>
+                        <td>{{ audit.affectedReservationsCount }}</td>
+                        <td>-</td>
+                    </tr>
+                {% endif %}
             {% else %}
                 <tr>
                     <td colspan="6" class="text-center text-muted">

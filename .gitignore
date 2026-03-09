@@ -4,6 +4,7 @@ var
 var/cache/
 var/log/
 public/build
+backups/
 .phpunit.result.cache
 .env.local
 .env.*.local

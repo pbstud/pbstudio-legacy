@@ -1394,6 +1394,9 @@ Manual práctico para desarrolladores incluyendo:
 | Ejecutar tests | `php bin/phpunit` |
 | Validar schema | `php bin/console doctrine:schema:validate` |
 | Listar migraciones | `php bin/console doctrine:migrations:list` |
+| **CRON: Cerrar sesiones** | `php bin/console app:session:autoclosing` |
+| **CRON: Expirar transacciones** | `php bin/console app:transaction:checkexpiration` |
 | **Ver documentación** | Abrir `DOCUMENTACION_COMPLETA.md` |
 | **Ver relaciones** | Abrir `DIAGRAMA_RELACIONES.md` |
 | **Guía desarrollo** | Abrir `GUIA_TECNICA_DESARROLLO.md` |
+MargotPBStudio251512
