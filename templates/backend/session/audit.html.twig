@@ -33,9 +33,9 @@
                 <thead class="bg-light border-bottom">
                     <tr>
                         <th style="width: 70px; text-align: center; font-weight: 600; font-size: 0.95rem;">ID</th>
-                        <th style="font-weight: 600; font-size: 0.95rem;">Administrador</th>
+                        <th style="font-weight: 600; font-size: 0.95rem;">Tipo</th>
+                        <th style="font-weight: 600; font-size: 0.95rem;">Ejecutado por</th>
                         <th style="font-weight: 600; font-size: 0.95rem;">Fecha/Hora</th>
-                        <th style="width: 100px; text-align: center; font-weight: 600; font-size: 0.95rem;">Asientos</th>
                         <th style="width: 100px; text-align: center; font-weight: 600; font-size: 0.95rem;">Afectados</th>
                         <th style="width: 110px; text-align: center; font-weight: 600; font-size: 0.95rem;">Detalles</th>
                     </tr>
@@ -51,7 +51,28 @@
                             <span class="badge bg-primary" style="font-size: 1.1rem; padding: 0.7rem 1rem;">{{ audit.id }}</span>
                         </td>
                         <td>
-                            <span class="badge bg-primary" style="font-size: 1.15rem; padding: 0.7rem 1.2rem; font-weight: 700; letter-spacing: 0.5px;">{{ audit.adminUserIdentifier }}</span>
+                            {% if audit.auditType == 'place_disabled' %}
+                                <span class="badge bg-danger" style="font-size: 1.05rem; padding: 0.6rem 1rem;">ADMIN - Deshabilitación</span>
+                            {% elseif audit.auditType == 'user_cancelled' %}
+                                <span class="badge bg-warning text-dark" style="font-size: 1.05rem; padding: 0.6rem 1rem;">USUARIO - Cancelación</span>
+                            {% elseif audit.auditType == 'user_changed' %}
+                                <span class="badge bg-info text-dark" style="font-size: 1.05rem; padding: 0.6rem 1rem;">USUARIO - Cambio</span>
+                            {% else %}
+                                <span class="badge bg-secondary" style="font-size: 1.05rem; padding: 0.6rem 1rem;">Otro</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if audit.auditType == 'place_disabled' %}
+                                <span class="badge bg-primary" style="font-size: 1.15rem; padding: 0.7rem 1.2rem; font-weight: 700; letter-spacing: 0.5px;">
+                                    {{ audit.adminUserIdentifier }}
+                                </span>
+                                <br><small class="text-muted">(Staff/Admin)</small>
+                            {% else %}
+                                <span class="badge bg-success" style="font-size: 1.15rem; padding: 0.7rem 1.2rem; font-weight: 700; letter-spacing: 0.5px;">
+                                    {{ audit.userIdentifier }}
+                                </span>
+                                <br><small class="text-muted">(Usuario)</small>
+                            {% endif %}
                         </td>
                         <td>
                             <div>
@@ -60,30 +81,29 @@
                             </div>
                         </td>
                         <td style="text-align: center;">
-                            <span class="badge bg-warning text-dark" style="font-size: 1.1rem; padding: 0.7rem 1rem;" title="Cantidad de asientos deshabilitados">
-                                <strong>{{ audit.disabledPlaces|length }}</strong>
-                            </span>
-                        </td>
-                        <td style="text-align: center;">
-                            <span class="badge bg-info text-dark" style="font-size: 1.1rem; padding: 0.7rem 1rem;" title="Cantidad de reservaciones canceladas">
+                            <span class="badge bg-info text-dark" style="font-size: 1.1rem; padding: 0.7rem 1rem;" title="Cantidad de usuarios afectados">
                                 <strong>{{ audit.affectedReservationsCount }}</strong>
                             </span>
                         </td>
                         <td style="text-align: center;">
-                            <button class="btn btn-primary toggle-detail-btn" 
-                                    onclick="toggleAuditDetail(this, {{ audit.id }})"
-                                    type="button"
-                                    data-audit-id="{{ audit.id }}"
-                                    title="Ver detalles de esta auditoría">
-                                <span class="btn-label fw-bold">Ver</span>
-                            </button>
+                            {% if audit.auditType == 'place_disabled' %}
+                                <button class="btn btn-primary toggle-detail-btn" 
+                                        onclick="toggleAuditDetail(this, {{ audit.id }})"
+                                        type="button"
+                                        data-audit-id="{{ audit.id }}"
+                                        title="Ver detalles de esta auditoría">
+                                    <span class="btn-label fw-bold">Ver</span>
+                                </button>
+                            {% else %}
+                                <span class="text-muted" style="font-size: 0.9rem;"><em>N/A</em></span>
+                            {% endif %}
                         </td>
                     </tr>
                     
                     <!-- =====================================================
-                         SECCION E: Fila de detalle (expandible)
-                         Editar aqui: motivo, asientos, usuarios y datos tecnicos
+                         SECCION E: Fila de detalle (expandible) - SOLO PARA ADMIN
                          ===================================================== -->
+                    {% if audit.auditType == 'place_disabled' %}
                     <tr id="audit-detail-{{ audit.id }}" class="audit-detail-row d-none">
                         <td colspan="6">
                             <div class="p-4 bg-white">
@@ -198,6 +218,7 @@
                             </div>
                         </td>
                     </tr>
+                    {% endif %}
                     {% endfor %}
                 </tbody>
             </table>

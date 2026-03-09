@@ -538,25 +538,35 @@ if (!$reservation->isIsAvailable()) {
 ```php
 - id: INT PRIMARY KEY
 - session_id: FK → Session
-- admin_user_identifier: VARCHAR(255) (username del admin: Staff o User)
-- audit_type: VARCHAR(50) ['place_disabled']
-- reason: LONGTEXT (motivo admin)
-- disabled_places: JSON [1, 3, 5]
+- admin_user_identifier: VARCHAR(255) NULLABLE (username del admin: Staff o User que deshabilita asiento)
+- user_identifier: VARCHAR(255) NULLABLE (username del User que cancela/cambia su reserva)
+- audit_type: VARCHAR(50) ['place_disabled', 'user_cancelled', 'user_changed']
+- reason: LONGTEXT NULLABLE (motivo del admin, solo para place_disabled)
+- disabled_places: JSON [1, 3, 5] NULLABLE (solo para place_disabled)
 - affected_users: JSON [{id, name, email, place}, ...]
 - affected_reservations_count: INT
 - created_at: DATETIME
-- Índices: session_id, created_at
+- Índices: session_id, audit_type, created_at
 ```
 
-**Cambio importante respecto al diseño inicial:**
-- En lugar de FK a `admin_user_id`, se usa un campo string genérico para identificar quién realiza la acción
-- Razón: Permite registrar acciones de múltiples tipos de actores (admin, staff, usuarios)
-- Más flexible para diferentes tipos de usuarios autenticados
+**Diseño de campos de identidad:**
+- `admin_user_identifier`: Se usa cuando `audit_type = 'place_disabled'` (admin deshabilita asiento)
+- `user_identifier`: Se usa cuando `audit_type IN ('user_cancelled', 'user_changed')` (usuario hace acción)
+- Ambos son NULLABLE porque solo uno se usa a la vez dependiendo del tipo de auditoría
+- No se usan FK porque los actores pueden ser diferentes tipos de entidades (Staff vs User)
 
 **Tipos de auditoría soportados:**
-- `'place_disabled'` - Admin deshabilita asiento (incluye motivo)
-- `'user_cancelled'` - Usuario cancela su reserva (sin motivo)
-- `'user_changed'` - Usuario cambia a otra sesión (sin motivo)
+1. `'place_disabled'` - Admin deshabilita asiento
+   - Usa: `admin_user_identifier` + `reason` (requerido) + `disabled_places`
+   - Contexto: Admin marca asientos como no disponibles
+   
+2. `'user_cancelled'` - Usuario cancela su reserva
+   - Usa: `user_identifier` + `reason` (null)
+   - Contexto: Usuario decide no asistir y cancela
+   
+3. `'user_changed'` - Usuario cambia a otra sesión
+   - Usa: `user_identifier` + `reason` (null)
+   - Contexto: Usuario cambia de horario/clase
 
 **Ejemplo de uso (Deshabilitación por admin):**
 ```php
@@ -770,47 +780,48 @@ public function audit(Session $session, SessionAuditRepository $auditRepository)
 
 ### 9.7) Migrations ✅
 
-**Migration 1: Version20260305093000.php** - Creación inicial
+**Migration Consolidada: Version20260309000000.php**
 
-**SQL:**
+**Notas sobre consolidación:**
+- Originalmente se crearon 3 migraciones separadas durante el desarrollo
+- Se consolidaron en una sola migración para simplificar deployment en producción
+- Migraciones antiguas eliminadas: Version20260305093000.php, Version20260305100000.php, Version20260306120000.php
+
+**SQL Completo:**
 ```sql
 CREATE TABLE session_audit (
     id INT AUTO_INCREMENT NOT NULL PRIMARY KEY,
     session_id INT NOT NULL,
-    admin_user_id INT NOT NULL,
+    admin_user_identifier VARCHAR(255) DEFAULT NULL,
+    user_identifier VARCHAR(255) DEFAULT NULL,
     audit_type VARCHAR(50) NOT NULL,
-    reason LONGTEXT NOT NULL,
-    disabled_places JSON NOT NULL,
+    reason LONGTEXT DEFAULT NULL,
+    disabled_places JSON DEFAULT NULL,
     affected_users JSON NOT NULL,
     affected_reservations_count INT DEFAULT 0,
     created_at DATETIME NOT NULL,
     INDEX idx_session (session_id),
+    INDEX idx_audit_type (audit_type),
     INDEX idx_created (created_at),
-    FOREIGN KEY (session_id) REFERENCES session(id),
-    FOREIGN KEY (admin_user_id) REFERENCES user(id)
-) ENGINE=InnoDB CHARSET=utf8mb4;
+    FOREIGN KEY (session_id) REFERENCES session(id)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci ENGINE = InnoDB;
 ```
 
-**Migration 2: Version20260305100000.php** - Actualización de schema
+**Diseño de campos de identidad:**
+- `admin_user_identifier` (VARCHAR 255, NULLABLE): Para identificar admin cuando `audit_type = 'place_disabled'`
+- `user_identifier` (VARCHAR 255, NULLABLE): Para identificar usuario cuando `audit_type IN ('user_cancelled', 'user_changed')`
+- Ambos campos son nullable porque solo uno se usa dependiendo del tipo de auditoría
+- No se usan FK porque los actores pueden ser diferentes tipos de entidades (Staff, User)
 
-**Cambios:**
-```sql
--- Drop FK constraint y columna admin_user_id
-ALTER TABLE session_audit DROP FOREIGN KEY FK_8E9A1E09E1D4D6A8;
-ALTER TABLE session_audit DROP COLUMN admin_user_id;
-
--- Agregar nueva columna admin_user_identifier (string)
-ALTER TABLE session_audit ADD admin_user_identifier VARCHAR(255) NOT NULL;
-```
-
-**Razón del cambio:**
-- Usuarios autenticados en backend son de tipo `Staff`, no `User`
-- FK a User no permitía guardar admin Staff
-- Solución: Guardar username como string (más flexible)
+**Tipos de auditoría soportados:**
+1. `place_disabled` - Admin deshabilita asiento → usa `admin_user_identifier` + `reason` requerido
+2. `user_cancelled` - Usuario cancela reserva → usa `user_identifier`, `reason` null
+3. `user_changed` - Usuario cambia de sesión → usa `user_identifier`, `reason` null
 
 **Features:**
-- Foreign keys para session_id
-- Índices para performance en queries
+- Foreign key solo para `session_id` (referencia siempre válida)
+- Índices en `session_id`, `audit_type`, `created_at` para optimizar queries del panel
+- Campos JSON para flexibilidad (`disabled_places`, `affected_users`)
 - Método down() para reversión completa
 
 ---
@@ -1221,7 +1232,11 @@ function toggleDetails(auditId) {
 ```bash
 php bin/console doctrine:migrations:migrate
 
-# Crea tabla session_audit
+# Ejecuta Version20260309000000: Crea tabla session_audit
+# Nota: Migración consolidada que reemplaza 3 migraciones anteriores
+#       Si la base ya tenía session_audit de versión anterior:
+#       - DROP TABLE session_audit
+#       - php bin/console doctrine:migrations:migrate
 ```
 
 ### Fase 2: Testing Manual (1-2 horas) ✅
@@ -1379,12 +1394,12 @@ Benefits:
 - [x] Panel de auditoría funcional
 
 ### Deployment
-- [ ] Backup de base de datos
-- [ ] Merge a main
+- [x] Backup de base de datos
+- [x] Merge a main
 - [ ] Deploy a staging
 - [ ] Testing en staging
 - [ ] Deploy a producción
-- [ ] Ejecutar migrations
+- [x] Ejecutar migrations (Version20260309000000 consolidada)
 - [ ] Verificar logs en producción
 - [ ] Monitoring por 24-48 horas
 
@@ -1401,23 +1416,29 @@ Benefits:
 
 ### Por qué NO FK a User en SessionAudit?
 
-**Decisión:** Usar `admin_user_identifier` (string) en lugar de FK
+**Decisión:** Usar campos string (`admin_user_identifier`, `user_identifier`) en lugar de FK
 
 **Razones:**
-1. **Flexibilidad de autenticación:**
-   - Backend usa entidad `Staff` (no `User`)
-   - Frontend usará `User`
-   - String soporta ambos
+1. **Flexibilidad de tipos de actores:**
+   - `admin_user_identifier` para Staff (backend) o User (si admin en frontend)
+   - `user_identifier` para User (frontend)
+   - String soporta múltiples entidades sin constraint issues
 
 2. **Auditabilidad permanente:**
-   - Si admin es eliminado, auditoría persiste
+   - Si admin/usuario es eliminado, auditoría persiste
    - FK causaría constraint violation o NULL
-   - String mantiene username para historia
+   - String mantiene username para historia completa
 
 3. **Simplicidad de queries:**
-   - No require JOIN a tabla users
-   - Más rápido para reportes
+   - No requiere JOIN a tabla users/staff
+   - Más rápido para reportes y panel de auditoría
    - Menos carga en DB
+
+4. **Diseño por tipo de evento:**
+   - Solo uno de los dos campos se usa a la vez
+   - `place_disabled` → usa `admin_user_identifier`
+   - `user_cancelled`/`user_changed` → usa `user_identifier`
+   - Ambos nullable, validación por lógica de negocio
 
 ### Seguridad
 

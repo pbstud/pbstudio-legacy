@@ -267,23 +267,30 @@ public function cancel(Request $request, Reservation $reservation): Response
 ```
 
 ### 6.4) Migration
-**Ubicación:** migrations/Version20260306120000.php
-**SQL:**
+
+**Nota:** Esta funcionalidad utiliza la tabla `session_audit` creada en la migración consolidada.
+
+**Migración consolidada:** `migrations/Version20260309000000.php`
+
+**Campos relevantes para user actions:**
 ```sql
-CREATE TABLE session_audit (
-	id INT AUTO_INCREMENT NOT NULL PRIMARY KEY,
-	session_id INT NOT NULL,
-	user_identifier VARCHAR(255) NOT NULL,
-	audit_type VARCHAR(50) NOT NULL,
-	reason LONGTEXT,
-	affected_users JSON NOT NULL,
-	affected_reservations_count INT DEFAULT 0,
-	created_at DATETIME NOT NULL,
-	INDEX idx_session (session_id),
-	INDEX idx_created (created_at),
-	FOREIGN KEY (session_id) REFERENCES session(id)
-) ENGINE=InnoDB CHARSET=utf8mb4;
+-- Campos de la tabla session_audit relevantes:
+user_identifier VARCHAR(255) DEFAULT NULL  -- Para identificar usuario
+audit_type VARCHAR(50) NOT NULL            -- 'user_cancelled' o 'user_changed'
+reason LONGTEXT DEFAULT NULL               -- NULL para acciones de usuario
+affected_users JSON NOT NULL               -- Datos del usuario afectado
+affected_reservations_count INT DEFAULT 0  -- Siempre 1 para user actions
+created_at DATETIME NOT NULL               -- Timestamp de la acción
 ```
+
+**Tipos de auditoría para usuarios:**
+- `user_cancelled`: Usuario cancela su reservación
+- `user_changed`: Usuario cambia a otra sesión
+
+**Nota sobre consolidación:**
+- La migración original (Version20260306120000.php) fue consolidada junto con otras dos
+- La migración actual incluye campos para TODOS los tipos de auditoría (admin y usuario)
+- Ver `migrations/Version20260309000000.php` para estructura completa
 
 ---
 

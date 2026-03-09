@@ -24,14 +24,17 @@ class SessionAudit
     #[ORM\Column(length: 255)]
     private ?string $adminUserIdentifier = null;  // Username/ID del admin que realizó la acción
 
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $userIdentifier = null;  // Username/ID del usuario que realiza acción (cancelar/cambiar)
+
     #[ORM\Column(length: 50)]
-    private ?string $auditType = null;  // 'place_disabled', 'place_enabled', etc
+    private ?string $auditType = null;  // 'place_disabled', 'user_cancelled', 'user_changed'
 
-    #[ORM\Column(type: Types::TEXT)]
-    private ?string $reason = null;  // Motivo del cambio
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $reason = null;  // Motivo del cambio (requerido para admin, opcional para usuario)
 
-    #[ORM\Column(type: Types::JSON)]
-    private array $disabledPlaces = [];  // [1, 3, 5]
+    #[ORM\Column(type: Types::JSON, nullable: true)]
+    private ?array $disabledPlaces = [];  // [1, 3, 5] - solo para place_disabled
 
     #[ORM\Column(type: Types::JSON)]
     private array $affectedUsers = [];  // [{id: 1, name: 'Juan', email: 'juan@...', place: 3}, ...]
@@ -76,6 +79,18 @@ class SessionAudit
         return $this;
     }
 
+    public function getUserIdentifier(): ?string
+    {
+        return $this->userIdentifier;
+    }
+
+    public function setUserIdentifier(?string $userIdentifier): static
+    {
+        $this->userIdentifier = $userIdentifier;
+
+        return $this;
+    }
+
     public function getAuditType(): ?string
     {
         return $this->auditType;
@@ -93,7 +108,7 @@ class SessionAudit
         return $this->reason;
     }
 
-    public function setReason(string $reason): static
+    public function setReason(?string $reason): static
     {
         $this->reason = $reason;
 
