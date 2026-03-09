@@ -22,6 +22,7 @@ use App\Service\Reservation\ReservationService;
 use App\Service\SessionTimeCancel\TimeToCancel;
 use App\Util\PackageSessionType;
 use Doctrine\ORM\EntityManagerInterface;
+use Psr\Log\LoggerInterface;
 use Symfony\Bridge\Doctrine\Attribute\MapEntity;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -166,6 +167,8 @@ class ProfileController extends AbstractController
         ReservationRepository $reservationRepository,
         TimeToCancel $timeToCancelService,
         ReservationService $reservationService,
+        \App\Service\ReservationCancellationService $cancellationService,
+        LoggerInterface $logger,
     ): Response {
         /** @var User $loggedUser */
         $loggedUser = $this->getUser();
@@ -180,7 +183,30 @@ class ProfileController extends AbstractController
             }
 
             try {
+                $logger->info('[USER_CANCEL] Iniciando cancelación de reservación por usuario', [
+                    'reservation_id' => $reservation->getId(),
+                    'user_id' => $loggedUser->getId(),
+                    'session_id' => $reservation->getSession()->getId(),
+                ]);
+
+                // Cancelar la reservación
                 $reservationService->cancel($reservation);
+                
+                $logger->info('[USER_CANCEL] Reservación cancelada exitosamente', [
+                    'reservation_id' => $reservation->getId(),
+                ]);
+
+                // Registrar auditoría de cancelación por usuario
+                $reason = $request->request->get('reason'); // Opcional: motivo del usuario
+                
+                $logger->info('[USER_CANCEL] Registrando auditoría', [
+                    'reservation_id' => $reservation->getId(),
+                    'has_reason' => !empty($reason),
+                ]);
+                
+                $cancellationService->auditUserCancellation($reservation, $reason);
+                
+                $logger->info('[USER_CANCEL] Proceso completo');
 
                 return $this->render('profile/reservation_cancel_success.html.twig');
             } catch (ReservationException $e) {
@@ -263,7 +289,7 @@ class ProfileController extends AbstractController
         ]);
     }
 
-    #[Route('/reservacion/{id}/cambiar/{sessionId}', name: 'reservation_change_session', methods: ['GET', 'POST'])]
+    #[Route('/reservacion/{id}/cambiar/{sessionId}',name: 'reservation_change_session', methods: ['GET', 'POST'])]
     public function reservationChangeSession(
         Request $request,
         Reservation $reservation,
@@ -271,6 +297,8 @@ class ProfileController extends AbstractController
         Session $session,
         ReservationRepository $reservationRepository,
         ReservationService $reservationService,
+        \App\Service\ReservationCancellationService $cancellationService,
+        LoggerInterface $logger,
     ): Response {
         /** @var User $loggedUser */
         $loggedUser = $this->getUser();
@@ -281,6 +309,13 @@ class ProfileController extends AbstractController
 
         if ($request->isMethod('POST') && $request->request->has('place_number')) {
             if (!$this->isCsrfTokenValid('reservation_change_session', $request->request->get('_token'))) {
+                                $logger->info('[USER_CHANGE] Iniciando cambio de reservación', [
+                                    'reservation_id' => $reservation->getId(),
+                                    'user_id' => $loggedUser->getId(),
+                                    'current_session_id' => $reservation->getSession()->getId(),
+                                    'new_session_id' => $session->getId(),
+                                ]);
+
                 throw $this->createAccessDeniedException('Invalid CSRF token');
             }
 
@@ -289,8 +324,30 @@ class ProfileController extends AbstractController
                     throw new ReservationException('La reservación no acepta cambios.');
                 }
 
+                // Guardar sesión anterior ANTES del cambio (para auditoría)
+                $previousSession = $reservation->getSession();
+
+                $logger->info('[USER_CHANGE] Sesión anterior capturada', [
+                    'previous_session_id' => $previousSession->getId(),
+                ]);
+
                 $placeNumber = $request->request->getInt('place_number');
                 $reservationService->change($reservation, $session, $placeNumber);
+
+                $logger->info('[USER_CHANGE] Reservación cambiada exitosamente', [
+                    'reservation_id' => $reservation->getId(),
+                    'place_number' => $placeNumber,
+                ]);
+
+                // Registrar auditoría de cambio por usuario
+                                $logger->info('[USER_CHANGE] Registrando auditoría', [
+                                    'has_reason' => !empty($reason),
+                                ]);
+
+                $reason = $request->request->get('reason'); // Opcional: motivo del usuario
+                $cancellationService->auditUserChange($reservation, $previousSession, $reason);
+
+                $logger->info('[USER_CHANGE] Proceso de cambio completo');
 
                 return $this->render('profile/reservation_change_session_success.html.twig');
             } catch (ReservationException $e) {

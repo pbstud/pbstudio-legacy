@@ -923,7 +923,25 @@ Estado: 🔵 DOCUMENTADO - Requiere revisión de formularios
 
 ---
 
-## 📊 RESUMEN ESTADÍSTICO
+## � ISSUES IDENTIFICADOS - FIXES PENDIENTES
+
+### 🔴 ALTA PRIORIDAD
+
+#### Issue #1: Cambio de Reservación sin Clases Disponibles
+- **Estado:** Pendiente
+- **Archivo:** `FIXES_PENDIENTES/ISSUE_CAMBIO_RESERVACION_SIN_CLASES_DISPONIBLES.md`
+- **Descripción:** Cuando un usuario intenta cambiar una reservación, no aparecen clases disponibles
+- **Causa:** `SessionRepository::getForChange()` solo busca clases del mismo día (`dateStart = :dateStart`)
+- **Solución:** Cambiar consulta para buscar clases futuras (próximos 30 días): `dateStart >= :dateStart AND dateStart <= :dateEnd`
+- **Impacto:** Funcionalidad de cambio completamente bloqueada para todos los usuarios
+- **Workaround:** Cancelar y crear nueva reservación (pierde beneficio de cambio)
+- **Archivos Afectados:**
+  - `src/Repository/SessionRepository.php` (línea 246-265)
+  - `src/Controller/ProfileController.php` (método `reservationChange()`)
+
+---
+
+## �📊 RESUMEN ESTADÍSTICO
 
 | Categoría | Completado | % |
 |-----------|-----------|---|
@@ -931,11 +949,12 @@ Estado: 🔵 DOCUMENTADO - Requiere revisión de formularios
 | **Análisis Técnico** | 4/4 fases | 100% ✅ |
 | **Documentación** | 5/5 documentos | 100% ✅ |
 | **Testing** | 2/10 validaciones | 20% 🟡 |
-| **Bugs/Errors** | 3/3 resueltos | 100% ✅ |
+| **Bugs/Errors Resueltos** | 3/3 | 100% ✅ |
+| **Issues Pendientes** | 0/1 | 0% 🔴 |
 | **Features** | 0/12 faltantes | 0% |
 | **DevOps** | 0/8 tareas | 0% |
 | **Producción** | 0/15 checklist | 0% |
-| **TOTAL GENERAL** | | **~50%** |
+| **TOTAL GENERAL** | | **~48%** |
 
 ---
 
@@ -943,22 +962,29 @@ Estado: 🔵 DOCUMENTADO - Requiere revisión de formularios
 
 ### INMEDIATO:
 ```
-1. ✅ (RESUELTO 27/02) Mailer DSN no configurado  
+1. 🔴 (PENDIENTE) Cambio de Reservación - No aparecen clases disponibles
+   └─ Problema: getForChange() solo busca clases del mismo día
+   └─ Fix: Cambiar WHERE dateStart = :date por dateStart >= :date AND dateStart <= :dateEnd
+   └─ Archivo: src/Repository/SessionRepository.php línea 256
+   └─ Impact: Funcionalidad completamente bloqueada para usuarios
+   └─ Doc: FIXES_PENDIENTES/ISSUE_CAMBIO_RESERVACION_SIN_CLASES_DISPONIBLES.md
+
+2. ✅ (RESUELTO 27/02) Mailer DSN no configurado  
    └─ Error: Environment variable not found: MAILER_DSN
    └─ Fix: MAILER_DSN=null://default en .env
    └─ Status: 200 OK - Registro formulario carga correctamente
    
-2. ✅ (RESUELTO 02/03) PHP Memory Exhausted en página de pagos
+3. ✅ (RESUELTO 02/03) PHP Memory Exhausted en página de pagos
    └─ Error: Allowed memory size of 134217728 bytes exhausted
    └─ Fix: Reiniciar servidor con php -d memory_limit=512M -S 127.0.0.1:8000 -t public
    └─ Status: ✅ Servidor corriendo con 512MB
    
-3. (PENDIENTE) Problema de setTime() en Session.php
+4. (PENDIENTE) Problema de setTime() en Session.php
    └─ Fix: $dateStart = $dateStart->setTime(...)
    └─ Test: php -l + doctrine:schema:validate
    └─ Impact: Desbloquea calendar y reservations
    
-4. 🧪 Validar rutas públicas funcionan
+5. 🧪 Validar rutas públicas funcionan
    └─ GET /reservar-clase (calendar)
    └─ GET /login (show form)
    └─ POST /register (✅ VALIDADO)
@@ -1399,4 +1425,6 @@ Manual práctico para desarrolladores incluyendo:
 | **Ver documentación** | Abrir `DOCUMENTACION_COMPLETA.md` |
 | **Ver relaciones** | Abrir `DIAGRAMA_RELACIONES.md` |
 | **Guía desarrollo** | Abrir `GUIA_TECNICA_DESARROLLO.md` |
-MargotPBStudio251512
+//MargotPBStudio251512
+
+//agregar otro detalle para revisar, cuando se queire cancelar una clase que esta en horario de cambio y no hay mas clases disponibles ese dia, no te deja ni cancelar ni cambiar, hay que consultar al modelo de negocio ese detalle, si se puede cmambiar para otro dia

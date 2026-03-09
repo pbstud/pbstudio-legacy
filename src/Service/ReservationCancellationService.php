@@ -226,4 +226,108 @@ class ReservationCancellationService
 
         return true;
     }
+
+    /**
+     * Registra auditoría cuando un USUARIO cancela su propia reservación.
+     * Este método NO cancela la reserva, solo registra el evento en session_audit.
+     * La cancelación debe hacerse previamente con ReservationService->cancel().
+     *
+     * @param Reservation  $reservation Reservación que fue cancelada
+     * @param string|null  $reason      Motivo opcional del usuario
+     *
+     * @return void
+     */
+    public function auditUserCancellation(Reservation $reservation, ?string $reason = null): void
+    {
+        $user = $reservation->getUser();
+        $session = $reservation->getSession();
+
+        if ($user === null || $session === null) {
+            $this->logger->error('No se puede crear auditoría: reservación sin usuario o sesión', [
+                'reservation_id' => $reservation->getId(),
+            ]);
+
+            return;
+        }
+
+        // Crear registro de auditoría
+        $audit = new SessionAudit();
+        $audit->setSession($session);
+        $audit->setUserIdentifier($user->getUserIdentifier());
+        $audit->setAuditType('user_cancelled');
+        $audit->setReason($reason); // null si usuario no dio motivo
+        $audit->setAffectedUsers([
+            [
+                'id' => $user->getId(),
+                'name' => $user->getName().' '.$user->getLastname(),
+                'email' => $user->getEmail(),
+                'place' => $reservation->getPlaceNumber(),
+            ],
+        ]);
+        $audit->setAffectedReservationsCount(1);
+
+        $this->em->persist($audit);
+        $this->em->flush();
+
+        $this->logger->info('Auditoría de cancelación por usuario creada', [
+            'session_id' => $session->getId(),
+            'user_identifier' => $user->getUserIdentifier(),
+            'reservation_id' => $reservation->getId(),
+            'has_reason' => $reason !== null,
+        ]);
+    }
+
+    /**
+     * Registra auditoría cuando un USUARIO cambia su reservación a otra sesión.
+     * Este método NO cambia la reserva, solo registra el evento en session_audit.
+     * El cambio debe hacerse previamente con ReservationService->change().
+     *
+     * @param Reservation  $reservation     Reservación que fue modificada
+     * @param Session      $previousSession Sesión anterior (de donde salió)
+     * @param string|null  $reason          Motivo opcional del usuario
+     *
+     * @return void
+     */
+    public function auditUserChange(Reservation $reservation, Session $previousSession, ?string $reason = null): void
+    {
+        $user = $reservation->getUser();
+        $newSession = $reservation->getSession();
+
+        if ($user === null || $newSession === null) {
+            $this->logger->error('No se puede crear auditoría: reservación sin usuario o sesión', [
+                'reservation_id' => $reservation->getId(),
+            ]);
+
+            return;
+        }
+
+        // Crear registro de auditoría para la sesión ANTERIOR (de donde salió)
+        $audit = new SessionAudit();
+        $audit->setSession($previousSession);
+        $audit->setUserIdentifier($user->getUserIdentifier());
+        $audit->setAuditType('user_changed');
+        $audit->setReason($reason); // null si usuario no dio motivo
+        $audit->setAffectedUsers([
+            [
+                'id' => $user->getId(),
+                'name' => $user->getName().' '.$user->getLastname(),
+                'email' => $user->getEmail(),
+                'place' => $reservation->getPlaceNumber(),
+                'new_session_id' => $newSession->getId(),
+                'new_session_date' => $newSession->getDateStart()->format('Y-m-d H:i'),
+            ],
+        ]);
+        $audit->setAffectedReservationsCount(1);
+
+        $this->em->persist($audit);
+        $this->em->flush();
+
+        $this->logger->info('Auditoría de cambio por usuario creada', [
+            'previous_session_id' => $previousSession->getId(),
+            'new_session_id' => $newSession->getId(),
+            'user_identifier' => $user->getUserIdentifier(),
+            'reservation_id' => $reservation->getId(),
+            'has_reason' => $reason !== null,
+        ]);
+    }
 }
