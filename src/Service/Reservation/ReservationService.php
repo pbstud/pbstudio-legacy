@@ -53,8 +53,24 @@ readonly class ReservationService
         int $placeNumber,
         ?WaitingList $waitingList = null
     ): Reservation {
+
         if (1 > $placeNumber || $session->getExerciseRoomCapacity() < $placeNumber) {
             throw new ReservationException('El lugar seleccionado no es válido.');
+        }
+
+        // Validación: ¿El asiento ya está ocupado en esta sesión?
+        $asientoOcupado = $this->reservationRepository->findOneBy([
+            'session' => $session,
+            'placeNumber' => $placeNumber,
+            'isAvailable' => true,
+        ]);
+        if ($asientoOcupado) {
+            // Si el asiento está ocupado por el mismo usuario, es duplicidad
+            if ($asientoOcupado->getUser() && $asientoOcupado->getUser()->getId() === $user->getId()) {
+                throw new ReservationException('Ya tienes reservada este asiento en esta sesión.');
+            } else {
+                throw new ReservationException('El asiento seleccionado ya está ocupado por otro usuario en esta sesión.');
+            }
         }
 
         // Verifica si hay que indicar que esta full la clase.
@@ -230,8 +246,30 @@ readonly class ReservationService
         Session $session,
         int $placeNumber,
     ): Reservation {
+
         if (1 > $placeNumber || $session->getExerciseRoomCapacity() < $placeNumber) {
             throw new ReservationException('El lugar seleccionado no es válido.');
+        }
+
+        // Validación: ¿El asiento destino está ocupado por otro usuario?
+        $asientoOcupado = $this->reservationRepository->findOneBy([
+            'session' => $session,
+            'placeNumber' => $placeNumber,
+            'isAvailable' => true,
+        ]);
+        if ($asientoOcupado && $asientoOcupado->getUser()->getId() !== $reservation->getUser()->getId()) {
+            throw new ReservationException('El asiento destino ya está ocupado por otro usuario en esta sesión.');
+        }
+
+        // Validación: ¿El usuario ya tiene ese asiento reservado en la sesión destino?
+        $misAsientos = $this->reservationRepository->findOneBy([
+            'session' => $session,
+            'placeNumber' => $placeNumber,
+            'user' => $reservation->getUser(),
+            'isAvailable' => true,
+        ]);
+        if ($misAsientos && $misAsientos->getId() !== $reservation->getId()) {
+            throw new ReservationException('Ya tienes reservado este asiento en la sesión destino.');
         }
 
         // Verifica si hay que indicar que esta full la clase.
