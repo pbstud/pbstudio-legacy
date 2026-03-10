@@ -121,11 +121,11 @@ Este listado se construye por bloques para no perder issues por numeración reut
 18. Issue #18 - IFELSE en DQL (TransactionRepository)
 19. Issue #19 - WaitingList sin control de autenticación
 20. Issue #20 - Contacto depende de configuración existente
-21. Issue #21 - WaitingList duplicada → **Jira: SCRUM-27** (combinado con #25, backlog)
+21. Issue #21 - WaitingList duplicada → Jira: SCRUM-27 (combinado con #25, backlog)
 22. Issue #22 - DATE/DAYNAME en DQL
 23. Issue #23 - FormView no renderizado
 24. Issue #24 - Nullable + NotBlank
-25. Issue #25 - WaitingList remove por GET sin CSRF → **Jira: SCRUM-27** (combinado con #21, backlog)
+25. Issue #25 - WaitingList remove por GET sin CSRF → Jira: SCRUM-27 (combinado con #21, backlog)
 26. Issue #26 - Acciones POST sin CSRF
 27. Issue #27 - Acciones sensibles por GET
 28. Issue #28 - Falta de tests automatizados
@@ -674,7 +674,7 @@ STATUS HISTÓRICO (captura original): 15,000+ PALABRAS | 60+ EJEMPLOS | 20+ DIAG
    └─ Riesgo de doble reservación (concurrencia)
       • Caso: requests simultáneos ocupan el mismo placeNumber
       • Causa: falta validación/lock atómico
-      • Status: 🟠 REPORTADO, PENDIENTE SOLUCIÓN(✅ en jira)
+      • Status: 🟠 REPORTADO, PENDIENTE SOLUCIÓN (en Jira: SCRUM-24)
    └─ Mutación de dateStart en WaitingList
       • Caso: validate() modifica dateStart sin clonar
       • Causa: setTime() sobre objeto original
@@ -688,7 +688,7 @@ STATUS HISTÓRICO (captura original): 15,000+ PALABRAS | 60+ EJEMPLOS | 20+ DIAG
             backend/user/{id}/stats, backend/user/{id}/transactions, backend/user/{id}/reservations,
             backend/user/{id}/reservations/{reservation}, backend/coupon/validate
       • Causa: Falta IsGranted/roles en rutas
-      • Status: 🟠 REPORTADO, PENDIENTE SOLUCIÓN(✅ en jira)
+      • Status: 🟠 REPORTADO, PENDIENTE SOLUCIÓN (en Jira: SCRUM-25)
    └─ Ruta debug expone phpinfo()
       • Caso: backend/test ejecuta phpinfo() y exit()
       • Causa: Ruta de pruebas sin restricción
@@ -704,7 +704,7 @@ STATUS HISTÓRICO (captura original): 15,000+ PALABRAS | 60+ EJEMPLOS | 20+ DIAG
    └─ ADDTIME en DQL (WaitingListRepository)
       • Caso: getAvailableForExpire() usa ADDTIME
       • Causa: DQL puede fallar en MySQL sin función custom
-      • Status: 🟡 REPORTADO, PENDIENTE SOLUCIÓN(✅ en jira)
+      • Status: 🟡 REPORTADO, PENDIENTE SOLUCIÓN (en Jira: SCRUM-26)
    └─ getFirstPublic() sin manejo de null
       • Caso: BranchOfficeRepository::getFirstPublic() puede retornar null
       • Causa: Retorno no nullable
@@ -728,12 +728,12 @@ STATUS HISTÓRICO (captura original): 15,000+ PALABRAS | 60+ EJEMPLOS | 20+ DIAG
    └─ WaitingList duplicada
       • Caso: WaitingListService::add() no valida duplicados
       • Causa: Falta check en repo antes de persistir
-      • Status: � En Jira SCRUM-27 (combinado con #25, backlog sin sprint)
-   └─ WaitingList remove por GET
+      • Status: 🟡 REPORTADO, PENDIENTE SOLUCIÓN
+   └─ WaitingList remove por GET (en Jira: SCRUM-27)
       • Caso: ProfileController::waitingListRemove() elimina por GET
       • Causa: Side-effects sin CSRF ni metodo seguro
-      • Status: 📋 En Jira SCRUM-27 (combinado con #21, backlog sin sprint)
-   └─ Acciones POST sin CSRF(✅ en jira)
+      • Status: 🟠 REPORTADO, PENDIENTE SOLUCIÓN (en Jira: SCRUM-27)
+   └─ Acciones POST sin CSRF (en Jira)
       • Caso: reservation_confirm, reservation_waitinglist, reservation_cancel,
             reservation_change_session, package_checkout,
             backend_reservation_attended, backend_transaction_cancel/edit_expiration,
@@ -751,7 +751,7 @@ STATUS HISTÓRICO (captura original): 15,000+ PALABRAS | 60+ EJEMPLOS | 20+ DIAG
    └─ N+1 queries en listados
       • Caso: getReservationsBySession / getByUser / getAllCompletedByUser sin joins
       • Causa: Lazy loading de relaciones en vistas clave
-      • Status: 🟡 REPORTADO, PENDIENTE SOLUCIÓN
+      • Status: 🟡 REPORTADO, PENDIENTE SOLUCIÓN (en Jira: SCRUM-28/SCRUM-36)
    └─ Checkout sin usuario autenticado
       • Caso: package_checkout permite POST sin ROLE_USER
       • Causa: TransactionService::create usa getUser() y asume user no null

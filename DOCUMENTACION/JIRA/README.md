@@ -1,178 +1,73 @@
-# 📋 JIRA - Gestión del Proyecto
+# JIRA - Operacion y Automatizacion
 
-Esta carpeta contiene toda la documentación y recursos relacionados con la gestión del proyecto en Jira.
+Esta carpeta fue depurada para mantener solo lo indispensable en la raiz y mover el material historico a una carpeta de archivo.
 
----
+## Estructura actual (limpia)
 
-## 📂 Contenido de la Carpeta
+Archivos activos en esta carpeta:
 
-### 📄 Documentación
+1. README.md
+2. JIRA_GUIA_UNICA_JSON_API.md
+3. TAREAS_SUBTAREAS_EPICA_PERFORMANCE.md
+4. create_tasks_subtasks.ps1
+5. fix_and_improve.ps1
+6. link_to_epic.ps1
 
-1. **JIRA_GUIA_UNICA_JSON_API.md**
-   - Guía técnica completa de la API REST de Jira
-   - Endpoints disponibles
-   - Ejemplos de uso con PowerShell
-   - Referencia de campos personalizados
+Carpeta de historico:
 
-2. **TAREAS_SUBTAREAS_EPICA_PERFORMANCE.md**
-   - Estructura completa de la épica de Performance en Caja/Pagos
-   - 8 historias (SCRUM-34 a SCRUM-41)
-   - 24 tareas detalladas
-   - 61 subtareas con pasos específicos
-   - Guía para creación manual en Jira
+- ARCHIVO_20260310/
+- Contiene scripts de prueba, resultados puntuales, snapshots JSON y logs de ejecucion que ya no son necesarios para la operacion diaria.
 
-### 🔧 Scripts de Automatización
+## Criterio de limpieza aplicado
 
-1. **create_epic_simple.ps1**
-   - Script para crear épica + historias en Jira
-   - Versión simplificada y funcional
+Se dejaron en raiz solo archivos que cumplen al menos uno de estos criterios:
 
-2. **create_epic_structure.ps1**
-   - Script completo para crear épica + historias + tareas + subtareas
-   - Versión completa (requiere ajustes para evitar errores de buffer)
+1. Documentacion base del flujo Jira.
+2. Script reutilizable para creacion/correccion operativa.
+3. Referencia principal para la epica de performance.
 
-3. **create_stories.ps1**
-   - Script para crear las 8 historias de la épica
-   - Vinculación automática a épica padre
+Se movio a archivo historico todo lo demas:
 
-4. **link_to_epic.ps1**
-   - Script para vincular historias existentes a una épica
-   - Útil para correcciones o reorganización
+1. Scripts one-shot (pruebas puntuales o retries de incidencias especificas).
+2. Logs y resultados de corrida.
+3. Snapshots intermedios y archivos auxiliares temporales.
 
----
+## Estado operativo Jira (10/03/2026)
 
-## 🎯 Proyecto Actual en Jira
+1. SCRUM-33 con historias SCRUM-34 a SCRUM-41 y subtareas optimizadas.
+2. Issues de hardening revisados y con descripciones reforzadas.
+3. SCRUM-20 movido a la epica correcta (SCRUM-32).
+4. Primera subtask de arranque creada para SCRUM-20 (SCRUM-62).
 
-**Instancia:** https://devpbstudio.atlassian.net  
-**Proyecto:** SCRUM  
-**Board ID:** 1
+## Uso rapido
 
-### Sprints Activos:
-- **Sprint 1** (ID: 34) - 9-16 Marzo 2026
-- **Sprint 2** (ID: 35) - Siguiente iteración
+Crear estructura reducida de subtareas:
 
----
-
-## 🏗️ Estructura de Issues Creados
-
-### Épicas Activas:
-
-#### **SCRUM-33: Optimización de Consultas y Performance en Caja/Pagos**
-- **Epic Name:** PERF-CAJA
-- **Prioridad:** High
-- **Labels:** performance, database, optimization, backend, caja-pagos
-- **Estado:** En progreso
-
-**Historias vinculadas:**
-- SCRUM-34: Análisis y Diagnóstico de Performance (3h)
-- SCRUM-35: Optimización de Índices en Base de Datos (4h)
-- SCRUM-36: Refactorización de Queries con N+1 (6h)
-- SCRUM-37: Implementación de Caché en Consultas Frecuentes (4h)
-- SCRUM-38: Optimización de Paginación y Carga (3h)
-- SCRUM-39: Testing y Validación de Performance (5h)
-- SCRUM-40: Monitoreo y Métricas en Producción (4h)
-- SCRUM-41: Documentación y Knowledge Transfer (3h)
-
-### Otras Épicas Propuestas:
-
-1. **Bugs en Usuario**
-   - Correcciones de errores relacionados con gestión de usuarios
-   - Issues de validación, permisos, y flujos de registro
-
-2. **Gestión y Estabilización de Correos Transaccionales**
-   - Correos de notificación
-   - Lista de espera
-   - Confirmaciones de reserva
-
-3. **Estabilización General y Corrección de Errores Críticos**
-   - Seguridad (CSRF, autenticación)
-   - Validaciones y constraints
-   - Performance general
-
----
-
-## 🔑 Configuración de Autenticación
-
-**Email:** desarrollo.pbstudio@outlook.com  
-**Token API:** (Ver archivo de configuración seguro - no incluido en repo)
-
-### Generar Nuevo Token:
-1. Ir a: https://id.atlassian.com/manage-profile/security/api-tokens
-2. Crear nuevo token API
-3. Actualizar en scripts de PowerShell
-
----
-
-## 📊 Issues Técnicos Registrados
-
-### En Backlog (sin sprint asignado):
-- **SCRUM-24:** Riesgo de concurrencia/doble reservación
-- **SCRUM-25:** Endpoints backend sin control de acceso
-- **SCRUM-26:** ADDTIME en DQL - compatibilidad MySQL
-- **SCRUM-27:** WaitingList duplicados + eliminación GET insegura
-- **SCRUM-29:** Queries N+1 en listados
-
-### En Sprint Activo:
-- (Por asignar según capacidad del equipo)
-
----
-
-## 📝 Campos Personalizados de Jira
-
-- **customfield_10011:** Epic Name
-- **customfield_10014:** Epic Link (ID de la épica padre)
-- **customfield_10020:** Sprint
-
----
-
-## 🚀 Uso de Scripts
-
-### Crear Historias:
 ```powershell
-powershell -ExecutionPolicy Bypass -File "DOCUMENTACION\JIRA\create_stories.ps1"
+powershell -ExecutionPolicy Bypass -File "DOCUMENTACION\JIRA\create_tasks_subtasks.ps1"
 ```
 
-### Vincular a Épica:
+Aplicar lote de correcciones de calidad/prioridad/descripciones:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File "DOCUMENTACION\JIRA\fix_and_improve.ps1"
+```
+
+Vincular historias o incidencias a epica cuando aplique:
+
 ```powershell
 powershell -ExecutionPolicy Bypass -File "DOCUMENTACION\JIRA\link_to_epic.ps1"
 ```
 
-### Nota sobre PSReadLine:
-Si los scripts dan error de buffer, ejecutar en background o usar archivos de output:
-```powershell
-$result = script... | Out-File "resultado.txt"
-```
+## Nota tecnica
 
----
+En consolas con errores de PSReadLine por buffer, preferir ejecucion por archivo .ps1 (no comandos largos en una sola linea) y/o redireccion de salida a archivo.
 
-## 📖 Convenciones de Nomenclatura
+## Mantenimiento futuro
 
-### Issues:
-- **Epic:** Nombre descriptivo del objetivo general
-- **Story:** "Como [rol] quiero [acción] para [beneficio]"
-- **Task:** Verbo infinitivo + objeto (ej: "Crear índices en tabla X")
-- **Sub-task:** Paso específico y accionable
+1. Mantener la raiz de esta carpeta con maximo 5-8 archivos activos.
+2. Cualquier script temporal nuevo debe moverse a ARCHIVO_YYYYMMDD al finalizar.
+3. Si un script temporal se vuelve reutilizable, promoverlo a la raiz y documentarlo aqui.
 
-### Labels:
-- Tecnología: `performance`, `database`, `security`, `frontend`, `backend`
-- Tipo: `bug`, `feature`, `refactor`, `documentation`
-- Módulo: `caja-pagos`, `reservaciones`, `usuarios`, `correos`
-- Prioridad visual: `critico`, `importante`
-
----
-
-## 🎯 Próximos Pasos
-
-1. ✅ Épica SCRUM-33 creada y actualizada
-2. ✅ 8 Historias creadas (SCRUM-34 a SCRUM-41)
-3. ⏳ Vincular historias a épica manualmente en Jira UI
-4. ⏳ Crear tareas para cada historia
-5. ⏳ Crear subtareas para cada tarea
-6. ⏳ Asignar a sprints según capacidad
-7. ⏳ Definir estimaciones finales
-8. ⏳ Asignar responsables
-
----
-
-**Última actualización:** 09/03/2026  
-**Responsable:** Equipo de desarrollo PB Studio
+Ultima actualizacion: 10/03/2026
+Responsable: Equipo de desarrollo PB Studio
