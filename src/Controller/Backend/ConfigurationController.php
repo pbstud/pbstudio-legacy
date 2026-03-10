@@ -103,7 +103,19 @@ class ConfigurationController extends AbstractController
                 $entity->setModule($module);
             }
 
-            $values = $this->castValues($module, $values);
+            try {
+                $values = $this->castValues($module, $values);
+            } catch (\InvalidArgumentException $exception) {
+                // Ensure pending managed entities are discarded for this request path.
+                $em->clear();
+
+                $this->addFlash('danger', sprintf(
+                    'Fecha invalida detectada. No se guardaron cambios. %s',
+                    $exception->getMessage(),
+                ));
+
+                return $this->redirectToRoute('backend_configuration');
+            }
 
             $entity->setData($values);
             $em->persist($entity);
@@ -168,12 +180,31 @@ class ConfigurationController extends AbstractController
             }
 
             $values[$field] = match ($this->cast[$module][$field]) {
-                'date' => \DateTime::createFromFormat('d/m/Y', $value)->format('Y-m-d'),
+                'date' => $this->castDateValue($module, $field, (string) $value),
                 default => $value,
             };
         }
 
         return $values;
+    }
+
+    private function castDateValue(string $module, string $field, string $value): string
+    {
+        $input = trim($value);
+        $date = \DateTimeImmutable::createFromFormat('!d/m/Y', $input);
+        $errors = \DateTimeImmutable::getLastErrors();
+        $hasParseErrors = is_array($errors)
+            && (($errors['warning_count'] ?? 0) > 0 || ($errors['error_count'] ?? 0) > 0);
+
+        if (!$date || $hasParseErrors || $date->format('d/m/Y') !== $input) {
+            throw new \InvalidArgumentException(sprintf(
+                'La fecha para "%s.%s" es invalida. Usa el formato d/m/Y.',
+                $module,
+                $field,
+            ));
+        }
+
+        return $date->format('Y-m-d');
     }
 
     private function reverseCast(string $module, ?array $values): array
@@ -188,11 +219,26 @@ class ConfigurationController extends AbstractController
             }
 
             $values[$field] = match ($this->cast[$module][$field]) {
-                'date' => (new \DateTime($value))->format('d/m/Y'),
+                'date' => $this->reverseCastDateValue((string) $value),
                 default => $value,
             };
         }
 
         return $values;
+    }
+
+    private function reverseCastDateValue(string $value): string
+    {
+        $input = trim($value);
+        $date = \DateTimeImmutable::createFromFormat('!Y-m-d', $input);
+        $errors = \DateTimeImmutable::getLastErrors();
+        $hasParseErrors = is_array($errors)
+            && (($errors['warning_count'] ?? 0) > 0 || ($errors['error_count'] ?? 0) > 0);
+
+        if (!$date || $hasParseErrors || $date->format('Y-m-d') !== $input) {
+            return $value;
+        }
+
+        return $date->format('d/m/Y');
     }
 }
