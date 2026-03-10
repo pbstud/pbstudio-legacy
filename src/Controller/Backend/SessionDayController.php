@@ -14,16 +14,22 @@ use App\Repository\SessionRepository;
 use App\Repository\StaffRepository;
 use App\Util\Schedule;
 use Doctrine\ORM\EntityManagerInterface;
+use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
+use Symfony\Component\HttpKernel\Attribute\MapDateTime;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/backend/session-day')]
 class SessionDayController extends AbstractController
 {
+    public function __construct(private LoggerInterface $logger)
+    {
+    }
+
     #[Route('/', name: 'backend_session_day', methods: ['GET'])]
     #[IsGranted('ALLOWED_ROUTE_ACCESS')]
     public function index(SessionRepository $sessionRepository): Response
@@ -70,12 +76,23 @@ class SessionDayController extends AbstractController
         ];
 
         if ('POST' === $request->getMethod()) {
+            $this->logger->info('[SessionDay] newDay POST recibido', [
+                'branch_office' => $branchOfficeId,
+                'user'          => $this->getUser()?->getUserIdentifier(),
+                'ip'            => $request->getClientIp(),
+            ]);
+
             try {
                 $sessions = $request->request->all('session');
                 $schedules = $sessions['schedules'];
                 $information = $sessions['information'];
 
                 $newDate = \DateTime::createFromFormat('d/m/Y', $sessions['dateStart']);
+
+                $this->logger->debug('[SessionDay] Fecha parseada en newDay', [
+                    'raw_input' => $sessions['dateStart'] ?? null,
+                    'parsed'    => $newDate instanceof \DateTime ? $newDate->format('Y-m-d') : 'FALLO_PARSEO',
+                ]);
 
                 $currentDate = new \DateTime();
                 if ($currentDate >= $newDate) {
@@ -88,6 +105,8 @@ class SessionDayController extends AbstractController
                     $hour = $time;
                     [$timeHour, $timeMinute] = explode(':', $time);
                     $newDate = $newDate->setTime((int) $timeHour, (int) $timeMinute);
+
+                    $this->logger->debug('[SessionDay] Procesando horario', ['time' => $time]);
 
                     foreach ($schedule as $exerciseRoom => $instructor) {
                         $info = !empty($information[$hour][$exerciseRoom]) ? $information[$hour][$exerciseRoom] : null;
@@ -111,6 +130,12 @@ class SessionDayController extends AbstractController
                                 ->setBranchOffice($branchOffice)
                             ;
 
+                            $this->logger->debug('[SessionDay] Creando sesión', [
+                                'fecha'       => $newDate->format('Y-m-d H:i:s'),
+                                'sala'        => $exerciseRoom?->getId(),
+                                'instructor'  => $instructor?->getId(),
+                            ]);
+
                             $em->persist($session);
                             $em->flush();
                         }
@@ -124,6 +149,12 @@ class SessionDayController extends AbstractController
                     'branchOfficeId' => $branchOfficeId,
                 ]);
             } catch (\Exception $e) {
+                $this->logger->error('[SessionDay] Excepción en newDay', [
+                    'mensaje' => $e->getMessage(),
+                    'clase'   => get_class($e),
+                    'trace'   => $e->getTraceAsString(),
+                ]);
+
                 $data['data'] = $request->request->get('session');
             }
         }
@@ -145,14 +176,27 @@ class SessionDayController extends AbstractController
     #[IsGranted('ALLOWED_ROUTE_ACCESS')]
     public function editDay(
         Request $request,
+        #[MapDateTime(format: 'd-m-Y')]
         \DateTime $editDate,
         int $branchOfficeId,
         Schedule $scheduleUtil,
         EntityManagerInterface $em,
         SessionInterface $sessionRequest,
     ): Response {
+        $this->logger->info('[SessionDay] editDay invocado', [
+            'editDate'       => $editDate->format('Y-m-d'),
+            'branchOfficeId' => $branchOfficeId,
+            'user'           => $this->getUser()?->getUserIdentifier(),
+            'method'         => $request->getMethod(),
+            'ip'             => $request->getClientIp(),
+        ]);
+
         $currentDate = new \DateTime();
         if ($currentDate >= $editDate) {
+            $this->logger->warning('[SessionDay] Fecha no editable (es pasada o hoy)', [
+                'editDate' => $editDate->format('Y-m-d'),
+            ]);
+
             $this->addFlash('danger', 'Solo se pueden editar fechas futuras.');
 
             return $this->redirectToRoute('backend_session');
@@ -168,6 +212,12 @@ class SessionDayController extends AbstractController
             'branchOffice' => $branchOfficeId,
         ]);
 
+        $this->logger->debug('[SessionDay] Sesiones encontradas en BD', [
+            'fecha'    => $editDate->format('Y-m-d'),
+            'sucursal' => $branchOfficeId,
+            'total'    => count($sessions),
+        ]);
+
         /** @var BranchOfficeRepository $branchOfficeRepository */
         $branchOfficeRepository = $em->getRepository(BranchOffice::class);
 
@@ -178,6 +228,11 @@ class SessionDayController extends AbstractController
         ];
 
         if (!$sessions) {
+            $this->logger->warning('[SessionDay] Sin sesiones para esa fecha — redirigiendo a newDay', [
+                'fecha'    => $editDate->format('Y-m-d'),
+                'sucursal' => $branchOfficeId,
+            ]);
+
             $sessionRequest->set('dateStart', $editDate);
 
             return $this->redirectToRoute('backend_session_day_new');
@@ -199,6 +254,12 @@ class SessionDayController extends AbstractController
         }
 
         if ('POST' === $request->getMethod()) {
+            $this->logger->info('[SessionDay] editDay POST recibido', [
+                'editDate'       => $editDate->format('Y-m-d'),
+                'branchOfficeId' => $branchOfficeId,
+                'user'           => $this->getUser()?->getUserIdentifier(),
+            ]);
+
             $sessions = $request->request->all('session');
             $schedules = $sessions['schedules'];
             $information = $sessions['information'];
@@ -221,6 +282,13 @@ class SessionDayController extends AbstractController
                         $key = $session['session'].$session['instructor'].$info.$capacity.$this->getParameter('secret');
                         $hash = hash('md5', $key);
 
+                        $this->logger->debug('[SessionDay] Validando hash de sesión existente', [
+                            'session_id'      => $session['session'] ?? null,
+                            'hash_calculado'  => $hash,
+                            'hash_recibido'   => $session['hash'],
+                            'coincide'        => hash_equals($hash, $session['hash']),
+                        ]);
+
                         if (!hash_equals($hash, $session['hash'])) {
                             $instructor = $instructorRepository->findOneById($session['instructor']);
 
@@ -232,6 +300,11 @@ class SessionDayController extends AbstractController
                                 ->updateAvailableCapacity()
                             ;
 
+                            $this->logger->info('[SessionDay] Sesión actualizada por cambio de hash', [
+                                'session_id'  => $session->getId(),
+                                'instructor'  => $instructor?->getId(),
+                            ]);
+
                             $em->flush();
                         }
                     } else {
@@ -239,6 +312,12 @@ class SessionDayController extends AbstractController
                         $exerciseRoom = $exerciseRoomRepository->findOneById($exerciseRoom);
                         $instructor = $instructorRepository->findOneById($session['instructor']);
                         $capacity = $capacity > 0 ? $capacity : $exerciseRoom->getCapacity();
+
+                        $this->logger->info('[SessionDay] Nueva sesión añadida en editDay', [
+                            'fecha'      => $editDate->format('Y-m-d H:i:s'),
+                            'sala'       => $exerciseRoom?->getId(),
+                            'instructor' => $instructor?->getId(),
+                        ]);
 
                         $session = new Session();
                         $session
