@@ -1052,19 +1052,32 @@ var/log/dev.log  ← Ya existe (2.7 MB actual)
 
 **Severidad:** 🟡 MENOR
 
-**Contexto:** createFromFormat sin validar en [src/Controller/Backend/ConfigurationController.php](../src/Controller/Backend/ConfigurationController.php).
+**Status:** ✅ IMPLEMENTADO EN RAMA `fix/scrum-80-fecha-invalida-configuracion` (10/03/2026)
+
+**Contexto:** createFromFormat sin validacion estricta en [src/Controller/Backend/ConfigurationController.php](../src/Controller/Backend/ConfigurationController.php).
 
 **Rutas/Flujo:** /backend/settings/update
 
-**Problema:** `ConfigurationController::castValues()` usa `createFromFormat()->format()` sin validar.
+**Problema original:** `ConfigurationController::castValues()` usaba `createFromFormat()->format()` sin validar.
+Adicionalmente, fechas overflow como `99/99/2026` no fallan por defecto en PHP: se normalizan a otra fecha valida (ej. `2034-06-07`), lo cual tambien era incorrecto para este flujo.
 
-**Riesgo:** Error 500 si el usuario ingresa fecha invalida.
+**Riesgo:**
+- Error 500 con entradas no parseables (ej. `foo`, `31-12-2026`).
+- Persistencia de fecha distinta a la ingresada cuando PHP normaliza overflow (ej. `99/99/2026`).
 
-**Fix sugerido:**
-- Validar retorno antes de `format()`.
+**Fix aplicado:**
+- `ConfigurationController::castValues()` ahora usa casteo estricto con `castDateValue()`.
+- Se valida parseo con `createFromFormat('!d/m/Y', ...)`, `getLastErrors()` y comparacion exacta contra input.
+- Si la fecha es invalida (incluyendo overflow tipo `99/99/2026`), se lanza excepcion controlada.
+- En `update()`, al capturar la excepcion se corta el proceso, se limpia contexto del EntityManager, se muestra feedback `danger` y se redirige sin persistir cambios.
+- Se ajusto el tipo de flash a `danger` para que el layout backend lo renderice correctamente.
 
-**Tiempo:** 25 minutos  
-**Test:** Enviar fecha invalida y verificar respuesta.
+**Tiempo real:** ~35 minutos  
+**Validacion ejecutada:**
+- `10/03/2026` -> se convierte y guarda como `2026-03-10`.
+- `31-12-2026` y `foo` -> ya no generan 500; se marca fecha invalida y no guarda.
+- `99/99/2026` -> rechazada (ya no se normaliza silenciosamente).
+- Test automatizado: `tests/Controller/Backend/ConfigurationControllerTest.php` (4/4 OK).
 
 ---
 
