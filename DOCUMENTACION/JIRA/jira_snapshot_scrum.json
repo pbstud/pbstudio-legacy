@@ -1,0 +1,74 @@
+﻿[
+    {
+        "Key":  "SCRUM-20",
+        "Type":  "Error",
+        "Status":  "Tareas por hacer",
+        "Sprint":  "SCRUM Sprint 1",
+        "Summary":  "Error en Carga Masiva de Horarios - Planeamiento Masivo no funciona",
+        "Created":  "2026-03-09T13:02:55.562-0600"
+    },
+    {
+        "Key":  "SCRUM-21",
+        "Type":  "Feature",
+        "Status":  "Tareas por hacer",
+        "Sprint":  "SCRUM Sprint 2",
+        "Summary":  "Notificaciones automaticas por cambio de clase a estudiantes inscritos",
+        "Created":  "2026-03-09T13:13:13.551-0600"
+    },
+    {
+        "Key":  "SCRUM-22",
+        "Type":  "Feature",
+        "Status":  "Tareas por hacer",
+        "Sprint":  "SCRUM Sprint 2",
+        "Summary":  "Validar y completar sistema de correos automaticos para lista de espera",
+        "Created":  "2026-03-09T13:16:30.474-0600"
+    },
+    {
+        "Key":  "SCRUM-23",
+        "Type":  "Error",
+        "Status":  "Tareas por hacer",
+        "Sprint":  "SCRUM Sprint 1",
+        "Summary":  "Cambio de Reservacion - No aparecen clases disponibles (consulta incorrecta)",
+        "Created":  "2026-03-09T13:19:00.188-0600"
+    },
+    {
+        "Key":  "SCRUM-24",
+        "Type":  "Error",
+        "Status":  "Tareas por hacer",
+        "Sprint":  "(none)",
+        "Summary":  "Error: Riesgo de doble reservacion por concurrencia",
+        "Created":  "2026-03-09T15:34:20.356-0600"
+    },
+    {
+        "Key":  "SCRUM-25",
+        "Type":  "Error",
+        "Status":  "Tareas por hacer",
+        "Sprint":  "(none)",
+        "Summary":  "Error: Endpoints backend sin control de acceso",
+        "Created":  "2026-03-09T15:41:20.341-0600"
+    },
+    {
+        "Key":  "SCRUM-26",
+        "Type":  "Error",
+        "Status":  "Tareas por hacer",
+        "Sprint":  "(none)",
+        "Summary":  "Error: ADDTIME en DQL (WaitingListRepository) no compatible con MySQL",
+        "Created":  "2026-03-09T15:43:16.414-0600"
+    },
+    {
+        "Key":  "SCRUM-27",
+        "Type":  "Error",
+        "Status":  "Tareas por hacer",
+        "Sprint":  "(none)",
+        "Summary":  "Error: WaitingList - validacion duplicados y seguridad en borrado",
+        "Created":  "2026-03-09T15:47:39.098-0600"
+    },
+    {
+        "Key":  "SCRUM-29",
+        "Type":  "N/A",
+        "Status":  "N/A",
+        "Sprint":  "N/A",
+        "Summary":  "Not found",
+        "Created":  "N/A"
+    }
+]

@@ -109,23 +109,23 @@ Este listado se construye por bloques para no perder issues por numeración reut
 6. Issue #6 - Logging & Audits (mejorado)
 7. Issue #7 - Validaciones adicionales
 8. Issue #8 - Riesgo de doble reservación (concurrencia)
-9. Issue #9 - Mutación de dateStart en WaitingList
+9. Issue #9 - Mutación de dateStart en WaitingList (resuelto con #1)
 10. Issue #10 - DATEADD en DQL (compatibilidad)
 11. Issue #11 - Endpoints backend sin control de acceso
 12. Issue #12 - Ruta debug expone phpinfo()
 13. Issue #13 - Tipo de clase en ExerciseRoomController
-14. Issue #14 - Reuso de DateTime en SessionDayController
+14. Issue #14 - Reuso de DateTime en SessionDayController (resuelto con #1)
 15. Issue #15 - ADDTIME en DQL (WaitingListRepository)
 16. Issue #16 - getFirstPublic() puede retornar null
 17. Issue #17 - Validación tipo `digit` en User
 18. Issue #18 - IFELSE en DQL (TransactionRepository)
 19. Issue #19 - WaitingList sin control de autenticación
 20. Issue #20 - Contacto depende de configuración existente
-21. Issue #21 - WaitingList duplicada
+21. Issue #21 - WaitingList duplicada → **Jira: SCRUM-27** (combinado con #25, backlog)
 22. Issue #22 - DATE/DAYNAME en DQL
 23. Issue #23 - FormView no renderizado
 24. Issue #24 - Nullable + NotBlank
-25. Issue #25 - WaitingList remove por GET sin CSRF
+25. Issue #25 - WaitingList remove por GET sin CSRF → **Jira: SCRUM-27** (combinado con #21, backlog)
 26. Issue #26 - Acciones POST sin CSRF
 27. Issue #27 - Acciones sensibles por GET
 28. Issue #28 - Falta de tests automatizados
@@ -674,11 +674,11 @@ STATUS HISTÓRICO (captura original): 15,000+ PALABRAS | 60+ EJEMPLOS | 20+ DIAG
    └─ Riesgo de doble reservación (concurrencia)
       • Caso: requests simultáneos ocupan el mismo placeNumber
       • Causa: falta validación/lock atómico
-      • Status: 🟠 REPORTADO, PENDIENTE SOLUCIÓN
+      • Status: 🟠 REPORTADO, PENDIENTE SOLUCIÓN(✅ en jira)
    └─ Mutación de dateStart en WaitingList
       • Caso: validate() modifica dateStart sin clonar
       • Causa: setTime() sobre objeto original
-      • Status: 🟡 REPORTADO, PENDIENTE SOLUCIÓN
+      • Status: ✅ RESUELTO (02/03/2026) - incluido en fix DateTime Immutability
    └─ DATEADD en DQL (compatibilidad)
       • Caso: SessionRepository::getNotClosed() usa DATEADD
       • Causa: DQL puede fallar en MySQL sin función custom
@@ -688,7 +688,7 @@ STATUS HISTÓRICO (captura original): 15,000+ PALABRAS | 60+ EJEMPLOS | 20+ DIAG
             backend/user/{id}/stats, backend/user/{id}/transactions, backend/user/{id}/reservations,
             backend/user/{id}/reservations/{reservation}, backend/coupon/validate
       • Causa: Falta IsGranted/roles en rutas
-      • Status: 🟠 REPORTADO, PENDIENTE SOLUCIÓN
+      • Status: 🟠 REPORTADO, PENDIENTE SOLUCIÓN(✅ en jira)
    └─ Ruta debug expone phpinfo()
       • Caso: backend/test ejecuta phpinfo() y exit()
       • Causa: Ruta de pruebas sin restricción
@@ -700,11 +700,11 @@ STATUS HISTÓRICO (captura original): 15,000+ PALABRAS | 60+ EJEMPLOS | 20+ DIAG
    └─ Reuso de DateTime en SessionDayController
       • Caso: newDay/editDay usan el mismo DateTime para varias sesiones
       • Causa: Mutacion de objeto compartido
-      • Status: 🟡 REPORTADO, PENDIENTE SOLUCIÓN
+      • Status: ✅ RESUELTO (02/03/2026) - incluido en fix DateTime Immutability
    └─ ADDTIME en DQL (WaitingListRepository)
       • Caso: getAvailableForExpire() usa ADDTIME
       • Causa: DQL puede fallar en MySQL sin función custom
-      • Status: 🟡 REPORTADO, PENDIENTE SOLUCIÓN
+      • Status: 🟡 REPORTADO, PENDIENTE SOLUCIÓN(✅ en jira)
    └─ getFirstPublic() sin manejo de null
       • Caso: BranchOfficeRepository::getFirstPublic() puede retornar null
       • Causa: Retorno no nullable
@@ -728,12 +728,12 @@ STATUS HISTÓRICO (captura original): 15,000+ PALABRAS | 60+ EJEMPLOS | 20+ DIAG
    └─ WaitingList duplicada
       • Caso: WaitingListService::add() no valida duplicados
       • Causa: Falta check en repo antes de persistir
-      • Status: 🟡 REPORTADO, PENDIENTE SOLUCIÓN
+      • Status: � En Jira SCRUM-27 (combinado con #25, backlog sin sprint)
    └─ WaitingList remove por GET
       • Caso: ProfileController::waitingListRemove() elimina por GET
       • Causa: Side-effects sin CSRF ni metodo seguro
-      • Status: 🟠 REPORTADO, PENDIENTE SOLUCIÓN
-   └─ Acciones POST sin CSRF
+      • Status: 📋 En Jira SCRUM-27 (combinado con #21, backlog sin sprint)
+   └─ Acciones POST sin CSRF(✅ en jira)
       • Caso: reservation_confirm, reservation_waitinglist, reservation_cancel,
             reservation_change_session, package_checkout,
             backend_reservation_attended, backend_transaction_cancel/edit_expiration,

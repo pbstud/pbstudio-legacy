@@ -1,8 +1,8 @@
 # 📚 DOCUMENTACIÓN - PBStudio
 
-**Última actualización:** 04 Marzo 2026  
-**Total de documentos:** 14  
-**Tamaño total:** ~320 KB
+**Última actualización:** 09 Marzo 2026  
+**Total de documentos:** 14 + carpeta JIRA (7 archivos)  
+**Tamaño total:** ~360 KB
 ---
 
 ### 🚀 COMIENCE AQUÍ
@@ -126,7 +126,27 @@
 - Fases completadas
 - Bugs identificados y resueltos
 - Documentación completada
-### Para  (15 minutos)
+
+---
+
+### 🎯 GESTIÓN DE PROYECTO
+
+#### 11. [JIRA/](JIRA/) 📁
+- **Tipo:** Carpeta de gestión de proyecto
+- **Para:** Project Managers, Developers, QA
+- **Contiene:**
+  - [README.md](JIRA/README.md) - Índice completo de recursos Jira
+  - [JIRA_GUIA_UNICA_JSON_API.md](JIRA/JIRA_GUIA_UNICA_JSON_API.md) - API REST de Jira
+  - [TAREAS_SUBTAREAS_EPICA_PERFORMANCE.md](JIRA/TAREAS_SUBTAREAS_EPICA_PERFORMANCE.md) - Estructura completa de épica
+  - Scripts PowerShell para automatización (4 archivos)
+- **Épicas activas:**
+  - SCRUM-33: Optimización Performance Caja/Pagos (8 historias, 24 tareas, 61 subtareas)
+- **Issues en backlog:** SCRUM-24 a SCRUM-29
+- **URL:** https://devpbstudio.atlassian.net
+
+---
+
+### 📚 LECTURA RECOMENDADA
 ```
 1. RESUMEN.md (5 min)
    └─ ¿Listo para producción?
@@ -272,6 +292,14 @@ DOCUMENTACION/
 ├── GUIA_TECNICA_DESARROLLO.md
 ├── DIAGRAMA_RELACIONES.md
 ├── progreso.md
+├── JIRA/ (gestión de proyecto en Jira)
+│   ├── README.md
+│   ├── JIRA_GUIA_UNICA_JSON_API.md
+│   ├── TAREAS_SUBTAREAS_EPICA_PERFORMANCE.md
+│   ├── create_epic_simple.ps1
+│   ├── create_epic_structure.ps1
+│   ├── create_stories.ps1
+│   └── link_to_epic.ps1
 ├── FIXES/ (issues/features completados y documentados)
 │   ├── CSRF_PROTECTION_SECURITY_FIX.md
 │   ├── DATETIME_IMMUTABILITY_FIX.md

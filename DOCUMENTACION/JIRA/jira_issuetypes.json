@@ -1,0 +1,47 @@
+﻿[
+    {
+        "id":  "10002",
+        "name":  "Subtask",
+        "subtask":  true
+    },
+    {
+        "id":  "10005",
+        "name":  "Feature",
+        "subtask":  false
+    },
+    {
+        "id":  "10039",
+        "name":  "Error",
+        "subtask":  false
+    },
+    {
+        "id":  "10004",
+        "name":  "Historia",
+        "subtask":  false
+    },
+    {
+        "id":  "10006",
+        "name":  "Historia",
+        "subtask":  false
+    },
+    {
+        "id":  "10003",
+        "name":  "Tarea",
+        "subtask":  false
+    },
+    {
+        "id":  "10040",
+        "name":  "Tarea",
+        "subtask":  false
+    },
+    {
+        "id":  "10001",
+        "name":  "Epic",
+        "subtask":  false
+    },
+    {
+        "id":  "10000",
+        "name":  "Epic",
+        "subtask":  false
+    }
+]
