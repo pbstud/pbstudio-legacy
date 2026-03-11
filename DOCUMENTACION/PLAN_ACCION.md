@@ -1,10 +1,10 @@
 # 📋 PLAN DE ACCIÓN - PBStudio
 
 **Fecha actualización:** 10 Marzo 2026  
-**Status:** 50 issues identificados (42 previos + 8 nuevos de reunión 05/03)  
-**Issues resueltos (plan técnico):** 7 ✅  
+**Status:** 55 issues identificados (46 secuenciales + 8 nuevos de reunión DG renumerados #47-#54 + 1 nuevo de auditoría bidireccional)  
+**Issues resueltos (plan técnico):** 11 ✅ (N-1, N-3, N-5, #8, #29, #38 marcados en esta revisión)  
 **Tickets finalizados en Jira:** 19 ✅ (incluye épicas y subtareas)  
-**Issues pendientes (plan técnico):** 43 (8 NUEVOS aprobados por DG)  
+**Issues pendientes (plan técnico):** 44 (agrupados por categoría, sin duplicados)  
 **Timeline:** Fix inmediato → Producción en 5-6 días
 
 ---
@@ -92,15 +92,6 @@ SHOW INDEX FROM transaction;
 
 ---
 
-### Issue #3: ✅ PHP Memory Exhausted - RESUELTO (02/03/2026)
-
-**Tiempo Estimado:** 15 minutos  
-**Test:** Medir query time antes/después
-
-**Estado actual (02/03/2026):** ✅ Verificado en BD, indices presentes en reservation/transaction/waiting_list
-
----
-
 ### Issue #3: � PHP Memory Exhausted ✅
 
 **Status:** ✅ RESUELTO (02/03/2026)
@@ -171,9 +162,10 @@ php bin/console config:debug mailer
 
 ## 🟠 NUEVOS PENDIENTES (Agregar despues de criticos)
 
-### Issue N-1: 🟠 Subir horario masivo del dia
+### Issue N-1: ✅ Subir horario masivo del dia — RESUELTO
 
-**Severidad:** 🟠 IMPORTANTE
+**Severidad:** 🟠 IMPORTANTE  
+**Status:** ✅ RESUELTO - SCRUM-61/62 (Fix 403/404 en carga masiva, parseo de fecha corregido con MapDateTime. Ver FIXES/ISSUE_CARGA_MASIVA_HORARIOS.md)
 
 **Contexto:** Creacion masiva de sesiones desde backend en [src/Controller/Backend/SessionDayController.php](../src/Controller/Backend/SessionDayController.php).
 
@@ -215,9 +207,10 @@ php bin/console config:debug mailer
 
 ---
 
-### Issue N-3: 🟠 Editar foto en backend
+### Issue N-3: ✅ Editar foto en backend — RESUELTO
 
-**Severidad:** 🟠 IMPORTANTE
+**Severidad:** 🟠 IMPORTANTE  
+**Status:** ✅ RESUELTO - SCRUM-9 (Edición de foto de instructores implementada y verificada. Ver FIXES/FEATURE_EDITAR_FOTO_INSTRUCTORES.md)
 
 **Contexto:** Perfil de instructores en [src/Form/Backend/InstructorProfileType.php](../src/Form/Backend/InstructorProfileType.php) y [src/Entity/StaffProfile.php](../src/Entity/StaffProfile.php).
 
@@ -259,9 +252,10 @@ php bin/console config:debug mailer
 
 ---
 
-### Issue N-5: 🟠 Buscar usuario con errores (tipografia)
+### Issue N-5: ✅ Buscar usuario con errores (tipografia) — RESUELTO
 
-**Severidad:** 🟠 IMPORTANTE
+**Severidad:** 🟠 IMPORTANTE  
+**Status:** ✅ RESUELTO - SCRUM-8 (Búsqueda mejorada con normalización de acentos y nombre completo. Ver FIXES/FEATURE_BUSQUEDA_USUARIOS_MEJORADA.md)
 
 **Contexto:** Filtros de busqueda en backend en [src/Repository/UserRepository.php](../src/Repository/UserRepository.php).
 
@@ -325,9 +319,32 @@ php bin/console config:debug mailer
 
 ---
 
+### Issue N-8: 🟠 Auditoría bidireccional en cambio de reservación
+
+**Severidad:** 🟠 IMPORTANTE
+
+**Contexto:** El cambio de reservación por usuario registra auditoría principalmente en la sesión de origen. Referencias: [src/Controller/ProfileController.php](../src/Controller/ProfileController.php), [src/Service/ReservationCancellationService.php](../src/Service/ReservationCancellationService.php), [src/Controller/Backend/SessionController.php](../src/Controller/Backend/SessionController.php), [templates/backend/session/audit.html.twig](../templates/backend/session/audit.html.twig).
+
+**Rutas/Flujo:** /reservacion/{id}/cambiar/{sessionId}, /backend/session/{id}/audit
+
+**Sintoma:** El panel de auditoría no permite seguir completo el cambio desde ambas sesiones (de dónde salió y a cuál entró) con una correlación única.
+
+**Impacto:** Trazabilidad incompleta para soporte, validación operativa y análisis de incidencias.
+
+**Plan de solucion:**
+- Registrar dos eventos por cambio: salida (origen) y entrada (destino).
+- Vincular ambos registros con `change_flow_id`.
+- Exponer en panel backend detalle de cambio con referencia cruzada de flujo.
+- Mantener compatibilidad con eventos históricos `user_changed`.
+
+**Tiempo Estimado:** 3-5 horas  
+**Test:** Ejecutar cambio A -> B y verificar auditoría visible en panel de ambas sesiones con mismo `change_flow_id`.
+
+---
+
 ## 🟠 ISSUES IMPORTANTES (Esta Semana)
 
-### Issue #4: ⚡ Rate Limiting - Login
+### Issue #4b: ⚡ Rate Limiting - Login
 
 **Severidad:** 🟡 IMPORTANTE
 
@@ -378,9 +395,10 @@ class SecurityController
 
 ---
 
-### Issue #8: 🟠 Riesgo de doble reservación (Concurrencia)
+### Issue #8: ✅ Riesgo de doble reservación (Concurrencia) — RESUELTO
 
-**Severidad:** 🟠 IMPORTANTE
+**Severidad:** 🟠 IMPORTANTE  
+**Status:** ✅ RESUELTO - SCRUM-24 (Validación de concurrencia y constraint unique implementados. Ver FIXES/ISSUE_DOBLE_ASIENTO_CONCURRENCIA_Y_VALIDACION.md)
 
 **Contexto:** La reserva/cambio no usa lock transaccional en [src/Service/Reservation/ReservationService.php](../src/Service/Reservation/ReservationService.php).
 
@@ -929,9 +947,10 @@ var/log/dev.log  ← Ya existe (2.7 MB actual)
 
 ---
 
-### Issue #29: 🟡 N+1 queries en listados
+### Issue #29: ✅ N+1 queries en listados — RESUELTO
 
-**Severidad:** 🟡 MENOR
+**Severidad:** 🟡 MENOR  
+**Status:** ✅ RESUELTO - SCRUM-28 (Corrección N+1 en listados de reservaciones con fetch joins. Ver YA COMPLETADO)
 
 **Contexto:** Listados sin joins en [src/Repository/ReservationRepository.php](../src/Repository/ReservationRepository.php), [src/Repository/WaitingListRepository.php](../src/Repository/WaitingListRepository.php) y [src/Repository/TransactionRepository.php](../src/Repository/TransactionRepository.php).
 
@@ -1122,9 +1141,10 @@ Adicionalmente, fechas overflow como `99/99/2026` no fallan por defecto en PHP: 
 
 ---
 
-### Issue #38: 🟠 Doble asiento por falta de validacion
+### Issue #38: ✅ Doble asiento por falta de validacion — RESUELTO
 
-**Severidad:** 🟠 IMPORTANTE
+**Severidad:** 🟠 IMPORTANTE  
+**Status:** ✅ RESUELTO - SCRUM-24 (Cubre tanto el aspecto de concurrencia como la validación de lugar ocupado. Relacionado con Issue #8. Ver FIXES/ISSUE_DOBLE_ASIENTO_CONCURRENCIA_Y_VALIDACION.md)
 
 **Contexto:** Falta validacion y constraint unique en [src/Service/Reservation/ReservationService.php](../src/Service/Reservation/ReservationService.php) y [src/Entity/Reservation.php](../src/Entity/Reservation.php).
 
@@ -1478,7 +1498,7 @@ A continuación, los **8 nuevos temas de mejora** identificados en la reunión d
 
 ---
 
-### Issue #44: 📧 Prueba de Correos (Esperar Servidor)
+### Issue #48: 📧 Prueba de Correos (Esperar Servidor)
 
 **Prioridad:** 🟠 IMPORTANTE  
 **Timeline estimado:** 1-2 horas (cuando servidor esté activo)  
@@ -1499,7 +1519,7 @@ A continuación, los **8 nuevos temas de mejora** identificados en la reunión d
 
 ---
 
-### Issue #45: ⏰ Horario Abierto en Creación de Clases (Formateable)
+### Issue #49: ⏰ Horario Abierto en Creación de Clases (Formateable)
 
 **Prioridad:** 🟠 IMPORTANTE  
 **Timeline estimado:** 1.5-2 horas  
@@ -1522,7 +1542,7 @@ Sistema normaliza y guarda como: "09:30"
 
 ---
 
-### Issue #46: ⚠️ Confirmación al Cambiar Clase (Si Tiene Reservas)
+### Issue #50: ⚠️ Confirmación al Cambiar Clase (Si Tiene Reservas)
 
 **Prioridad:** 🟠 IMPORTANTE  
 **Timeline estimado:** 1.5 horas  
@@ -1711,7 +1731,7 @@ Si marca "predefinida":
 
 ---
 
-### Issue #48: 📷 Mejorar Info de Foto Instructores (Backend)
+### Issue #52: 📷 Mejorar Info de Foto Instructores (Backend)
 
 **Prioridad:** 🟡 MEDIA  
 **Timeline estimado:** 30 min  
@@ -1735,7 +1755,7 @@ Si marca "predefinida":
 
 ---
 
-### Issue #49: 🔍 Búsqueda de Usuarios - Nombre Y Apellido (Sin Duplicados)
+### Issue #53: 🔍 Búsqueda de Usuarios - Nombre Y Apellido (Sin Duplicados)
 
 **Prioridad:** 🟠 IMPORTANTE  
 **Timeline estimado:** 1.5 horas  
@@ -1764,7 +1784,7 @@ Resultados:
 
 ---
 
-### Issue #50: ⚡ Optimizar Queries - Caja/Pagos (BD - Índices Faltantes)
+### Issue #54: ⚡ Optimizar Queries - Caja/Pagos (BD - Índices Faltantes)
 
 **Prioridad:** 🔴 CRÍTICO  
 **Timeline estimado:** 1 hora (análisis) + 30 min (implementación)  

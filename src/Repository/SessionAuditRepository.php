@@ -34,10 +34,28 @@ class SessionAuditRepository extends ServiceEntityRepository
      */
     public function findByAdminUser($user): array
     {
+        $identifier = $user;
+        if (is_object($user) && method_exists($user, 'getUserIdentifier')) {
+            $identifier = $user->getUserIdentifier();
+        }
+
         return $this->createQueryBuilder('a')
-            ->where('a.adminUser = :user')
-            ->setParameter('user', $user)
+            ->where('a.adminUserIdentifier = :adminUserIdentifier')
+            ->setParameter('adminUserIdentifier', (string) $identifier)
             ->orderBy('a.createdAt', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * Obtiene eventos vinculados por flujo de cambio.
+     */
+    public function findByChangeFlowId(string $changeFlowId): array
+    {
+        return $this->createQueryBuilder('a')
+            ->where('a.changeFlowId = :changeFlowId')
+            ->setParameter('changeFlowId', $changeFlowId)
+            ->orderBy('a.createdAt', 'ASC')
             ->getQuery()
             ->getResult();
     }

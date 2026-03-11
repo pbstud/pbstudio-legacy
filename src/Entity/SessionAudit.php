@@ -10,6 +10,8 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Table(name: 'session_audit')]
 #[ORM\Index(columns: ['session_id'], name: 'idx_session')]
 #[ORM\Index(columns: ['created_at'], name: 'idx_created')]
+#[ORM\Index(columns: ['audit_type'], name: 'idx_audit_type')]
+#[ORM\Index(columns: ['change_flow_id'], name: 'idx_change_flow')]
 class SessionAudit
 {
     #[ORM\Id]
@@ -21,14 +23,14 @@ class SessionAudit
     #[ORM\JoinColumn(nullable: false)]
     private ?Session $session = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 255, nullable: true)]
     private ?string $adminUserIdentifier = null;  // Username/ID del admin que realizó la acción
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $userIdentifier = null;  // Username/ID del usuario que realiza acción (cancelar/cambiar)
 
     #[ORM\Column(length: 50)]
-    private ?string $auditType = null;  // 'place_disabled', 'user_cancelled', 'user_changed'
+    private ?string $auditType = null;  // 'place_disabled', 'user_cancelled', 'user_changed', 'user_changed_from', 'user_changed_to'
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $reason = null;  // Motivo del cambio (requerido para admin, opcional para usuario)
@@ -39,8 +41,26 @@ class SessionAudit
     #[ORM\Column(type: Types::JSON)]
     private array $affectedUsers = [];  // [{id: 1, name: 'Juan', email: 'juan@...', place: 3}, ...]
 
-    #[ORM\Column]
+    #[ORM\Column(nullable: true, options: ['default' => 0])]
     private ?int $affectedReservationsCount = 0;
+
+    #[ORM\Column(length: 36, nullable: true)]
+    private ?string $changeFlowId = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?int $reservationId = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?int $fromSessionId = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?int $toSessionId = null;
+
+    #[ORM\Column(type: Types::SMALLINT, nullable: true)]
+    private ?int $fromPlace = null;
+
+    #[ORM\Column(type: Types::SMALLINT, nullable: true)]
+    private ?int $toPlace = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
     private ?\DateTimeInterface $createdAt = null;
@@ -159,6 +179,78 @@ class SessionAudit
     public function setCreatedAt(\DateTimeInterface $createdAt): static
     {
         $this->createdAt = $createdAt;
+
+        return $this;
+    }
+
+    public function getChangeFlowId(): ?string
+    {
+        return $this->changeFlowId;
+    }
+
+    public function setChangeFlowId(?string $changeFlowId): static
+    {
+        $this->changeFlowId = $changeFlowId;
+
+        return $this;
+    }
+
+    public function getReservationId(): ?int
+    {
+        return $this->reservationId;
+    }
+
+    public function setReservationId(?int $reservationId): static
+    {
+        $this->reservationId = $reservationId;
+
+        return $this;
+    }
+
+    public function getFromSessionId(): ?int
+    {
+        return $this->fromSessionId;
+    }
+
+    public function setFromSessionId(?int $fromSessionId): static
+    {
+        $this->fromSessionId = $fromSessionId;
+
+        return $this;
+    }
+
+    public function getToSessionId(): ?int
+    {
+        return $this->toSessionId;
+    }
+
+    public function setToSessionId(?int $toSessionId): static
+    {
+        $this->toSessionId = $toSessionId;
+
+        return $this;
+    }
+
+    public function getFromPlace(): ?int
+    {
+        return $this->fromPlace;
+    }
+
+    public function setFromPlace(?int $fromPlace): static
+    {
+        $this->fromPlace = $fromPlace;
+
+        return $this;
+    }
+
+    public function getToPlace(): ?int
+    {
+        return $this->toPlace;
+    }
+
+    public function setToPlace(?int $toPlace): static
+    {
+        $this->toPlace = $toPlace;
 
         return $this;
     }

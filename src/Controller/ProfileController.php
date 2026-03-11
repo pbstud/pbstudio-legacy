@@ -309,26 +309,39 @@ class ProfileController extends AbstractController
 
         if ($request->isMethod('POST') && $request->request->has('place_number')) {
             if (!$this->isCsrfTokenValid('reservation_change_session', $request->request->get('_token'))) {
-                                $logger->info('[USER_CHANGE] Iniciando cambio de reservación', [
-                                    'reservation_id' => $reservation->getId(),
-                                    'user_id' => $loggedUser->getId(),
-                                    'current_session_id' => $reservation->getSession()->getId(),
-                                    'new_session_id' => $session->getId(),
-                                ]);
+                $logger->warning('[USER_CHANGE] Token CSRF inválido', [
+                    'reservation_id' => $reservation->getId(),
+                    'user_id' => $loggedUser->getId(),
+                    'current_session_id' => $reservation->getSession()->getId(),
+                    'new_session_id' => $session->getId(),
+                ]);
 
                 throw $this->createAccessDeniedException('Invalid CSRF token');
             }
 
             try {
+                $logger->info('[USER_CHANGE] Iniciando cambio de reservación', [
+                    'reservation_id' => $reservation->getId(),
+                    'user_id' => $loggedUser->getId(),
+                    'current_session_id' => $reservation->getSession()->getId(),
+                    'new_session_id' => $session->getId(),
+                ]);
+
                 if (!$reservationService->canChange($reservation)) {
                     throw new ReservationException('La reservación no acepta cambios.');
                 }
 
                 // Guardar sesión anterior ANTES del cambio (para auditoría)
                 $previousSession = $reservation->getSession();
+                $previousPlace = $reservation->getPlaceNumber();
+
+                if ($previousPlace === null) {
+                    throw new ReservationException('No se pudo determinar el asiento anterior para la auditoría.');
+                }
 
                 $logger->info('[USER_CHANGE] Sesión anterior capturada', [
                     'previous_session_id' => $previousSession->getId(),
+                    'previous_place' => $previousPlace,
                 ]);
 
                 $placeNumber = $request->request->getInt('place_number');
@@ -340,12 +353,15 @@ class ProfileController extends AbstractController
                 ]);
 
                 // Registrar auditoría de cambio por usuario
-                                $logger->info('[USER_CHANGE] Registrando auditoría', [
-                                    'has_reason' => !empty($reason),
-                                ]);
-
                 $reason = $request->request->get('reason'); // Opcional: motivo del usuario
-                $cancellationService->auditUserChange($reservation, $previousSession, $reason);
+
+                $logger->info('[USER_CHANGE] Registrando auditoría bidireccional', [
+                    'has_reason' => !empty($reason),
+                    'previous_session_id' => $previousSession->getId(),
+                    'new_session_id' => $session->getId(),
+                ]);
+
+                $cancellationService->auditUserChange($reservation, $previousSession, $previousPlace, $reason);
 
                 $logger->info('[USER_CHANGE] Proceso de cambio completo');
 

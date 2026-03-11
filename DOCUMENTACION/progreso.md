@@ -1,12 +1,12 @@
 # 📋 PROGRESO DEL PROYECTO - PB STUDIO
 
-**Última actualización:** 09/03/2026  
+**Última actualización:** 11/03/2026  
 **Estado General:** 🟢 ACTIVO - Seguimiento consolidado y actualizado por documentación  
 **Equipo:** Desarrollo + Technical Documentation  
 
 ---
 
-## 🔎 PARTE 1 - ESTADO MAESTRO CONSOLIDADO (09/03/2026)
+## 🔎 PARTE 1 - ESTADO MAESTRO CONSOLIDADO (11/03/2026)
 
 ### Objetivo de esta actualización
 
@@ -60,20 +60,19 @@ Resumen de esta subparte:
 | `FEATURE_EDITAR_FOTO_INSTRUCTORES.md` | Feature/Fix | Completado y desplegado | 100% |
 | `FEATURE_HORARIOS_PRECISOS.md` | Feature/Fix | Completado y desplegado | 100% |
 | `FEATURE_VALIDACION_REGISTRO_APELLIDO.md` | Feature | Análisis/pre-implementación | 30% |
-| `ISSUE_52_DESHABILITACION_ASIENTOS_RESERVADOS.md` | Issue/Fix | Completado y testeado en producción | 100% |
-| `ISSUE_52_REGISTRO_CANCELACIONES_CAMBIOS_USUARIO.md` | Issue | En planificación | 60% |
+| `ISSUE_MODULO_AUDITORIA_RESERVACIONES_CONSOLIDADO.md` | Issue/Fix | Fase base implementada + mejora bidireccional pendiente | 85% |
 
 Resumen de esta subparte:
-- Documentos en `FIXES`: **8**
-- Cerrados/implementados: **6**
-- En planificación o pre-implementación: **2**
+- Documentos revisados en `FIXES` (este bloque): **7**
+- Implementados y estables: **5**
+- En evolución o pre-implementación: **2**
 
 ### 2.3 Inventario de pendientes activos (`DOCUMENTACION/FIXES_PENDIENTES/`)
 
 | Documento | Tipo | Prioridad | Estado funcional | Avance estimado | Bloqueante principal |
 |---|---|---|---|---|---|
-| `ISSUE_CARGA_MASIVA_HORARIOS.md` | Issue | Alta | Bug reportado sobre flujo existente | 25% | Falta error exacto + stack trace + corrección |
 | `ISSUE_CAMBIO_RESERVACION_SIN_CLASES_DISPONIBLES.md` | Issue | Alta | Pendiente de implementación final | 40% | Definición de modelo de negocio con Dirección |
+| `FIXES/ISSUE_MODULO_AUDITORIA_RESERVACIONES_CONSOLIDADO.md` | Issue | Alta | Base implementada, pendiente trazabilidad bidireccional | 85% | Cierre de diseño bilateral + correlación por flujo |
 | `FEATURE_NOTIFICACION_CAMBIO_CLASE.md` | Feature | Importante | Documentado, pendiente implementación | 35% | Validación real de correo en servidor |
 | `FEATURE_CORREOS_LISTA_ESPERA.md` | Feature | Importante | Base parcial implementada | 80% | Cierre de validación integral y edge cases |
 
@@ -84,7 +83,7 @@ Resumen de esta subparte:
 - Pendientes activos: **4**
 - Issues: **2**
 - Features: **2**
-- Bloqueantes repetidos: reglas de negocio y entorno de correo
+- Bloqueantes repetidos: reglas de negocio, trazabilidad bidireccional y entorno de correo
 
 ### 2.4 Hallazgos de consistencia documental para seguimiento
 
@@ -177,8 +176,8 @@ Este listado se construye por bloques para no perder issues por numeración reut
 
 #### Bloque E - Issues activos de ejecución inmediata (documentos de pendientes)
 
-1. Issue: Error en carga masiva de horarios
-2. Issue: Cambio de reservación sin clases disponibles
+1. Issue: Cambio de reservación sin clases disponibles
+2. Issue: Auditoría bidireccional de cambio de reservación
 
 #### Nota de control de numeración
 
@@ -219,8 +218,9 @@ Avance estimado por estado documental:
    - En local no queda validado todo el flujo de notificaciones
    - Se requiere prueba en servidor para cerrar features de correo
 
-3. Reproducción controlada de error en carga masiva
-   - Falta captura exacta de error y trazabilidad completa en logs
+3. Definición técnica de auditoría bilateral en cambios de reservación
+   - Se debe registrar salida (origen) y entrada (destino) con correlación única
+   - El panel backend debe permitir seguimiento del flujo completo en ambas sesiones
 
 ---
 
@@ -228,9 +228,9 @@ Avance estimado por estado documental:
 
 ### Parte A (inmediata)
 
-1. Cerrar definición de negocio para cambio de reservación.
-2. Aplicar fix de consulta y validaciones de acuerdo con definición cerrada.
-3. Reproducir y corregir error de carga masiva con evidencia técnica.
+1. Implementar auditoría bidireccional de cambios de reservación (origen/destino).
+2. Definir y persistir correlación de flujo (`change_flow_id`) por cambio.
+3. Actualizar panel de auditoría backend para visualizar ambos lados del cambio.
 
 ### Parte B (siguiente)
 
@@ -259,29 +259,30 @@ Avance estimado por estado documental:
 
 ## 🧠 PARTE 7 - DETALLE ITEM POR ITEM (SIN SALTOS)
 
-### 7.1 ISSUE ACTIVO A - Carga masiva de horarios
+### 7.1 ISSUE ACTIVO A - Auditoría bidireccional en cambio de reservación
 
-Documento fuente: `FIXES_PENDIENTES/ISSUE_CARGA_MASIVA_HORARIOS.md`
+Documento fuente: `FIXES/ISSUE_MODULO_AUDITORIA_RESERVACIONES_CONSOLIDADO.md`
 
 Estado actual:
-- Bug real sobre funcionalidad ya visible en UI.
-- El flujo existe (botón + modal), pero falla al ejecutar confirmación.
+- Análisis técnico completado sobre flujo real de cambio de reservación.
+- Detectada brecha: la auditoría actual registra solo la sesión de origen.
 
 Qué ya está claro:
-- No es feature nueva; es corrección sobre algo implementado.
-- El impacto operativo es alto por fallback manual repetitivo.
+- El cambio se ejecuta en `ReservationService::change()` sobre la misma reservación.
+- `auditUserChange()` persiste 1 solo registro en `session_audit` para la sesión anterior.
+- El panel `/backend/session/{id}/audit` consulta por `session_id`, por lo que la sesión destino no ve el evento.
 
 Qué falta cerrar:
-1. Reproducir el error exacto.
-2. Capturar stack trace y línea de falla.
-3. Validar causa raíz (validación, constraint, relación, transacción).
-4. Aplicar fix y ejecutar pruebas simples + masivas.
+1. Registrar 2 eventos por cambio: salida (origen) y entrada (destino).
+2. Vincular ambos eventos con `change_flow_id`.
+3. Exponer detalle completo en panel de auditoría para tipos de cambio de usuario.
+4. Mantener compatibilidad con registros históricos `user_changed`.
 
 Riesgo principal:
-- Mantener la funcionalidad visible pero fallando degrada confianza de operación.
+- Sin traza bilateral, soporte no puede reconstruir de forma confiable el flujo completo del cambio.
 
 Criterio de cierre:
-- Flujo completo ejecuta sin error y crea sesiones correctas en múltiples fechas.
+- Admin puede ver y seguir el cambio en ambas sesiones (origen/destino) desde el panel de auditoría.
 
 ---
 
@@ -372,8 +373,8 @@ Criterio de cierre:
 1. `FIXES/FEATURE_VALIDACION_REGISTRO_APELLIDO.md`
 - Estado: análisis y diseño; falta pasar a ejecución.
 
-2. `FIXES/ISSUE_52_REGISTRO_CANCELACIONES_CAMBIOS_USUARIO.md`
-- Estado: planificación de trazabilidad/auditoría extendida; falta implementación final.
+2. `FIXES/ISSUE_MODULO_AUDITORIA_RESERVACIONES_CONSOLIDADO.md`
+- Estado: **COMPLETADO** — auditoria bidireccional implementada (SCRUM-81, commit `d1329fd6`, rama `fix/scrum-81-auditoria-bidireccional`).
 
 ---
 
@@ -384,10 +385,10 @@ Criterio de cierre:
 3. `FIXES/FEATURE_BUSQUEDA_USUARIOS_MEJORADA.md`
 4. `FIXES/FEATURE_EDITAR_FOTO_INSTRUCTORES.md`
 5. `FIXES/FEATURE_HORARIOS_PRECISOS.md`
-6. `FIXES/ISSUE_52_DESHABILITACION_ASIENTOS_RESERVADOS.md`
+6. `FIXES/ISSUE_MODULO_AUDITORIA_RESERVACIONES_CONSOLIDADO.md` (fase base cerrada)
 
 Validación documental:
-- Todos marcan estado de completado/implementado en sus encabezados.
+- Todos marcan estado de completado/implementado en su fase base; el módulo de auditoría mantiene mejora evolutiva pendiente.
 
 ---
 
