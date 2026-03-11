@@ -71,7 +71,7 @@ Resumen de esta subparte:
 
 | Documento | Tipo | Prioridad | Estado funcional | Avance estimado | Bloqueante principal |
 |---|---|---|---|---|---|
-| `ISSUE_CAMBIO_RESERVACION_SIN_CLASES_DISPONIBLES.md` | Issue | Alta | Pendiente de implementación final | 40% | Definición de modelo de negocio con Dirección |
+| `FIXES/ISSUE_CAMBIO_RESERVACION_SIN_CLASES_DISPONIBLES.md` | Issue | Alta | Pendiente de implementacion tecnica | 55% | Implementacion y validacion de regla anti reflujo |
 | `FIXES/ISSUE_MODULO_AUDITORIA_RESERVACIONES_CONSOLIDADO.md` | Issue | Alta | Base implementada, pendiente trazabilidad bidireccional | 85% | Cierre de diseño bilateral + correlación por flujo |
 | `FEATURE_NOTIFICACION_CAMBIO_CLASE.md` | Feature | Importante | Documentado, pendiente implementación | 35% | Validación real de correo en servidor |
 | `FEATURE_CORREOS_LISTA_ESPERA.md` | Feature | Importante | Base parcial implementada | 80% | Cierre de validación integral y edge cases |
@@ -83,7 +83,7 @@ Resumen de esta subparte:
 - Pendientes activos: **4**
 - Issues: **2**
 - Features: **2**
-- Bloqueantes repetidos: reglas de negocio, trazabilidad bidireccional y entorno de correo
+- Bloqueantes repetidos: implementacion tecnica pendiente y entorno de correo
 
 ### 2.4 Hallazgos de consistencia documental para seguimiento
 
@@ -288,29 +288,30 @@ Criterio de cierre:
 
 ### 7.2 ISSUE ACTIVO B - Cambio de reservación sin clases disponibles
 
-Documento fuente: `FIXES_PENDIENTES/ISSUE_CAMBIO_RESERVACION_SIN_CLASES_DISPONIBLES.md`
+Documento fuente: `FIXES/ISSUE_CAMBIO_RESERVACION_SIN_CLASES_DISPONIBLES.md`
 
 Estado actual:
-- Diagnóstico técnico documentado.
-- Pendiente de implementación final por validación de reglas de negocio.
+- Alcance funcional cerrado en Jira (SCRUM-23).
+- Pendiente de implementacion tecnica en codigo.
 
 Qué ya está claro:
-- Consulta actual filtra demasiado y no devuelve alternativas suficientes.
-- Problema afecta directamente la funcionalidad de cambio para usuarios.
+- Se deben mostrar sesiones futuras elegibles con la misma logica de la pantalla normal de reserva.
+- Se debe bloquear segundo cambio y cancelacion si la reservacion ya fue cambiada.
+- La verificacion debe usar `session_audit` sin nuevas migraciones.
 
 Bloqueante funcional:
-- Confirmación directiva de reglas finales (rango, restricciones, límites, ventana y costo).
+- Implementacion y pruebas de regresion del flujo completo.
 
 Qué falta cerrar:
-1. Cerrar definición de negocio.
-2. Ajustar query y validaciones complementarias.
-3. Probar casos de uso completos de cambio.
+1. Ajustar query de cambio para sesiones futuras alineadas con reserva normal.
+2. Implementar validacion anti reflujo via auditoria (`reservation_id` + `audit_type`).
+3. Probar casos de uso completos de cambio y cancelacion bloqueada.
 
 Riesgo principal:
-- Corregir solo la query sin política cerrada puede generar regresiones funcionales.
+- Desalinear filtros entre cambio y reserva normal puede mostrar sesiones no validas.
 
 Criterio de cierre:
-- Usuario ve alternativas válidas y puede completar cambio con reglas aprobadas.
+- Usuario ve alternativas validas de forma consistente y el sistema bloquea reflujo (doble cambio/cancelacion).
 
 ---
 
