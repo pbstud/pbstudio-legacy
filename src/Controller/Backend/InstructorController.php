@@ -9,6 +9,7 @@ use App\Form\Backend\InstructorType;
 use App\Repository\StaffRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Knp\Component\Pager\PaginatorInterface;
+use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -41,10 +42,33 @@ class InstructorController extends AbstractController
         Request $request,
         UserPasswordHasherInterface $passwordHasher,
         EntityManagerInterface $em,
+        LoggerInterface $logger,
     ): Response {
         $instructor = new Staff();
         $form = $this->createForm(InstructorType::class, $instructor);
         $form->handleRequest($request);
+
+        if ($form->isSubmitted()) {
+            $photoFile = $instructor->getProfile()?->getPhotoFile();
+            $photoDeleteRequested = false;
+
+            if ($form->has('profile') && $form->get('profile')->has('photoFile')) {
+                $photoField = $form->get('profile')->get('photoFile');
+                if ($photoField->has('delete')) {
+                    $photoDeleteRequested = (bool) $photoField->get('delete')->getData();
+                }
+            }
+
+            $logger->info('[InstructorPhoto] new form submitted', [
+                'valid' => $form->isValid(),
+                'username' => $instructor->getUsername(),
+                'photo_uploaded' => null !== $photoFile,
+                'photo_delete_requested' => $photoDeleteRequested,
+                'photo_size_bytes' => $photoFile?->getSize(),
+                'photo_mime' => $photoFile?->getMimeType(),
+                'stored_photo_before_flush' => $instructor->getProfile()?->getPhoto(),
+            ]);
+        }
 
         if ($form->isSubmitted() && $form->isValid()) {
             $instructor->setPermissions([
@@ -61,6 +85,12 @@ class InstructorController extends AbstractController
             $em->persist($instructor);
             $em->flush();
 
+            $logger->info('[InstructorPhoto] new instructor persisted', [
+                'instructor_id' => $instructor->getId(),
+                'username' => $instructor->getUsername(),
+                'stored_photo_after_flush' => $instructor->getProfile()?->getPhoto(),
+            ]);
+
             $this->addFlash('success', 'El Instructor ha sido creado.');
 
             return $this->redirectToRoute('backend_instructor_edit', [
@@ -75,13 +105,41 @@ class InstructorController extends AbstractController
     }
 
     #[Route('/{id}/edit', name: 'backend_instructor_edit', methods: ['GET', 'POST'])]
-    public function edit(Request $request, Staff $instructor, EntityManagerInterface $em): Response
+    public function edit(Request $request, Staff $instructor, EntityManagerInterface $em, LoggerInterface $logger): Response
     {
         $editForm = $this->createForm(InstructorType::class, $instructor);
         $editForm->handleRequest($request);
 
+        if ($editForm->isSubmitted()) {
+            $photoFile = $instructor->getProfile()?->getPhotoFile();
+            $photoDeleteRequested = false;
+
+            if ($editForm->has('profile') && $editForm->get('profile')->has('photoFile')) {
+                $photoField = $editForm->get('profile')->get('photoFile');
+                if ($photoField->has('delete')) {
+                    $photoDeleteRequested = (bool) $photoField->get('delete')->getData();
+                }
+            }
+
+            $logger->info('[InstructorPhoto] edit form submitted', [
+                'instructor_id' => $instructor->getId(),
+                'valid' => $editForm->isValid(),
+                'photo_uploaded' => null !== $photoFile,
+                'photo_delete_requested' => $photoDeleteRequested,
+                'photo_size_bytes' => $photoFile?->getSize(),
+                'photo_mime' => $photoFile?->getMimeType(),
+                'stored_photo_before_flush' => $instructor->getProfile()?->getPhoto(),
+            ]);
+        }
+
         if ($editForm->isSubmitted() && $editForm->isValid()) {
             $em->flush();
+
+            $logger->info('[InstructorPhoto] edit instructor persisted', [
+                'instructor_id' => $instructor->getId(),
+                'stored_photo_after_flush' => $instructor->getProfile()?->getPhoto(),
+            ]);
+
             $this->addFlash('success', 'El Instructor ha sido actualizado.');
 
             return $this->redirectToRoute('backend_instructor_edit', [

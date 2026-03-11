@@ -16,6 +16,10 @@ filter:
 
 help:
     days_expiry: Vigencia en días
+    instructor_photo: >
+        Formatos permitidos: <strong>JPG/PNG</strong> (máximo <strong>%max_size%</strong>).<br>
+        Resolución permitida: de <strong>%min_width%x%min_height%</strong> a <strong>%max_width%x%max_height%</strong> px.<br>
+        Para dejar al instructor sin foto, activa <strong>Quitar foto actual</strong> y guarda.
 
 label:
     active: Activo
@@ -66,6 +70,7 @@ label:
     places_not_available: Lugares no Disponibles
     public: Público
     repeat_password: Repetir contraseña
+    remove_photo: Quitar foto actual
     special_price: Precio Especial
     telephone: Teléfono
     total_classes: Número de clases

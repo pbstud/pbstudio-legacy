@@ -34,9 +34,22 @@ class InstructorProfileType extends AbstractType
             ->add('photoFile', VichImageType::class, [
                 'label' => 'label.photo_file',
                 'required' => false,
-                'allow_delete' => false,
+                'allow_delete' => true,
+                'delete_label' => 'label.remove_photo',
                 'download_uri' => false,
                 'image_uri' => false,
+                'attr' => [
+                    'accept' => '.jpg,.jpeg,.png',
+                ],
+                'help' => 'help.instructor_photo',
+                'help_html' => true,
+                'help_translation_parameters' => [
+                    '%max_size%' => StaffProfile::PHOTO_MAX_FILE_SIZE_LABEL,
+                    '%min_width%' => (string) StaffProfile::PHOTO_MIN_WIDTH,
+                    '%min_height%' => (string) StaffProfile::PHOTO_MIN_HEIGHT,
+                    '%max_width%' => (string) StaffProfile::PHOTO_MAX_WIDTH,
+                    '%max_height%' => (string) StaffProfile::PHOTO_MAX_HEIGHT,
+                ],
             ])
             ->add('telephone', null, [
                 'label' => 'label.telephone',

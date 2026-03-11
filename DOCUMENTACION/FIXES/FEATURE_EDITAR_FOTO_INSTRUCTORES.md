@@ -1,6 +1,6 @@
 # 📷 FEATURE: Editar Foto de Instructores en Backend
 
-**Fecha de documentación:** 03/03/2026 (actualizado 04/03/2026)  
+**Fecha de documentación:** 03/03/2026 (actualizado 04/03/2026 y 11/03/2026)  
 **Prioridad:** 🟠 IMPORTANTE  
 **Impacto:** Perfil de instructores + Presentación visual  
 **Timeline estimado:** 2-3 horas  
@@ -11,6 +11,31 @@
 ## 📌 Resumen
 
 Los instructores necesitan poder actualizar su foto de perfil desde el backend admin. Actualmente, esto no funciona o la actualización no se persiste correctamente.
+
+### Ampliación solicitada (11/03/2026)
+
+Se amplía este caso para cubrir validación integral del archivo y experiencia de carga en pantalla:
+
+1. Validar peso máximo de archivo antes de persistir (backend).
+2. Validar dimensiones mínimas y máximas de la imagen (backend).
+3. Renderizar foto con tamaños controlados en backend y frontend para evitar ocupar espacio excesivo en pantalla.
+4. Mostrar en el formulario el peso máximo permitido para prevenir errores de subida.
+5. Permitir quitar foto actual sin subir una nueva.
+6. Evitar imagen rota en frontend cuando existe nombre en BD pero el archivo físico ya no está en disco.
+7. Registrar en logs cuándo se sube foto y cuándo se solicita eliminarla.
+
+#### Criterios de aceptación de la ampliación
+
+- ✅ Solo formatos `JPG/JPEG` y `PNG`.
+- ✅ Peso máximo: `5 MB`.
+- ✅ Dimensiones permitidas:
+   - Mínimo: `249x265 px`
+   - Máximo: `1200x1200 px`
+- ✅ En backend se muestra thumbnail visual controlado (`200x200`) con `object-fit: cover`.
+- ✅ En frontend se muestra imagen visual controlada para tarjeta de instructor (`249x265`) con `object-fit: cover`.
+- ✅ El campo de carga muestra texto de ayuda con límites de peso y resolución.
+- ✅ El formulario permite marcar `Quitar foto actual` para dejar el perfil sin foto.
+- ✅ Si la imagen no existe físicamente, el frontend usa placeholder sin mostrar ícono roto.
 
 ---
 
@@ -48,6 +73,10 @@ Los instructores necesitan poder actualizar su foto de perfil desde el backend a
 5. ✅ Sistema:
    - Valida tipo (JPG, PNG)
    - Valida tamaño (máx 5 MB)
+   - Valida dimensiones (mínimo 249x265 px, máximo 1200x1200 px)
+   - Renderiza con tamaño visual controlado (`object-fit: cover`)
+   - Si la imagen falla por archivo inexistente, aplica fallback automático en frontend
+   - Permite quitar foto existente sin reemplazo (`Quitar foto actual`)
    - Elimina foto anterior
    - Guarda nueva en `/public/media/uploads/instructors/`
    - Muestra en perfil del instructor
@@ -116,7 +145,11 @@ Los instructores necesitan poder actualizar su foto de perfil desde el backend a
 
 - ✓ Solo JPG/PNG
 - ✓ Máximo 5 MB
-- ✓ Redimensionar a 300x300px (opcional pero recomendado)
+- ✓ Dimensiones mínimas: 249x265 px
+- ✓ Dimensiones máximas: 1200x1200 px
+- ✓ Render frontend/backend con tamaño visual fijo (`object-fit: cover`) para evitar desborde en pantalla
+- ✓ Fallback visual si la imagen registrada no existe físicamente (placeholder)
+- ✓ Opción de quitar foto actual sin subir otra
 - ✓ Mantener foto anterior como backup
 
 ---
@@ -185,13 +218,30 @@ Verificaciones realizadas:
 ### 5) Referencias donde se usa la foto
 
 - Backend perfil instructor:
-  - `templates/backend/instructor/profile.html.twig` (usa `vich_uploader_asset(instructor.profile)`)
+   - `templates/backend/instructor/profile.html.twig` (usa URL directa + tamaño fijo en pantalla)
 - Formulario de edición:
-  - `templates/backend/instructor/_general_data_form.html.twig` (campo `form.profile.photoFile`)
+   - `src/Form/Backend/InstructorProfileType.php` (campo `form.profile.photoFile` + ayuda de límites)
+- Controlador de guardado:
+   - `src/Controller/Backend/InstructorController.php` (logs `[InstructorPhoto]`, manejo de subida/eliminación)
+- Entidad de perfil:
+  - `src/Entity/StaffProfile.php` (validación de imagen + permite `photo = null` para eliminación)
 - Frontend listado de instructores:
-  - `templates/staff/index.html.twig` (renderiza imagen si `instructor.profile.photo`)
+   - `templates/staff/index.html.twig` (renderiza imagen con URL directa, fallback `onerror` y placeholder)
+- Traducciones UI:
+  - `translations/messages.es.yaml` (label `Quitar foto actual` + help enriquecido)
 - Configuración de subida:
   - `config/packages/vich_uploader.yaml` (mapping `staff_profile`)
+
+### 7) Nota operativa de entorno local
+
+Con servidor local ejecutado como `php -S 127.0.0.1:8000 -t public`, las rutas dinámicas de `media/cache/resolve/*` pueden responder `404` si no pasan por `index.php`.
+
+Para evitar falso negativo visual en local:
+
+1. Se usa URL directa de VichUploader para render de fotos.
+2. Se controla tamaño en pantalla con CSS (`width`, `height`, `object-fit: cover`).
+3. Se agregan logs de verificación en `InstructorController` con prefijo `[InstructorPhoto]`.
+4. Se corrigió `TypeError` en logging al guardar sin foto (`method_exists(null, ...)`) usando null-safe para MIME.
 
 ### 6) Estado final del issue
 

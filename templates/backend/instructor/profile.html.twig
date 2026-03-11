@@ -15,7 +15,9 @@
                     <div class="col-md-3 col-sm-3 col-xs-12 profile_left">
                         <div class="profile_img">
                             <div id="crop-avatar">
-                                <img src="{{ vich_uploader_asset(instructor.profile) }}" alt="{{ instructor }}" class="img-thumbnail" />
+                                {% if instructor.profile.photo %}
+                                    <img src="{{ vich_uploader_asset(instructor.profile) }}" alt="{{ instructor }}" class="img-thumbnail" style="width: 200px; height: 200px; object-fit: cover;" />
+                                {% endif %}
                             </div>
                         </div>
                         <h3>{{ instructor }}</h3>

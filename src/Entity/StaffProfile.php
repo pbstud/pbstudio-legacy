@@ -19,6 +19,13 @@ class StaffProfile implements TimestampableInterface
 {
     use TimestampableTrait;
 
+    public const PHOTO_MAX_FILE_SIZE = '5M';
+    public const PHOTO_MAX_FILE_SIZE_LABEL = '5 MB';
+    public const PHOTO_MIN_WIDTH = 249;
+    public const PHOTO_MIN_HEIGHT = 265;
+    public const PHOTO_MAX_WIDTH = 1200;
+    public const PHOTO_MAX_HEIGHT = 1200;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -41,11 +48,23 @@ class StaffProfile implements TimestampableInterface
     private ?string $maternalSurname = null;
 
     #[Vich\UploadableField(mapping: 'staff_profile', fileNameProperty: 'photo')]
-    #[Assert\Image]
+    #[Assert\Image(
+        maxSize: self::PHOTO_MAX_FILE_SIZE,
+        maxSizeMessage: 'La imagen pesa demasiado (máximo {{ limit }} {{ suffix }}).',
+        mimeTypes: ['image/jpeg', 'image/png'],
+        mimeTypesMessage: 'Formato no permitido. Usa JPG o PNG.',
+        minWidth: self::PHOTO_MIN_WIDTH,
+        minHeight: self::PHOTO_MIN_HEIGHT,
+        minWidthMessage: 'La imagen debe tener al menos {{ min_width }} px de ancho.',
+        minHeightMessage: 'La imagen debe tener al menos {{ min_height }} px de alto.',
+        maxWidth: self::PHOTO_MAX_WIDTH,
+        maxHeight: self::PHOTO_MAX_HEIGHT,
+        maxWidthMessage: 'La imagen no debe exceder {{ max_width }} px de ancho.',
+        maxHeightMessage: 'La imagen no debe exceder {{ max_height }} px de alto.'
+    )]
     private ?File $photoFile = null;
 
     #[ORM\Column(length: 100, nullable: true)]
-    #[Assert\NotBlank]
     private ?string $photo = null;
 
     #[ORM\Column(length: 50, nullable: true)]

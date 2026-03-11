@@ -11,20 +11,33 @@
                 </div>
                 <div class="coach">
                     {% for instructor in instructors %}
+                        {% set hasProfile = instructor.profile is not null %}
+                        {% set hasPhoto = hasProfile and instructor.profile.photo %}
+                        {% set instructorName = hasProfile ? [instructor.profile.firstname, instructor.profile.paternalSurname]|filter(v => v)|join(' ') : instructor.username %}
+                        {% set instructorDescription = hasProfile and instructor.profile.description ? instructor.profile.description : 'Conoce a nuestros instructores y reserva tu próxima clase.' %}
                         <div class="clearfix">
                             <div class="grid-1-4 left">
-                                {% if instructor.profile.photo %}
-                                    <div>
-                                        <img src="{{ vich_uploader_asset(instructor.profile) }}" alt="{{ instructor.profile.firstname }} - Instructor P&amp;B">
-                                    </div>
-                                {% endif %}
+                                <div>
+                                    <img
+                                        src="{{ hasPhoto ? vich_uploader_asset(instructor.profile) : asset('images/home/instructor1.jpg') }}"
+                                        alt="{{ instructorName }} - Instructor P&amp;B"
+                                        onerror="this.onerror=null;this.src='{{ asset('images/home/instructor1.jpg') }}';"
+                                        style="width: 249px; max-width: 100%; height: 265px; object-fit: cover;"
+                                    >
+                                </div>
                             </div>
                             <div class="grid-1-8 left">
-                                <h4>{{ instructor.profile.firstname }}</h4>
+                                <h4>{{ instructorName }}</h4>
 
-                                <p>{{ instructor.profile.description }}</p>
+                                <p>{{ instructorDescription }}</p>
 
                                 <a href="#" class="btn reserve-class-toggle">Reservar clase</a>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="clearfix">
+                            <div class="grid-1-8 left">
+                                <p>Por el momento no hay instructores disponibles.</p>
                             </div>
                         </div>
                     {% endfor %}
