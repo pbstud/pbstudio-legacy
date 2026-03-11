@@ -1,9 +1,10 @@
 # 📋 PLAN DE ACCIÓN - PBStudio
 
-**Fecha actualización:** 05 Marzo 2026  
+**Fecha actualización:** 10 Marzo 2026  
 **Status:** 50 issues identificados (42 previos + 8 nuevos de reunión 05/03)  
-**Issues resueltos:** 5 ✅  
-**Issues pendientes:** 45 (8 NUEVOS aprobados por DG)  
+**Issues resueltos (plan técnico):** 7 ✅  
+**Tickets finalizados en Jira:** 19 ✅ (incluye épicas y subtareas)  
+**Issues pendientes (plan técnico):** 43 (8 NUEVOS aprobados por DG)  
 **Timeline:** Fix inmediato → Producción en 5-6 días
 
 ---
@@ -1307,15 +1308,47 @@ En `change()`, si la sesion actual estaba FULL, se fuerza OPEN sin recalculo.
 
 ## ✅ YA COMPLETADO
 
-| Componente | Fix | Status | Verificado |
-|-----------|-----|--------|-----------|
-| MAILER_DSN | null://default | ✅ | Sí |
-| Doctrine Schema | Synced | ✅ | Sí |
-| SQL Injection | QueryBuilder | ✅ | Sí |
-| CSRF Tokens | Habilitado | ✅ | Sí |
-| Password Hash | Bcrypt | ✅ | Sí |
-| User Checker | Enabled check | ✅ | Sí |
-| Indices DB | Verificados en BD | ✅ | Sí |
+| Componente | Fix | Jira | Verificado |
+|-----------|-----|------|-----------|
+| MAILER_DSN | null://default | N/A | Sí |
+| Doctrine Schema | Synced | N/A | Sí |
+| SQL Injection | QueryBuilder | N/A | Sí |
+| CSRF Tokens | Habilitado | SCRUM-5 / SCRUM-6 | Sí |
+| Password Hash | Bcrypt | N/A | Sí |
+| User Checker | Enabled check | N/A | Sí |
+| Indices DB | Verificados en BD | N/A | Sí |
+| DateTime Immutability | Corrección de mutación DateTime | SCRUM-7 | Sí |
+| Búsqueda de usuarios | Mejora de búsqueda y normalización | SCRUM-8 | Sí |
+| Foto de instructores | Edición persistente en backend | SCRUM-9 | Sí |
+| Horarios precisos | Ajuste de lógica horaria | SCRUM-10 | Sí |
+| Validación de apellido | Validación de registro reforzada | SCRUM-11 | Sí |
+| Asientos reservados | Bloqueo de asientos ocupados | SCRUM-12 | Sí |
+| Auditoría y trazabilidad | Registro de cancelaciones/cambios por usuario | SCRUM-14 / 15 / 16 / 17 / 18 / 19 | Sí |
+| Doble asiento | Validación en backend | SCRUM-24 | Sí |
+| Performance reservaciones | Corrección N+1 en listados | SCRUM-28 | Sí |
+| Fecha inválida configuración | Validación estricta | SCRUM-80 | Sí |
+
+### Finalizados en Jira (Estado = Finalizada, corte 10/03/2026)
+
+1. SCRUM-80 - Issue #35 - Validar fecha invalida en configuracion
+2. SCRUM-62 - 20.1 Reproducir error de planeamiento masivo y capturar traza tecnica
+3. SCRUM-61 - 20.1 Reproducir error de planeamiento masivo y capturar traza tecnica
+4. SCRUM-28 - Performance: N+1 queries en listados de reservaciones
+5. SCRUM-24 - Error: Doble asiento por concurrencia y falta de validacion
+6. SCRUM-19 - Probar trazabilidad en dev.log
+7. SCRUM-18 - Confirmar visualizacion en panel de auditoria
+8. SCRUM-17 - Verificar persistencia del motivo reason
+9. SCRUM-16 - Validar escritura de eventos user_cancelled y user_changed en DB
+10. SCRUM-15 - Registrar cancelaciones y cambios de reserva por usuario
+11. SCRUM-14 - EPIC - Auditoria y Trazabilidad
+12. SCRUM-12 - Deshabilitar asientos reservados sin confirmación
+13. SCRUM-11 - Validar campo de apellido en registro de usuario
+14. SCRUM-10 - Ajustar lógica de horarios para mayor precisión
+15. SCRUM-9 - Permitir edición de foto de instructores
+16. SCRUM-8 - Mejorar la búsqueda de usuarios en el sistema
+17. SCRUM-7 - Corregir manejo de objetos DateTime para inmutabilidad
+18. SCRUM-6 - revisar y analizar los casos de csrf
+19. SCRUM-5 - Implementar protección CSRF en formularios críticos
 
 ---
 
@@ -1541,26 +1574,26 @@ Sistema normaliza y guarda como: "09:30"
 **Paso 4: Drag & Drop**
 ```
 ┌─────────────────────────────────────────────────────┐
-│  SILLAS DISPONIBLES (lateral izquierdo)              │
+│  SILLAS DISPONIBLES (lateral izquierdo)             │
 │  ┌──┐ ┌──┐ ┌──┐ ┌──┐ ┌──┐                           │
 │  │A1│ │A2│ │A3│ │A4│ │A5│                           │
 │  └──┘ └──┘ └──┘ └──┘ └──┘                           │
 │  ┌──┐ ┌──┐ ... 20 sillas total                      │
-│  │B1│ │B2│                                           │
-│  └──┘ └──┘                                           │
+│  │B1│ │B2│                                          │
+│  └──┘ └──┘                                          │
 ├─────────────────────────────────────────────────────┤
-│                                                      │
-│   AULA SIMULADA - Tablero de Ajedrez             │
-│   (Admin arrastra sillas a los espacios)           │
-│                                                      │
-│   ┌──┬──┬──┬──┬──┐    ← Cada ☐ es un lugar posible
-│   │🪑│  │  │  │  │    ← Si está 🪑 = silla está ahí
-│   ├──┼──┼──┼──┼──┤    ← Usuario puede reservarla
-│   │  │  │  │  │  │
-│   ├──┼──┼──┼──┼──┤
-│   │  │🪑│  │  │🪑│    ← Solo 3 sillas disponibles
-│   └──┴──┴──┴──┴──┘       en esta configuración
-│
+│                                                     │
+│   AULA SIMULADA - Tablero de Ajedrez                │
+│   (Admin arrastra sillas a los espacios)            │
+│                                                     │
+│   ┌──┬──┬──┬──┬──┐    ← Cada ☐ es un lugar posible  │
+│   │🪑│  │  │  │  │    ← Si está 🪑 = silla está ahí  │
+│   ├──┼──┼──┼──┼──┤    ← Usuario puede reservarla    │
+│   │  │  │  │  │  │                                  │
+│   ├──┼──┼──┼──┼──┤                                  │
+│   │  │🪑│  │  │🪑│    ← Solo 3 sillas disponibles    │
+│   └──┴──┴──┴──┴──┘       en esta configuración      │
+│                                                     │
 └─────────────────────────────────────────────────────┘
 
 [Limpiar todo] [Auto-llenar] [Guardar configuración]
@@ -1593,30 +1626,30 @@ Sistema normaliza y guarda como: "09:30"
 **En frontend (usuario ve esto):**
 ```
 ┌─────────────────────────────────────────────────┐
-│  YOGA - SALA A - Miércoles 10:00 AM            │
+│  YOGA - SALA A - Miércoles 10:00 AM             │
 │  Selecciona tu asiento preferido                │
-│                                                  │
+│                                                 │
 │  PANTALLA/INSTRUCTOR                            │
 │  ════════════════════════                       │
-│                                                  │
-│   ┌────┬────┬────┬────┬────┐                   │
-│   │ A1 │    │    │    │    │  ← Cada silla es  │
-│   │ ✓  │    │    │    │    │     un BOTÓN      │
-│   ├────┼────┼────┼────┼────┤                   │
-│   │    │    │    │    │    │                   │
-│   │    │    │    │    │    │                   │
-│   ├────┼────┼────┼────┼────┤                   │
-│   │    │ B1 │    │    │ C1 │                   │
+│                                                 │
+│   ┌────┬────┬────┬────┬────┐                    │
+│   │ A1 │    │    │    │    │  ← Cada silla es   │
+│   │ ✓  │    │    │    │    │     un BOTÓN       │
+│   ├────┼────┼────┼────┼────┤                    │
+│   │    │    │    │    │    │                    │
+│   │    │    │    │    │    │                    │
+│   ├────┼────┼────┼────┼────┤                    │
+│   │    │ B1 │    │    │ C1 │                    │
 │   │    │ ✗  │    │    │ ✗  │                   │
-│   └────┴────┴────┴────┴────┘                   │
-│                                                  │
+│   └────┴────┴────┴────┴────┘                    │
+│                                                 │
 │  Leyenda:                                       │
-│  [A1] ✓ = Tu asiento (ya reservado por ti)     │
-│  [B1] ✗ = Ocupado (otro usuario)               │
-│  [   ] = Disponible (puedes hacer click)       │
-│  Sin número = No existe silla en esa posición  │
-│                                                  │
-│  [Confirmar reservación A1] [Cambiar asiento]  │
+│  [A1] ✓ = Tu asiento (ya reservado por ti)      │
+│  [B1] ✗ = Ocupado (otro usuario)                │
+│  [   ] = Disponible (puedes hacer click)        │
+│  Sin número = No existe silla en esa posición   │
+│                                                 │
+│  [Confirmar reservación A1] [Cambiar asiento]   │
 └─────────────────────────────────────────────────┘
 ```
 
