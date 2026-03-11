@@ -1,7 +1,7 @@
 # Indice de Pendientes (Issues y Features)
 
 **Ultima actualizacion:** 11/03/2026  
-**Total:** 4 tickets activos + 1 indice
+**Total:** 5 tickets activos + 1 indice
 
 ---
 
@@ -13,6 +13,7 @@
 | 2 | Issue | `FIXES/ISSUE_MODULO_AUDITORIA_RESERVACIONES_CONSOLIDADO.md` | Alta | **COMPLETADO** — auditoria bidireccional implementada | SCRUM-81 | Sprint 2 |
 | 3 | Feature | `FEATURE_NOTIFICACION_CAMBIO_CLASE.md` | Importante | Pendiente implementacion | SCRUM-21 | Sprint 2 |
 | 4 | Feature | `FEATURE_CORREOS_LISTA_ESPERA.md` | Importante | Parcial (80%), falta validacion | SCRUM-22 | Sprint 2 |
+| 5 | Issue | `ISSUE_55_MAPA_ASIENTOS_MODO_AJEDREZ.md` | Alta | Documentado (Opcion B MVP), pendiente implementacion | Pendiente | Sprint 2 |
 
 ---
 
@@ -36,6 +37,7 @@
 
 1. [FEATURE_NOTIFICACION_CAMBIO_CLASE.md](FEATURE_NOTIFICACION_CAMBIO_CLASE.md)
 2. [FEATURE_CORREOS_LISTA_ESPERA.md](FEATURE_CORREOS_LISTA_ESPERA.md)
+3. [ISSUE_55_MAPA_ASIENTOS_MODO_AJEDREZ.md](ISSUE_55_MAPA_ASIENTOS_MODO_AJEDREZ.md)
 
 ## Documento activo relacionado (fuera de esta carpeta)
 
@@ -51,6 +53,7 @@
 - `URGENTE_DISPONIBILIDAD_ASIENTOS_DESFASADA.md` fue eliminado por issue incorrecto.
 - `ISSUE_DOBLE_ASIENTO_CONCURRENCIA_Y_VALIDACION.md` movido a `FIXES/` — SCRUM-24 finalizado 10/03/2026.
 - Se consolidaron en un solo documento los archivos de auditoria del modulo de reservaciones.
+- Se renumero el issue del mapa de lugares a #55 para evitar colision con numeracion tecnica reutilizada.
 
 ---
 
