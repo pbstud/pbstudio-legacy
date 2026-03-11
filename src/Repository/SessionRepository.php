@@ -187,32 +187,28 @@ class SessionRepository extends ServiceEntityRepository
         return $qb->getQuery()->getResult();
     }
 
-    public function updateCapacity(ExerciseRoom $exerciseRoom): void
+    public function updateCapacity(ExerciseRoom $exerciseRoom): int
     {
-        try {
-            $now = new \DateTime();
-            $total = $exerciseRoom->getCapacity() - count($exerciseRoom->getPlacesNotAvailable());
+        $now = new \DateTime();
+        $total = $exerciseRoom->getCapacity() - count($exerciseRoom->getPlacesNotAvailable());
 
-            $qb = $this->getEntityManager()->createQueryBuilder();
-            $qb
-                ->update(Session::class, 's')
-                ->set('s.exerciseRoomCapacity', ':capacity')
-                ->set('s.placesNotAvailable', ':notAvailable')
-                ->set('s.availableCapacity', ':availableCapacity')
-                ->where('s.exerciseRoom = :exerciseRoom')
-                ->andWhere('CONCAT(s.dateStart, \' \', s.timeStart) >= :now')
+        $qb = $this->getEntityManager()->createQueryBuilder();
+        $qb
+            ->update(Session::class, 's')
+            ->set('s.exerciseRoomCapacity', ':capacity')
+            ->set('s.placesNotAvailable', ':notAvailable')
+            ->set('s.availableCapacity', ':availableCapacity')
+            ->where('s.exerciseRoom = :exerciseRoom')
+            ->andWhere('CONCAT(s.dateStart, \' \', s.timeStart) >= :now')
 
-                ->setParameter('capacity', $exerciseRoom->getCapacity())
-                ->setParameter('notAvailable', implode(',', $exerciseRoom->getPlacesNotAvailable()))
-                ->setParameter('availableCapacity', $total)
-                ->setParameter('exerciseRoom', $exerciseRoom->getId())
-                ->setParameter('now', $now)
-            ;
+            ->setParameter('capacity', $exerciseRoom->getCapacity())
+            ->setParameter('notAvailable', implode(',', $exerciseRoom->getPlacesNotAvailable()))
+            ->setParameter('availableCapacity', $total)
+            ->setParameter('exerciseRoom', $exerciseRoom->getId())
+            ->setParameter('now', $now)
+        ;
 
-            $qb->getQuery()->execute();
-        } catch (\Exception $e) {
-            // Nothing
-        }
+        return (int) $qb->getQuery()->execute();
     }
 
     /**

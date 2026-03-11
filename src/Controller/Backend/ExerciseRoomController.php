@@ -10,6 +10,7 @@ use App\Repository\ExerciseRoomRepository;
 use App\Repository\SessionRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Knp\Component\Pager\PaginatorInterface;
+use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -71,14 +72,37 @@ class ExerciseRoomController extends AbstractController
         ExerciseRoom $exerciseRoom,
         EntityManagerInterface $em,
         SessionRepository $sessionRepository,
+        LoggerInterface $logger,
     ): Response {
         $editForm = $this->createForm(ExerciseRoomType::class, $exerciseRoom);
         $editForm->handleRequest($request);
 
         if ($editForm->isSubmitted() && $editForm->isValid()) {
-            $sessionRepository->updateCapacity($exerciseRoom);
+            try {
+                $updatedSessions = $sessionRepository->updateCapacity($exerciseRoom);
+                $em->flush();
+            } catch (\Throwable $exception) {
+                $logger->error('[ExerciseRoomCapacity] Failed to sync session capacities after exercise room update.', [
+                    'exerciseRoomId' => $exerciseRoom->getId(),
+                    'capacity' => $exerciseRoom->getCapacity(),
+                    'placesNotAvailable' => $exerciseRoom->getPlacesNotAvailable(),
+                    'exceptionClass' => $exception::class,
+                    'exceptionMessage' => $exception->getMessage(),
+                    'exception' => $exception,
+                ]);
 
-            $em->flush();
+                $this->addFlash('danger', 'No se pudo sincronizar la capacidad de las sesiones relacionadas. Intenta nuevamente.');
+
+                return $this->render('backend/exerciseroom/edit.html.twig', [
+                    'exerciseRoom' => $exerciseRoom,
+                    'form' => $editForm->createView(),
+                ]);
+            }
+
+            $logger->info('[ExerciseRoomCapacity] Session capacities synchronized after exercise room update.', [
+                'exerciseRoomId' => $exerciseRoom->getId(),
+                'updatedSessions' => $updatedSessions,
+            ]);
 
             $this->addFlash('success', 'El Salón ha sido actualizado.');
 

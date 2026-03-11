@@ -1227,6 +1227,7 @@ En `change()`, si la sesion actual estaba FULL, se fuerza OPEN sin recalculo.
 ### Issue #42: 🟡 Actualizacion de capacidad con errores silenciados
 
 **Severidad:** 🟡 IMPORTANTE
+**Status:** ✅ IMPLEMENTADO EN RAMA `fix/scrum-83-capacidad-errores-silenciados` (Jira: SCRUM-83, 11/03/2026) - Pendiente QA
 
 **Contexto:** `SessionRepository::updateCapacity()` atrapa excepciones sin logging en [src/Repository/SessionRepository.php](../src/Repository/SessionRepository.php) y se usa en [src/Controller/Backend/ExerciseRoomController.php](../src/Controller/Backend/ExerciseRoomController.php).
 
@@ -1239,6 +1240,13 @@ En `change()`, si la sesion actual estaba FULL, se fuerza OPEN sin recalculo.
 **Fix sugerido:**
 - Registrar excepcion y notificar en UI.
 - Opcional: reintentar o abortar el guardado.
+
+**Implementacion aplicada (rama tecnica):**
+- Eliminado `catch` silencioso en `SessionRepository::updateCapacity()`.
+- Manejo controlado en `ExerciseRoomController::edit()` con log estructurado y flash `danger` en fallo.
+- Log informativo en exito con numero de sesiones sincronizadas.
+
+**Documento tecnico:** [DOCUMENTACION/FIXES/ISSUE_ACTUALIZACION_CAPACIDAD_ERRORES_SILENCIADOS.md](FIXES/ISSUE_ACTUALIZACION_CAPACIDAD_ERRORES_SILENCIADOS.md)
 
 **Tiempo:** 25-35 minutos  
 **Test:** Forzar error en update y verificar logging/alerta.
