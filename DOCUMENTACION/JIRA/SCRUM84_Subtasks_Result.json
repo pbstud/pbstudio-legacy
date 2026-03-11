@@ -1,0 +1,39 @@
+﻿{
+    "parentKey":  "SCRUM-84",
+    "subtaskCount":  8,
+    "createdSubtasks":  [
+                            {
+                                "key":  "SCRUM-85",
+                                "summary":  "1.1 DiseÃ±ar y crear componente backend del grid editable"
+                            },
+                            {
+                                "key":  "SCRUM-86",
+                                "summary":  "1.2 Implementar persistencia de configuracion del grid (placesNotAvailable)"
+                            },
+                            {
+                                "key":  "SCRUM-87",
+                                "summary":  "1.3 Crear contratos JSON y endpoints backend"
+                            },
+                            {
+                                "key":  "SCRUM-88",
+                                "summary":  "1.4 Implementar render frontend del mapa de asientos"
+                            },
+                            {
+                                "key":  "SCRUM-89",
+                                "summary":  "1.5 Implementar estados visuales del mapa (disponible, ocupado, seleccionado)"
+                            },
+                            {
+                                "key":  "SCRUM-90",
+                                "summary":  "1.6 Implementar validaciones y reglas de negocio"
+                            },
+                            {
+                                "key":  "SCRUM-91",
+                                "summary":  "1.7 Crear plan de pruebas manuales"
+                            },
+                            {
+                                "key":  "SCRUM-92",
+                                "summary":  "1.8 Crear y ejecutar pruebas automatizadas"
+                            }
+                        ],
+    "timestamp":  "2026-03-11 17:25:19"
+}
