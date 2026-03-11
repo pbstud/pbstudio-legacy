@@ -374,7 +374,7 @@ Criterio de cierre:
 - Estado: análisis y diseño; falta pasar a ejecución.
 
 2. `FIXES/ISSUE_MODULO_AUDITORIA_RESERVACIONES_CONSOLIDADO.md`
-- Estado: módulo consolidado con base implementada; pendiente tramo bidireccional (SCRUM-81 propuesto).
+- Estado: **COMPLETADO** — auditoria bidireccional implementada (SCRUM-81, commit `d1329fd6`, rama `fix/scrum-81-auditoria-bidireccional`).
 
 ---
 

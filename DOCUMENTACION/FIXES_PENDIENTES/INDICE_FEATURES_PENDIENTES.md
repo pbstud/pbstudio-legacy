@@ -10,7 +10,7 @@
 | # | Tipo | Documento | Prioridad | Estado | Jira | Sprint |
 |---|---|---|---|---|---|---|
 | 1 | Issue | `ISSUE_CAMBIO_RESERVACION_SIN_CLASES_DISPONIBLES.md` | Alta | Pendiente (bloqueado DG) | SCRUM-23 | Sprint 1 |
-| 2 | Issue | `FIXES/ISSUE_MODULO_AUDITORIA_RESERVACIONES_CONSOLIDADO.md` | Alta | Base implementada + mejora bidireccional pendiente | Por crear (propuesto SCRUM-81) | Sprint 2 |
+| 2 | Issue | `FIXES/ISSUE_MODULO_AUDITORIA_RESERVACIONES_CONSOLIDADO.md` | Alta | **COMPLETADO** — auditoria bidireccional implementada | SCRUM-81 | Sprint 2 |
 | 3 | Feature | `FEATURE_NOTIFICACION_CAMBIO_CLASE.md` | Importante | Pendiente implementacion | SCRUM-21 | Sprint 2 |
 | 4 | Feature | `FEATURE_CORREOS_LISTA_ESPERA.md` | Importante | Parcial (80%), falta validacion | SCRUM-22 | Sprint 2 |
 

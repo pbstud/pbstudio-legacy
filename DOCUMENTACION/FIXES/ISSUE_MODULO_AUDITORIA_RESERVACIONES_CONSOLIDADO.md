@@ -2,9 +2,9 @@
 
 **Fecha de consolidacion:** 11/03/2026  
 **Ultima actualizacion tecnica:** 11/03/2026  
-**Estado general:** Implementado en produccion (fase base) + mejora evolutiva pendiente  
-**Prioridad actual:** Alta (trazabilidad operativa)  
-**Jira relacionados:** SCRUM-12, SCRUM-15, SCRUM-16, SCRUM-17, SCRUM-18, SCRUM-19, SCRUM-81 (propuesto)
+**Estado general:** Implementado — auditoria bidireccional completa (SCRUM-81 cerrado)  
+**Prioridad actual:** Cerrado  
+**Jira relacionados:** SCRUM-12, SCRUM-15, SCRUM-16, SCRUM-17, SCRUM-18, SCRUM-19, SCRUM-81
 
 ---
 
@@ -75,13 +75,19 @@ Implementado:
 - Auditoria `user_changed` para cambio de reservacion iniciado por usuario.
 - Integracion en flujo de perfil y visualizacion en backend.
 
-### 3.3 Fase evolutiva pendiente (abierta)
+### 3.3 Fase evolutiva (completada — SCRUM-81)
 
-Ticket propuesto: SCRUM-81
+Ticket: SCRUM-81  
+Rama: `fix/scrum-81-auditoria-bidireccional`  
+Commit: `d1329fd6`
 
-Pendiente:
-- Correlacion bilateral de cambios entre sesiones (origen + destino).
-- Visualizacion cruzada de ambos eventos en panel.
+Implementado:
+- Correlacion bilateral de cambios entre sesiones con `change_flow_id`.
+- Eventos `user_changed_from` (origen) y `user_changed_to` (destino) en flush atomico.
+- Nuevos campos en `session_audit`: `change_flow_id`, `reservation_id`, `from_session_id`, `to_session_id`, `from_place`, `to_place`.
+- Vista backend con detalle de flujo, enlaces a sesiones y perfil de usuario.
+- Compatibilidad retroactiva para registros `user_changed` historicos.
+- Migracion consolidada en `Version20260309000000.php` (una sola migracion para toda la tabla).
 
 ---
 
@@ -91,7 +97,7 @@ Pendiente:
 
 Entidad: `src/Entity/SessionAudit.php`
 
-Campos usados actualmente:
+Campos:
 - `session` (FK obligatoria)
 - `adminUserIdentifier`
 - `userIdentifier`
@@ -100,16 +106,24 @@ Campos usados actualmente:
 - `disabledPlaces` (JSON)
 - `affectedUsers` (JSON)
 - `affectedReservationsCount`
+- `changeFlowId` — UUID de correlacion por par de cambio
+- `reservationId` — ID de la reservacion afectada
+- `fromSessionId` — sesion origen del cambio
+- `toSessionId` — sesion destino del cambio
+- `fromPlace` — asiento origen
+- `toPlace` — asiento destino
 - `createdAt`
 
-Tipos usados hoy:
+Tipos soportados:
 - `place_disabled`
 - `user_cancelled`
-- `user_changed`
+- `user_changed` (historico — compatibilidad retroactiva)
+- `user_changed_from` (nuevo — evento en sesion origen)
+- `user_changed_to` (nuevo — evento en sesion destino)
 
-Migracion base:
+Migracion unica consolidada:
 - `migrations/Version20260309000000.php`
-- Crea tabla `session_audit` con indices en `session_id`, `audit_type`, `created_at`.
+- Crea tabla `session_audit` completa con todos los campos e indices: `idx_session`, `idx_audit_type`, `idx_created`, `idx_change_flow`.
 
 ### 4.2 Flujo admin de deshabilitacion
 
@@ -139,23 +153,26 @@ Comportamiento implementado:
 1. Se cancela la reservacion.
 2. Se crea auditoria `user_cancelled` para la sesion de la reservacion.
 
-### 4.4 Flujo usuario de cambio de sesion (estado actual)
+### 4.4 Flujo usuario de cambio de sesion (implementado SCRUM-81)
 
 Controlador:
 - `src/Controller/ProfileController.php`
 - Metodo `reservationChangeSession()`
 
-Secuencia actual:
-1. Captura `previousSession` antes del cambio.
+Secuencia implementada:
+1. Captura `previousSession` y `previousPlace` antes del cambio.
 2. Ejecuta `ReservationService::change(...)` (muta la reservacion a nueva sesion y nuevo asiento).
-3. Ejecuta `ReservationCancellationService::auditUserChange($reservation, $previousSession, $reason)`.
+3. Ejecuta `ReservationCancellationService::auditUserChange($reservation, $previousSession, $previousPlace, $reason)`.
 
 Servicio:
 - `ReservationCancellationService::auditUserChange(...)`
 
-Comportamiento actual:
-- Persiste **un solo** evento `user_changed` en `previousSession`.
-- No crea evento para sesion destino.
+Comportamiento implementado:
+- Genera un `changeFlowId` (UUID-like) de correlacion unico.
+- Persiste dos eventos en un solo flush atomico:
+  - `user_changed_from` asociado a `previousSession` (origen).
+  - `user_changed_to` asociado a la nueva sesion (destino).
+- Ambos eventos comparten `changeFlowId`, `reservationId`, `fromSessionId`, `toSessionId`, `fromPlace`, `toPlace`.
 
 ### 4.5 Vista backend de auditoria
 
@@ -163,8 +180,11 @@ Template:
 - `templates/backend/session/audit.html.twig`
 
 Estado actual de UI:
-- `place_disabled`: muestra detalle expandible completo.
-- `user_cancelled` y `user_changed`: se muestran resumidos (sin detalle expandible de flujo).
+- `place_disabled`: tabla clasica backend con detalle expandible (motivo, asientos, usuarios afectados con enlace a perfil).
+- `user_changed_from` y `user_changed_to`: detalle expandible de flujo con enlaces clicables a sesion origen, sesion destino y perfil de usuario.
+- `user_changed` (historico): soportado con fallback visual.
+- Scrollbar vertical al superar 600px de altura de tabla.
+- Estilo alineado con panel Editar/Reservaciones del backend (tabla striped, well, sin labels con fondo).
 
 ---
 
@@ -227,59 +247,52 @@ Esperado de negocio:
 
 ---
 
-## 7. Scrum propuesto para cierre (SCRUM-81)
+## 7. SCRUM-81 — Implementacion completada
 
-### 7.1 Objetivo
+### 7.1 Objetivo logrado
 
-Implementar trazabilidad bidireccional de cambios de reservacion entre sesiones para permitir seguimiento completo del flujo en backend.
+Trazabilidad bidireccional de cambios de reservacion entre sesiones implementada y disponible en backend.
 
-### 7.2 Diseno de eventos objetivo
+### 7.2 Eventos implementados
 
-Por cada cambio A -> B, crear dos registros:
+Por cada cambio A -> B se crean dos registros correlacionados:
 
-1. `user_changed_from` en sesion origen.
-2. `user_changed_to` en sesion destino.
+1. `user_changed_from` en sesion origen (A).
+2. `user_changed_to` en sesion destino (B).
 
-Ambos deben compartir `change_flow_id` (UUID).
+Ambos comparten `change_flow_id` generado en el mismo flush.
 
-### 7.3 Datos minimos por registro
-
-- `change_flow_id`
-- `reservation_id`
-- `user_id`
-- `user_identifier`
-- `from_session_id`
-- `to_session_id`
-- `from_place`
-- `to_place`
-- `reason` (nullable)
-- `created_at`
-
-### 7.4 Ajustes requeridos por archivo
+### 7.3 Archivos modificados
 
 1. `src/Controller/ProfileController.php`
-- Capturar `previousPlace` antes del `change()`.
-- Pasar contexto completo al servicio de auditoria.
+   - Captura `previousPlace` antes del `change()`.
+   - Llama nueva firma `auditUserChange($reservation, $previousSession, $previousPlace, $reason)`.
 
 2. `src/Service/ReservationCancellationService.php`
-- Reemplazar `auditUserChange(...)` por version bilateral.
-- Persistir ambos eventos en una sola transaccion.
+   - `auditUserChange(...)` genera dos eventos correlacionados en flush atomico.
+   - Helper `generateChangeFlowId()` para UUID interno.
 
 3. `src/Entity/SessionAudit.php`
-- Agregar campos de correlacion (recomendado) o esquema JSON temporal (MVP).
+   - Nuevos campos: `changeFlowId`, `reservationId`, `fromSessionId`, `toSessionId`, `fromPlace`, `toPlace`.
+   - Indice declarado: `idx_change_flow`.
 
 4. `src/Repository/SessionAuditRepository.php`
-- Agregar busqueda por `change_flow_id`.
-- Corregir metodos con campos inconsistentes si aplica.
+   - Fix `findByAdminUser` (usa `adminUserIdentifier`).
+   - Nuevo metodo `findByChangeFlowId`.
 
 5. `templates/backend/session/audit.html.twig`
-- Soportar render de `user_changed_from` y `user_changed_to`.
-- Mostrar enlace/etiqueta de correlacion por flujo.
+   - Soporte para `user_changed_from`, `user_changed_to`, `user_changed` (historico).
+   - Detalle expandible con enlaces a sesiones y perfil de usuario.
+   - Estilo backend clasico alineado con panel Editar.
 
-### 7.5 Compatibilidad retroactiva
+6. `migrations/Version20260309000000.php`
+   - Migración consolidada (unica) que crea `session_audit` completa.
+   - Incluye todos los campos nuevos e indice `idx_change_flow`.
 
-- Mantener soporte para eventos historicos `user_changed`.
-- Si no existe `change_flow_id`, mostrar como historico sin correlacion.
+### 7.4 Compatibilidad retroactiva
+
+- Registros `user_changed` historicos se muestran con fallback visual.
+- Panel funcional con o sin `change_flow_id`.
 
 ---
 
