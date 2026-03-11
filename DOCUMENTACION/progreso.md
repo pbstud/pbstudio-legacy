@@ -60,19 +60,20 @@ Resumen de esta subparte:
 | `FEATURE_EDITAR_FOTO_INSTRUCTORES.md` | Feature/Fix | Completado y desplegado | 100% |
 | `FEATURE_HORARIOS_PRECISOS.md` | Feature/Fix | Completado y desplegado | 100% |
 | `FEATURE_VALIDACION_REGISTRO_APELLIDO.md` | Feature | Análisis/pre-implementación | 30% |
-| `ISSUE_MODULO_AUDITORIA_RESERVACIONES_CONSOLIDADO.md` | Issue/Fix | Fase base implementada + mejora bidireccional pendiente | 85% |
+| `ISSUE_CAMBIO_RESERVACION_SIN_CLASES_DISPONIBLES.md` | Issue/Fix | Implementado - SCRUM-23 completado | 100% |
+| `ISSUE_CARGA_MASIVA_HORARIOS.md` | Issue/Fix | Fix implementado - SCRUM-20 integrado en main | 100% |
+| `ISSUE_DOBLE_ASIENTO_CONCURRENCIA_Y_VALIDACION.md` | Issue/Fix | Implementado - SCRUM-24 cerrado en Jira | 100% |
+| `ISSUE_MODULO_AUDITORIA_RESERVACIONES_CONSOLIDADO.md` | Issue/Fix | Implementado - auditoria bidireccional completa (SCRUM-81 cerrado) | 100% |
 
 Resumen de esta subparte:
-- Documentos revisados en `FIXES` (este bloque): **7**
-- Implementados y estables: **5**
-- En evolución o pre-implementación: **2**
+- Documentos revisados en `FIXES` (este bloque): **10**
+- Implementados y estables/cerrados: **9**
+- En evolución o pre-implementación: **1**
 
 ### 2.3 Inventario de pendientes activos (`DOCUMENTACION/FIXES_PENDIENTES/`)
 
 | Documento | Tipo | Prioridad | Estado funcional | Avance estimado | Bloqueante principal |
 |---|---|---|---|---|---|
-| `FIXES/ISSUE_CAMBIO_RESERVACION_SIN_CLASES_DISPONIBLES.md` | Issue | Alta | Pendiente de implementacion tecnica | 55% | Implementacion y validacion de regla anti reflujo |
-| `FIXES/ISSUE_MODULO_AUDITORIA_RESERVACIONES_CONSOLIDADO.md` | Issue | Alta | Base implementada, pendiente trazabilidad bidireccional | 85% | Cierre de diseño bilateral + correlación por flujo |
 | `FEATURE_NOTIFICACION_CAMBIO_CLASE.md` | Feature | Importante | Documentado, pendiente implementación | 35% | Validación real de correo en servidor |
 | `FEATURE_CORREOS_LISTA_ESPERA.md` | Feature | Importante | Base parcial implementada | 80% | Cierre de validación integral y edge cases |
 
@@ -80,10 +81,10 @@ Archivo de control:
 - `INDICE_FEATURES_PENDIENTES.md` (índice vigente de pendientes activos)
 
 Resumen de esta subparte:
-- Pendientes activos: **4**
-- Issues: **2**
+- Pendientes activos: **2**
+- Issues: **0**
 - Features: **2**
-- Bloqueantes repetidos: implementacion tecnica pendiente y entorno de correo
+- Bloqueantes repetidos: entorno de correo y validación end-to-end
 
 ### 2.4 Hallazgos de consistencia documental para seguimiento
 
@@ -176,8 +177,29 @@ Este listado se construye por bloques para no perder issues por numeración reut
 
 #### Bloque E - Issues activos de ejecución inmediata (documentos de pendientes)
 
-1. Issue: Cambio de reservación sin clases disponibles
-2. Issue: Auditoría bidireccional de cambio de reservación
+1. Feature: Notificación por cambio de clase
+2. Feature: Correos de lista de espera
+3. Feature: Validación de apellido obligatorio (Issue #51)
+
+### 2.6 Cruce Jira de issues resueltos y activos
+
+Estado consolidado (según documentos en `FIXES` y evidencia de historial en `main`):
+
+1. **SCRUM-20** - CERRADO
+   - Tema: carga masiva de horarios (error de parseo de fecha en redirección).
+   - Evidencia: merge `fix/scrum-20-carga-masiva-horarios` en `main`.
+
+2. **SCRUM-23** - CERRADO
+   - Tema: cambio de reservación con sesiones futuras + control anti-reflujo + vista semanal.
+   - Evidencia: commits funcionales y de documentación integrados en `main`.
+
+3. **SCRUM-81** - CERRADO
+   - Tema: auditoría bidireccional de cambio de reservación con `change_flow_id`.
+   - Evidencia: merge `fix/scrum-81-auditoria-bidireccional` en `main`.
+
+4. **SCRUM-24** - CERRADO
+   - Tema: doble asiento por concurrencia y validación funcional.
+   - Evidencia: estado *Finalizada/Listo* en export de Jira actualizado y cierre reflejado en seguimiento técnico.
 
 #### Nota de control de numeración
 
@@ -191,36 +213,32 @@ Este listado se construye por bloques para no perder issues por numeración reut
 Base de seguimiento funcional/técnico (sin contar índices):
 
 - Total items registrados: **12**
-  - 8 en `FIXES`
-  - 4 en `FIXES_PENDIENTES`
+   - 10 en `FIXES`
+   - 2 en `FIXES_PENDIENTES`
 
 Distribución actual:
 
-1. ✅ Completados/implementados: **8**
-2. 🟡 En planificación/pre-implementación: **0**
-3. 🔴 Pendientes activos: **4**
+1. ✅ Completados/implementados: **9**
+2. 🟡 En planificación/en curso: **1**
+3. 🔴 Pendientes activos: **2**
 
 Avance estimado por estado documental:
 
-- Completado: **66.6%**
-- Planificación: **0%**
-- Pendiente: **33.3%**
+- Completado: **75.0%**
+- En curso/pre-implementación: **8.3%**
+- Pendiente: **16.7%**
 
 ---
 
 ## 🚧 PARTE 4 - BLOQUEANTES VIGENTES
 
-1. Confirmación de reglas de negocio (cambio de reservación)
-   - Pendiente de validación directiva
-   - Impacta implementación final del issue de cambio de reservación
-
-2. Entorno de correo para validación real
+1. Entorno de correo para validación real
    - En local no queda validado todo el flujo de notificaciones
    - Se requiere prueba en servidor para cerrar features de correo
 
-3. Definición técnica de auditoría bilateral en cambios de reservación
-   - Se debe registrar salida (origen) y entrada (destino) con correlación única
-   - El panel backend debe permitir seguimiento del flujo completo en ambas sesiones
+2. Validación y ejecución de Issue #51 (apellido obligatorio)
+   - El documento está en pre-implementación
+   - Falta llevarlo a código + pruebas + validación de regresión
 
 ---
 
@@ -228,9 +246,9 @@ Avance estimado por estado documental:
 
 ### Parte A (inmediata)
 
-1. Implementar auditoría bidireccional de cambios de reservación (origen/destino).
-2. Definir y persistir correlación de flujo (`change_flow_id`) por cambio.
-3. Actualizar panel de auditoría backend para visualizar ambos lados del cambio.
+1. Validar en staging el cierre de SCRUM-24 con smoke/regresión de reservas.
+2. Ejecutar implementación del Issue #51 (apellido obligatorio).
+3. Completar validación real de correo para SCRUM-21 y SCRUM-22.
 
 ### Parte B (siguiente)
 
@@ -240,7 +258,7 @@ Avance estimado por estado documental:
 
 ### Parte C (consolidación)
 
-1. Cerrar los 4 pendientes activos.
+1. Cerrar los 2 pendientes activos de `FIXES_PENDIENTES`.
 2. Mover documentación cerrada a bloque de completados.
 3. Recalcular matriz de avance en este mismo archivo.
 
@@ -253,36 +271,35 @@ Avance estimado por estado documental:
 - [x] Estado por item documentado.
 - [x] Bloqueantes explícitos listados.
 - [x] Plan por etapas definido.
-- [ ] Actualizar porcentaje al cerrar el siguiente issue activo.
+- [x] Actualizar porcentaje con cierres SCRUM-20, SCRUM-23, SCRUM-24 y SCRUM-81.
 
 ---
 
 ## 🧠 PARTE 7 - DETALLE ITEM POR ITEM (SIN SALTOS)
 
-### 7.1 ISSUE ACTIVO A - Auditoría bidireccional en cambio de reservación
+### 7.1 ISSUE CERRADO A - Auditoría bidireccional en cambio de reservación (SCRUM-81)
 
 Documento fuente: `FIXES/ISSUE_MODULO_AUDITORIA_RESERVACIONES_CONSOLIDADO.md`
 
 Estado actual:
-- Análisis técnico completado sobre flujo real de cambio de reservación.
-- Detectada brecha: la auditoría actual registra solo la sesión de origen.
+- Implementado y cerrado.
+- Trazabilidad bidireccional operativa en auditoría de sesión.
 
 Qué ya está claro:
 - El cambio se ejecuta en `ReservationService::change()` sobre la misma reservación.
-- `auditUserChange()` persiste 1 solo registro en `session_audit` para la sesión anterior.
-- El panel `/backend/session/{id}/audit` consulta por `session_id`, por lo que la sesión destino no ve el evento.
+- Se registra salida (origen) y entrada (destino) con correlación de flujo.
+- El panel de auditoría permite reconstrucción del cambio en ambos lados.
 
-Qué falta cerrar:
-1. Registrar 2 eventos por cambio: salida (origen) y entrada (destino).
-2. Vincular ambos eventos con `change_flow_id`.
-3. Exponer detalle completo en panel de auditoría para tipos de cambio de usuario.
-4. Mantener compatibilidad con registros históricos `user_changed`.
+Evidencia de cierre:
+1. Documento `ISSUE_MODULO_AUDITORIA_RESERVACIONES_CONSOLIDADO.md` marcado como implementado.
+2. Jira SCRUM-81 cerrado.
+3. Integrado en `main` mediante merge de rama técnica.
 
-Riesgo principal:
-- Sin traza bilateral, soporte no puede reconstruir de forma confiable el flujo completo del cambio.
+Riesgo residual:
+- Solo mantenimiento evolutivo normal; no hay brecha abierta de trazabilidad.
 
 Criterio de cierre:
-- Admin puede ver y seguir el cambio en ambas sesiones (origen/destino) desde el panel de auditoría.
+- Cumplido: admin puede ver y seguir el cambio en ambas sesiones (origen/destino) desde el panel de auditoría.
 
 ---
 
@@ -291,7 +308,7 @@ Criterio de cierre:
 Documento fuente: `FIXES/ISSUE_CAMBIO_RESERVACION_SIN_CLASES_DISPONIBLES.md`
 
 Estado actual:
-- Implementado al 100% — pendiente de commit y PR.
+- Implementado al 100% e integrado en `main` (SCRUM-23 cerrado en Jira).
 
 Qué se implemento:
 - `SessionRepository::getForChange()`: ventana 30 dias, ordenado por fecha/hora/sucursal.
@@ -361,13 +378,16 @@ Criterio de cierre:
 
 ---
 
-### 7.5 Items en planificación (no cerrados)
+### 7.5 Items en planificación / ejecución activa
 
 1. `FIXES/FEATURE_VALIDACION_REGISTRO_APELLIDO.md`
 - Estado: análisis y diseño; falta pasar a ejecución.
 
-2. `FIXES/ISSUE_MODULO_AUDITORIA_RESERVACIONES_CONSOLIDADO.md`
-- Estado: **COMPLETADO** — auditoria bidireccional implementada (SCRUM-81, commit `d1329fd6`, rama `fix/scrum-81-auditoria-bidireccional`).
+2. `FIXES_PENDIENTES/FEATURE_NOTIFICACION_CAMBIO_CLASE.md`
+- Estado: pendiente de implementación y validación en entorno con correo real.
+
+3. `FIXES_PENDIENTES/FEATURE_CORREOS_LISTA_ESPERA.md`
+- Estado: base parcial implementada; pendiente cierre end-to-end.
 
 ---
 
@@ -378,10 +398,13 @@ Criterio de cierre:
 3. `FIXES/FEATURE_BUSQUEDA_USUARIOS_MEJORADA.md`
 4. `FIXES/FEATURE_EDITAR_FOTO_INSTRUCTORES.md`
 5. `FIXES/FEATURE_HORARIOS_PRECISOS.md`
-6. `FIXES/ISSUE_MODULO_AUDITORIA_RESERVACIONES_CONSOLIDADO.md` (fase base cerrada)
+6. `FIXES/ISSUE_CAMBIO_RESERVACION_SIN_CLASES_DISPONIBLES.md` (SCRUM-23 cerrado)
+7. `FIXES/ISSUE_CARGA_MASIVA_HORARIOS.md` (SCRUM-20 integrado)
+8. `FIXES/ISSUE_DOBLE_ASIENTO_CONCURRENCIA_Y_VALIDACION.md` (SCRUM-24 cerrado)
+9. `FIXES/ISSUE_MODULO_AUDITORIA_RESERVACIONES_CONSOLIDADO.md` (SCRUM-81 cerrado)
 
 Validación documental:
-- Todos marcan estado de completado/implementado en su fase base; el módulo de auditoría mantiene mejora evolutiva pendiente.
+- Estos items ya están en estado cerrado/implementado según documento fuente y cruce Jira/historial git.
 
 ---
 

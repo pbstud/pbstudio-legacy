@@ -893,3 +893,144 @@ Los logs se guardan en `var/log/prod.log` en formato JSON (configuración de mon
     create 664 www-data www-data
 }
 ```
+
+
+
+
+
+
+
+---
+
+## 11. Resumen de comandos — Secuencia completa para levantar el proyecto
+
+Ejecutar en orden desde la raíz del proyecto en la terminal del servidor.
+
+### Paso 1 — Clonar el repositorio
+
+```bash
+git clone https://github.com/pbstud/pbstudio-legacy.git pbstudio81
+cd pbstudio81
+```
+
+### Paso 2 — Crear y configurar el archivo .env
+
+```bash
+# Copiar la plantilla
+cp .env .env.local
+
+# Editar con los valores reales del servidor
+nano .env.local
+```
+
+Variables mínimas obligatorias a editar:
+```bash
+APP_ENV=prod
+APP_SECRET=<generar con: php -r "echo bin2hex(random_bytes(32));"> 
+DATABASE_URL="mysql://usuario:password@127.0.0.1:3306/pbstudio?serverVersion=8.0&charset=utf8mb4"
+MESSENGER_TRANSPORT_DSN=doctrine://default?auto_setup=0
+MAILER_DSN=null://null
+RESETTING_RETRY_TTL=7200
+```
+
+### Paso 3 — Instalar dependencias PHP
+
+```bash
+composer install --no-dev --optimize-autoloader
+```
+
+### Paso 4 — Instalar dependencias JS y compilar assets
+
+```bash
+yarn install
+yarn build
+```
+
+### Paso 5 — Limpiar y calentar caché
+
+```bash
+php bin/console cache:clear --env=prod
+php bin/console cache:warmup --env=prod
+```
+
+### Paso 6 — Crear base de datos y ejecutar migraciones
+
+```bash
+# Crear la BD si no existe
+php bin/console doctrine:database:create --env=prod
+
+# Ejecutar migraciones
+php bin/console doctrine:migrations:migrate --no-interaction --env=prod
+```
+
+### Paso 7 — Configurar el messenger (cola de mensajes)
+
+```bash
+php bin/console messenger:setup-transports --env=prod
+```
+
+### Paso 8 — Crear directorios de media
+
+```bash
+mkdir -p public/media/uploads/instructors
+mkdir -p public/media/uploads/site
+mkdir -p public/media/cache
+
+# Dar permisos al usuario del servidor web (ajustar www-data o apache según el servidor)
+chown -R www-data:www-data public/media
+chmod -R 775 public/media
+```
+
+### Paso 9 — (Opcional) Cargar backup con datos de prueba
+
+```bash
+mysql -u usuario -p pbstudio < Especificaciones/pbstudio_back.sql
+```
+
+### Paso 10 — Validar que todo está en orden
+
+```bash
+# Schema de BD sincronizado
+php bin/console doctrine:schema:validate --env=prod
+
+# Rutas cargadas correctamente
+php bin/console debug:router --env=prod 2>&1 | tail -10
+
+# Servicios compilados sin errores
+php bin/console cache:warmup --env=prod
+
+# Test de crons manualmente
+php bin/console app:session:autoclosing --env=prod
+php bin/console app:transaction:checkexpiration --env=prod
+php bin/console app:waiting-list:expire --env=prod
+```
+
+### Paso 11 — Ajuste de zona horaria en PHP
+
+En `php.ini` del servidor:
+```ini
+date.timezone = America/Mexico_City
+```
+
+Reiniciar PHP-FPM o Apache después del cambio:
+```bash
+# Apache
+sudo systemctl restart apache2
+
+# Nginx + PHP-FPM
+sudo systemctl restart php8.2-fpm
+sudo systemctl restart nginx
+```
+
+### Paso 12 — Configurar crons
+
+```bash
+crontab -e
+```
+
+Agregar las siguientes líneas:
+```cron
+0 0 * * * php /var/www/pbstudio81/bin/console app:transaction:checkexpiration --no-debug --env=prod 2>&1 >> /var/www/pbstudio81/var/log/transaction.checkexpiration.log
+*/15 * * * * php /var/www/pbstudio81/bin/console app:session:autoclosing --no-debug --env=prod 2>&1 >> /var/www/pbstudio81/var/log/session.autoclosing.log
+0 */1 * * * php /var/www/pbstudio81/bin/console app:waiting-list:expire --no-debug --env=prod 2>&1 >> /var/www/pbstudio81/var/log/waiting-list.log
+```
