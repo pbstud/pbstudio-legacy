@@ -61,34 +61,33 @@
             <h3>Cambiar Reservación</h3>
             <br>
 
-            <div class="clearfix">
-                {% for session in sessions %}
-                    {# session \App\Entity\Session #}
-                    <div class="reserv_class clearfix session-item"
-                         data-studio="{{ session.branchOffice.id }}"
-                         data-type="{{ session.type }}"
-                         data-discipline="{{ session.discipline.id }}"
-                         data-instructor="{{ session.instructor.id }}"
-                    >
-                        <div class="class {{ session.discipline|replace({' ': '-'})|lower }}">
-                            <span class="icon-{{  session.individual ? 'individual' : 'group' }}"></span>
-                            <h6>{{ session.discipline }}</h6>
-                            <p>{{ session.timeStart|date('h:i a') }}</p>
-                            <p>{{ session.instructor.profile.firstname }}</p>
-                        </div>
-                        <div class="detail">
-                            <p><b>Día: </b>{{ session.dateStart()|format_date(null, "EEEE d 'de' MMMM") }}</p>
-                            <p><b>Sucursal: </b>{{ session.branchOffice.place }}</p>
-                            <p><b>Salón: </b>{{ session.exerciseRoom }}</p>
-                            <p><b>Instructor: </b>{{ session.instructor.profile.firstname }}</p>
-
-                            <a href="#" data-url="{{ path('reservation_change_session', {
-                                'id': reservation.id,
-                                'sessionId': session.id
-                            }) }}" class="link" data-remodal>
-                                Cambiar reservación
-                            </a>
-                        </div>
+            <div class="change-calendar">
+                {% for week in weeks %}
+                    <div class="calendar clearfix change-week">
+                        {% for day in week %}
+                            <div class="day" data-day="{{ day.dateKey }}">
+                                <h6><small>{{ day.date|format_date(null, "EEE d") }}</small></h6>
+                                {% for session in day.sessions %}
+                                    <a href="#"
+                                       data-url="{{ path('reservation_change_session', {
+                                           'id': reservation.id,
+                                           'sessionId': session.id
+                                       }) }}"
+                                       data-remodal
+                                       class="class session-item {{ session.discipline|replace({' ': '-'})|lower }}{{ session.full ? ' disabled' : '' }}"
+                                       data-studio="{{ session.branchOffice.id }}"
+                                       data-type="{{ session.type }}"
+                                       data-discipline="{{ session.discipline.id }}"
+                                       data-instructor="{{ session.instructor.id }}">
+                                        <span class="icon-{{ session.individual ? 'individual' : 'group' }}"></span>
+                                        <h6>{{ session.discipline }}</h6>
+                                        <p>{{ session.timeStart|date('h:i a') }}</p>
+                                        <p>{{ session.instructor.profile.firstname }}</p>
+                                        <p><small>{{ session.branchOffice.place }}</small></p>
+                                    </a>
+                                {% endfor %}
+                            </div>
+                        {% endfor %}
                     </div>
                 {% else %}
                     <div class="reserv_class clearfix">

@@ -180,6 +180,10 @@ readonly class ReservationService
         }
 
         if ($this->authorizationChecker->isGranted('ROLE_USER')) {
+            if ($reservation->getChangedAt() !== null) {
+                throw new ReservationException('Esta reservación ya fue cambiada y no permite cancelación.');
+            }
+
             if (Session::STATUS_CLOSED === $session->getStatus()) {
                 throw new ReservationException('La clase ya ha sido tomada y no se puede cancelar.');
             }
@@ -211,6 +215,10 @@ readonly class ReservationService
 
     public function canCancel(Reservation $reservation): bool
     {
+        if ($reservation->getChangedAt() !== null) {
+            return false;
+        }
+
         $session = $reservation->getSession();
         $secondsToStart = $this->getSecondsToStart($session);
 

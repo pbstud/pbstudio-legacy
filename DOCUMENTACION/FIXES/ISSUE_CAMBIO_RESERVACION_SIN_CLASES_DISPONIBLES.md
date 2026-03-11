@@ -1,6 +1,6 @@
 # ISSUE: Cambio de Reservacion - sesiones futuras con control de reflujo
 
-**Estado:** Pendiente de implementacion tecnica  
+**Estado:** Implementado — SCRUM-23 completado  
 **Prioridad:** Alta  
 **Fecha detectado:** 09 de Marzo de 2026  
 **Ultima actualizacion:** 11 de Marzo de 2026  
@@ -101,12 +101,13 @@ Recomendacion:
 
 ## 5. Criterios de aceptacion
 
-1. Al intentar cambiar una reservacion, se listan sesiones futuras validas.
-2. La lista coincide con las sesiones elegibles de la pantalla normal de reserva.
-3. Si la reservacion ya fue cambiada, se bloquea un nuevo cambio.
-4. Si la reservacion ya fue cambiada, se bloquea la cancelacion en ese flujo.
-5. No se crea ninguna migracion nueva de DB.
-6. Se mantiene compatibilidad con auditorias historicas `user_changed`.
+1. Al intentar cambiar una reservacion, se listan sesiones futuras validas. ✅
+2. La lista coincide con las sesiones elegibles de la pantalla normal de reserva. ✅
+3. Si la reservacion ya fue cambiada, se bloquea un nuevo cambio. ✅
+4. Si la reservacion ya fue cambiada, se bloquea la cancelacion en ese flujo. ✅
+5. No se crea ninguna migracion nueva de DB. ✅
+6. Se mantiene compatibilidad con auditorias historicas `user_changed`. ✅
+7. La vista de sesiones disponibles para cambio usa el mismo formato de calendario semanal que la pantalla de reserva normal. ✅
 
 ---
 
@@ -117,33 +118,61 @@ Recomendacion:
 3. Misma reservacion ya cambiada -> intentar cancelacion (debe bloquear).
 4. Verificar que la lista de cambio coincide con reserva normal para el mismo usuario/escenario.
 5. Verificar que el flujo historico con `user_changed` tambien queda protegido.
+6. Verificar filtros de sucursal/tipo/disciplina/instructor sobre el calendario de cambio.
+7. Verificar que el boton Cambiar/Cancelar no aparece en sesiones ya cambiadas (vista perfil).
 
 ---
 
-## 7. Archivos probables
+## 7. Archivos modificados
 
-1. `src/Repository/SessionRepository.php`
-2. `src/Repository/SessionAuditRepository.php`
-3. `src/Controller/ProfileController.php`
-4. `src/Service/ReservationCancellationService.php` (si centralizamos validacion)
-5. `templates/profile/reservation_change.html.twig` (mensajes de bloqueo)
+| Archivo | Descripcion del cambio |
+|---|---|
+| `src/Repository/SessionRepository.php` | `getForChange()`: ventana de 30 dias (antes solo el mismo dia), ordenado por fecha/hora/sucursal |
+| `src/Repository/SessionAuditRepository.php` | Nuevo metodo `hasReservationBeenChanged()` para check anti-reflujo via auditoria |
+| `src/Service/Reservation/ReservationService.php` | `canCancel()` bloquea si `changedAt != null`; `cancel()` lanza excepcion si reservacion ya fue cambiada |
+| `src/Controller/ProfileController.php` | Anti-reflujo en cancel/change/changeSession; helper `reservationHasChangeFlow()`; validacion server-side `isSessionAllowedForChangeTarget()`; estructura semanal `$weeks` para la vista |
+| `src/Twig/Runtime/AppExtensionRuntime.php` | `reservationCanCancel()` y `reservationCanChange()` verifican auditoria antes de mostrar botones |
+| `templates/profile/reservation_change.html.twig` | Vista rediseñada con grid de calendario semanal (`.calendar.clearfix > .day`) igual a la pantalla de reserva normal |
+| `assets/js/session-change.js` | Filtros actualizados con `updateEmptyDays()` para ocultar columnas/semanas vacias tras filtrar |
 
 ---
 
-## 8. Riesgos y mitigaciones
+## 8. Detalles de implementacion
+
+### 8.1 Ventana de sesiones para cambio (30 dias)
+
+`SessionRepository::getForChange()` ahora usa `dateStart >= hoy` y `dateStart <= hoy+30 dias` con ordenamiento `ASC` por fecha, hora y sucursal.
+
+### 8.2 Anti-reflujo sin nueva migracion
+
+`SessionAuditRepository::hasReservationBeenChanged(int $reservationId): bool` consulta `session_audit` filtrando por `reservation_id` y `audit_type IN ('user_changed_from', 'user_changed_to', 'user_changed')`.
+
+El helper `ProfileController::reservationHasChangeFlow()` combina la verificacion de `changedAt` (campo existente) con el metodo de auditoria como segunda capa.
+
+### 8.3 Bloqueo de botones en interfaz
+
+`AppExtensionRuntime` llama a `reservationHasChangeFlow()` desde `reservationCanCancel()` y `reservationCanChange()`, de modo que la template `reserved_sessions.html.twig` oculta los botones automaticamente sin cambios en la template.
+
+### 8.4 Vista de calendario semanal para cambio
+
+El controlador construye un array `$weeks` (semanas Mon-Dom del rango 30 dias) con sesiones agrupadas por dia. La template renderiza el mismo layout `.calendar > .day` del calendario de reserva normal. Las sesiones agotadas reciben la clase `.disabled`. Los filtros de JS ocultan columnas y filas de semana enteras cuando quedan vacias.
+
+---
+
+## 9. Riesgos y mitigaciones
 
 1. Riesgo: permitir sesiones no elegibles por divergencia de filtros.
-   Mitigacion: compartir misma logica de elegibilidad con la reserva normal.
+   Mitigacion: `isSessionAllowedForChangeTarget()` valida status=OPEN, fecha futura y ventana de 30 dias tanto en el filtro del controlador como en el POST.
 
 2. Riesgo: falso positivo de bloqueo por auditoria historica.
-   Mitigacion: limitar filtro por `reservation_id` y tipos definidos.
+   Mitigacion: filtro por `reservation_id` + tipos definidos; `changedAt` como primera capa mas rapida.
 
 3. Riesgo: mensajes ambiguos al usuario.
    Mitigacion: textos explicitos para "ya fue cambiada" y "no se permite cancelar despues del cambio".
 
 ---
 
-## 9. Referencias
+## 10. Referencias
 
 1. Jira: https://devpbstudio.atlassian.net/browse/SCRUM-23
 2. Documento de auditoria relacionado: `FIXES/ISSUE_MODULO_AUDITORIA_RESERVACIONES_CONSOLIDADO.md`

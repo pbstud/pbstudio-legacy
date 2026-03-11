@@ -245,6 +245,9 @@ class SessionRepository extends ServiceEntityRepository
      */
     public function getForChange(\DateTimeInterface $dateStart): array
     {
+        $start = \DateTimeImmutable::createFromInterface($dateStart)->setTime(0, 0, 0);
+        $end = $start->modify('+30 days')->setTime(23, 59, 59);
+
         $qb = $this->createQueryBuilder('s');
         $qb
             ->addSelect('e', 'd', 'i', 'ip', 'b')
@@ -253,11 +256,14 @@ class SessionRepository extends ServiceEntityRepository
             ->join('s.instructor', 'i')
             ->join('i.profile', 'ip')
             ->join('e.branchOffice', 'b')
-            ->where('s.dateStart = :dateStart')
+            ->where('s.dateStart >= :dateStart')
+            ->andWhere('s.dateStart <= :dateEnd')
             ->andWhere('s.status = :statusOpen')
-            ->orderBy('s.timeStart')
-            ->addOrderBy('s.branchOffice')
-            ->setParameter('dateStart', $dateStart)
+            ->orderBy('s.dateStart', 'ASC')
+            ->addOrderBy('s.timeStart', 'ASC')
+            ->addOrderBy('s.branchOffice', 'ASC')
+            ->setParameter('dateStart', $start)
+            ->setParameter('dateEnd', $end)
             ->setParameter('statusOpen', Session::STATUS_OPEN)
         ;
 

@@ -7,6 +7,20 @@ $(function () {
     let $filters = $('[data-filter]');
     let $studioFilters = $('.studio-filter');
 
+    function updateEmptyDays() {
+        $('.change-week .day').each(function () {
+            let $day = $(this);
+            let hasVisible = $day.find('.session-item').not('.hide').length > 0;
+            $day.toggleClass('hide', !hasVisible);
+        });
+
+        $('.change-week').each(function () {
+            let $week = $(this);
+            let hasVisible = $week.find('.day').not('.hide').length > 0;
+            $week.toggleClass('hide', !hasVisible);
+        });
+    }
+
     function filterItems() {
         $items.addClass('hide');
 
@@ -25,15 +39,14 @@ $(function () {
             selector.push('[data-' + $el.data('filter') + '="' + filterVal + '"]');
         });
 
-        if (selector.length === 0) {
-            return;
+        if (selector.length > 0) {
+            selector.push('[data-studio="' + studioVal + '"]');
+            selector = selector.join('');
+            $items.addClass('hide');
+            $items.filter(selector).removeClass('hide');
         }
 
-        selector.push('[data-studio="' + studioVal + '"]');
-
-        selector = selector.join('');
-        $items.addClass('hide');
-        $items.filter(selector).removeClass('hide');
+        updateEmptyDays();
     }
 
     $studioFilters.on('click', function (e) {

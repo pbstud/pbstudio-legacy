@@ -12,6 +12,7 @@ use App\Form\ProfileFormType;
 use App\Repository\BranchOfficeRepository;
 use App\Repository\DisciplineRepository;
 use App\Repository\ReservationRepository;
+use App\Repository\SessionAuditRepository;
 use App\Repository\SessionRepository;
 use App\Repository\StaffRepository;
 use App\Repository\TransactionRepository;
@@ -165,6 +166,7 @@ class ProfileController extends AbstractController
         Request $request,
         Reservation $reservation,
         ReservationRepository $reservationRepository,
+        SessionAuditRepository $sessionAuditRepository,
         TimeToCancel $timeToCancelService,
         ReservationService $reservationService,
         \App\Service\ReservationCancellationService $cancellationService,
@@ -175,6 +177,20 @@ class ProfileController extends AbstractController
 
         if ($loggedUser->getId() !== $reservation->getUser()->getId()) {
             throw new AccessDeniedHttpException('La clase que intentas cancelar no te pertenece.');
+        }
+
+        if ($this->reservationHasChangeFlow($reservation, $sessionAuditRepository)) {
+            $message = 'Esta reservación ya fue cambiada y no permite cancelación.';
+
+            if ($request->isMethod('POST')) {
+                return $this->json(['error' => $message]);
+            }
+
+            $this->addFlash('danger', $message);
+
+            return $this->redirectToRoute('reserved_sessions', [
+                '_fragment' => 'section-content',
+            ]);
         }
 
         if ($request->isMethod('POST')) {
@@ -245,6 +261,7 @@ class ProfileController extends AbstractController
         Reservation $reservation,
         SessionRepository $sessionRepository,
         ReservationService $reservationService,
+        SessionAuditRepository $sessionAuditRepository,
         BranchOfficeRepository $branchOfficeRepository,
         DisciplineRepository $disciplineRepository,
         StaffRepository $staffRepository,
@@ -256,6 +273,14 @@ class ProfileController extends AbstractController
             throw new AccessDeniedHttpException('La clase que intentas cambiar no te pertenece.');
         }
 
+        if ($this->reservationHasChangeFlow($reservation, $sessionAuditRepository)) {
+            $this->addFlash('danger', 'Esta reservación ya fue cambiada y no permite otro cambio.');
+
+            return $this->redirectToRoute('reserved_sessions', [
+                '_fragment' => 'section-content',
+            ]);
+        }
+
         if (!$reservationService->canChange($reservation)) {
             $this->addFlash('danger', 'Lo sentimos, la reservación no acepta cambios.');
 
@@ -265,11 +290,8 @@ class ProfileController extends AbstractController
         }
 
         $sessions = $sessionRepository->getForChange(new \DateTime('today'));
-
-        $currentDate = new \DateTime();
-        $sessions = array_filter($sessions, function (Session $session) use ($currentDate, $reservation) {
-            return $session->getDateTimeStart() > $currentDate
-                && $session->getId() !== $reservation->getSession()->getId();
+        $sessions = array_filter($sessions, function (Session $session) use ($reservation) {
+            return $this->isSessionAllowedForChangeTarget($reservation, $session);
         });
 
         if (!$sessions) {
@@ -280,12 +302,47 @@ class ProfileController extends AbstractController
             ]);
         }
 
+        // Group sessions by date key
+        $sessionsByDate = [];
+        foreach ($sessions as $session) {
+            $sessionsByDate[$session->getDateStart()->format('Y-m-d')][] = $session;
+        }
+
+        // Build weeks (Mon–Sun) covering today through today+30, skip empty weeks
+        $today = new \DateTimeImmutable('today');
+        $endDate = $today->modify('+30 days');
+        $dow = (int) $today->format('N'); // 1=Mon, 7=Sun
+        $weekStart = $today->modify(sprintf('-%d days', $dow - 1));
+
+        $weeks = [];
+        $current = $weekStart;
+        while ($current <= $endDate) {
+            $weekDays = [];
+            $weekHasSessions = false;
+            for ($i = 0; $i < 7; $i++) {
+                $dateKey = $current->format('Y-m-d');
+                $daySessions = $sessionsByDate[$dateKey] ?? [];
+                $weekDays[] = [
+                    'date'     => $current,
+                    'dateKey'  => $dateKey,
+                    'sessions' => $daySessions,
+                ];
+                if (!empty($daySessions)) {
+                    $weekHasSessions = true;
+                }
+                $current = $current->modify('+1 day');
+            }
+            if ($weekHasSessions) {
+                $weeks[] = $weekDays;
+            }
+        }
+
         return $this->render('profile/reservation_change.html.twig', [
-            'reservation' => $reservation,
-            'sessions' => $sessions,
+            'reservation'   => $reservation,
+            'weeks'         => $weeks,
             'branchOffices' => $branchOfficeRepository->getPublic(),
-            'disciplines' => $disciplineRepository->getAllActives(),
-            'instructors' => $staffRepository->getAllActiveInstructors(),
+            'disciplines'   => $disciplineRepository->getAllActives(),
+            'instructors'   => $staffRepository->getAllActiveInstructors(),
         ]);
     }
 
@@ -296,6 +353,7 @@ class ProfileController extends AbstractController
         #[MapEntity(mapping: ['sessionId' => 'id'])]
         Session $session,
         ReservationRepository $reservationRepository,
+        SessionAuditRepository $sessionAuditRepository,
         ReservationService $reservationService,
         \App\Service\ReservationCancellationService $cancellationService,
         LoggerInterface $logger,
@@ -305,6 +363,34 @@ class ProfileController extends AbstractController
 
         if ($loggedUser->getId() !== $reservation->getUser()->getId()) {
             throw new AccessDeniedHttpException('La clase que intentas cambiar no te pertenece.');
+        }
+
+        if ($this->reservationHasChangeFlow($reservation, $sessionAuditRepository)) {
+            $message = 'Esta reservación ya fue cambiada y no permite otro cambio.';
+
+            if ($request->isMethod('POST')) {
+                return $this->json(['error' => $message]);
+            }
+
+            $this->addFlash('danger', $message);
+
+            return $this->redirectToRoute('reserved_sessions', [
+                '_fragment' => 'section-content',
+            ]);
+        }
+
+        if (!$this->isSessionAllowedForChangeTarget($reservation, $session)) {
+            $message = 'La sesión seleccionada no está disponible para cambio.';
+
+            if ($request->isMethod('POST')) {
+                return $this->json(['error' => $message]);
+            }
+
+            $this->addFlash('danger', $message);
+
+            return $this->redirectToRoute('reserved_sessions', [
+                '_fragment' => 'section-content',
+            ]);
         }
 
         if ($request->isMethod('POST') && $request->request->has('place_number')) {
@@ -397,6 +483,46 @@ class ProfileController extends AbstractController
             'reservations' => $reservations,
             'userReservations' => $userReservations,
         ]);
+    }
+
+    private function reservationHasChangeFlow(
+        Reservation $reservation,
+        SessionAuditRepository $sessionAuditRepository,
+    ): bool {
+        if ($reservation->getChangedAt() !== null) {
+            return true;
+        }
+
+        $reservationId = $reservation->getId();
+        if ($reservationId === null) {
+            return false;
+        }
+
+        return $sessionAuditRepository->hasReservationBeenChanged($reservationId);
+    }
+
+    private function isSessionAllowedForChangeTarget(Reservation $reservation, Session $session): bool
+    {
+        $currentSessionId = $reservation->getSession()?->getId();
+        $targetSessionId = $session->getId();
+
+        if ($currentSessionId === null || $targetSessionId === null || $currentSessionId === $targetSessionId) {
+            return false;
+        }
+
+        if ($session->getStatus() !== Session::STATUS_OPEN) {
+            return false;
+        }
+
+        $targetDateTime = $session->getDateTimeStart();
+        $now = new \DateTimeImmutable();
+        if ($targetDateTime <= $now) {
+            return false;
+        }
+
+        $maxDate = (new \DateTimeImmutable('today'))->modify('+30 days')->setTime(23, 59, 59);
+
+        return $targetDateTime <= $maxDate;
     }
 
     #[Route('/waiting-list/{sessionId}/remove', name: 'waiting_list_remove', methods: ['POST'])]
