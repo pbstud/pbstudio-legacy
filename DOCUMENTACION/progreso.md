@@ -286,32 +286,24 @@ Criterio de cierre:
 
 ---
 
-### 7.2 ISSUE ACTIVO B - Cambio de reservación sin clases disponibles
+### 7.2 ISSUE CERRADO B - Cambio de reservación sin clases disponibles (SCRUM-23)
 
 Documento fuente: `FIXES/ISSUE_CAMBIO_RESERVACION_SIN_CLASES_DISPONIBLES.md`
 
 Estado actual:
-- Alcance funcional cerrado en Jira (SCRUM-23).
-- Pendiente de implementacion tecnica en codigo.
+- Implementado al 100% — pendiente de commit y PR.
 
-Qué ya está claro:
-- Se deben mostrar sesiones futuras elegibles con la misma logica de la pantalla normal de reserva.
-- Se debe bloquear segundo cambio y cancelacion si la reservacion ya fue cambiada.
-- La verificacion debe usar `session_audit` sin nuevas migraciones.
-
-Bloqueante funcional:
-- Implementacion y pruebas de regresion del flujo completo.
-
-Qué falta cerrar:
-1. Ajustar query de cambio para sesiones futuras alineadas con reserva normal.
-2. Implementar validacion anti reflujo via auditoria (`reservation_id` + `audit_type`).
-3. Probar casos de uso completos de cambio y cancelacion bloqueada.
-
-Riesgo principal:
-- Desalinear filtros entre cambio y reserva normal puede mostrar sesiones no validas.
+Qué se implemento:
+- `SessionRepository::getForChange()`: ventana 30 dias, ordenado por fecha/hora/sucursal.
+- `SessionAuditRepository::hasReservationBeenChanged()`: metodo anti-reflujo via `session_audit`.
+- `ReservationService`: bloqueo de cancelacion si `changedAt != null`.
+- `ProfileController`: anti-reflujo en cancel/change/changeSession; validacion server-side de sesion objetivo.
+- `AppExtensionRuntime`: Twig ocultard botones de cambiar/cancelar para reservaciones ya cambiadas.
+- `reservation_change.html.twig`: rediseño con grid de calendario semanal identico a pantalla normal de reserva.
+- `session-change.js`: `updateEmptyDays()` oculta columnas/semanas vacias al filtrar.
 
 Criterio de cierre:
-- Usuario ve alternativas validas de forma consistente y el sistema bloquea reflujo (doble cambio/cancelacion).
+- Cumplido: sesiones futuras listadas, mismo formato visual, anti-reflujo funcional sin nueva migracion.
 
 ---
 

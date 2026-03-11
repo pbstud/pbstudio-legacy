@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Twig\Runtime;
 
 use App\Entity\Reservation;
+use App\Repository\SessionAuditRepository;
 use App\Security\Voter\RouteAccessVoter;
 use App\Service\Reservation\ReservationService;
 use App\Util\ChargeMethodDescription;
@@ -20,6 +21,7 @@ readonly class AppExtensionRuntime implements RuntimeExtensionInterface
     public function __construct(
         private Security $security,
         private ReservationService $reservationService,
+        private SessionAuditRepository $sessionAuditRepository,
     ) {
     }
 
@@ -70,11 +72,33 @@ readonly class AppExtensionRuntime implements RuntimeExtensionInterface
 
     public function reservationCanCancel(Reservation $reservation): bool
     {
+        if ($this->reservationHasChangeFlow($reservation)) {
+            return false;
+        }
+
         return $this->reservationService->canCancel($reservation);
     }
 
     public function reservationCanChange(Reservation $reservation): bool
     {
+        if ($this->reservationHasChangeFlow($reservation)) {
+            return false;
+        }
+
         return $this->reservationService->canChange($reservation);
+    }
+
+    private function reservationHasChangeFlow(Reservation $reservation): bool
+    {
+        if ($reservation->getChangedAt() !== null) {
+            return true;
+        }
+
+        $reservationId = $reservation->getId();
+        if ($reservationId === null) {
+            return false;
+        }
+
+        return $this->sessionAuditRepository->hasReservationBeenChanged($reservationId);
     }
 }

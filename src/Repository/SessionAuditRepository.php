@@ -59,4 +59,25 @@ class SessionAuditRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    /**
+     * Verifica si una reservación ya tuvo flujo de cambio registrado en auditoría.
+     */
+    public function hasReservationBeenChanged(int $reservationId): bool
+    {
+        $count = (int) $this->createQueryBuilder('a')
+            ->select('COUNT(a.id)')
+            ->where('a.reservationId = :reservationId')
+            ->andWhere('a.auditType IN (:auditTypes)')
+            ->setParameter('reservationId', $reservationId)
+            ->setParameter('auditTypes', [
+                'user_changed',
+                'user_changed_from',
+                'user_changed_to',
+            ])
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        return $count > 0;
+    }
 }
