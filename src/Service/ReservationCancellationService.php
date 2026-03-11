@@ -284,16 +284,33 @@ class ReservationCancellationService
      *
      * @param Reservation  $reservation     Reservación que fue modificada
      * @param Session      $previousSession Sesión anterior (de donde salió)
+     * @param int          $previousPlace   Asiento previo en sesión origen
      * @param string|null  $reason          Motivo opcional del usuario
      *
      * @return void
      */
-    public function auditUserChange(Reservation $reservation, Session $previousSession, ?string $reason = null): void
+    public function auditUserChange(
+        Reservation $reservation,
+        Session $previousSession,
+        int $previousPlace,
+        ?string $reason = null
+    ): void
     {
         $user = $reservation->getUser();
         $newSession = $reservation->getSession();
+        $newPlace = $reservation->getPlaceNumber();
+        $reservationId = $reservation->getId();
+        $previousSessionId = $previousSession->getId();
+        $newSessionId = $newSession?->getId();
 
-        if ($user === null || $newSession === null) {
+        if (
+            $user === null ||
+            $newSession === null ||
+            $newPlace === null ||
+            $reservationId === null ||
+            $previousSessionId === null ||
+            $newSessionId === null
+        ) {
             $this->logger->error('No se puede crear auditoría: reservación sin usuario o sesión', [
                 'reservation_id' => $reservation->getId(),
             ]);
@@ -301,33 +318,80 @@ class ReservationCancellationService
             return;
         }
 
-        // Crear registro de auditoría para la sesión ANTERIOR (de donde salió)
-        $audit = new SessionAudit();
-        $audit->setSession($previousSession);
-        $audit->setUserIdentifier($user->getUserIdentifier());
-        $audit->setAuditType('user_changed');
-        $audit->setReason($reason); // null si usuario no dio motivo
-        $audit->setAffectedUsers([
+        $changeFlowId = $this->generateChangeFlowId();
+
+        $baseAffectedUser = [
             [
                 'id' => $user->getId(),
                 'name' => $user->getName().' '.$user->getLastname(),
                 'email' => $user->getEmail(),
-                'place' => $reservation->getPlaceNumber(),
-                'new_session_id' => $newSession->getId(),
-                'new_session_date' => $newSession->getDateStart()->format('Y-m-d H:i'),
+                'from_place' => $previousPlace,
+                'to_place' => $newPlace,
+                'from_session_id' => $previousSessionId,
+                'to_session_id' => $newSessionId,
+                'change_flow_id' => $changeFlowId,
             ],
-        ]);
-        $audit->setAffectedReservationsCount(1);
+        ];
 
-        $this->em->persist($audit);
+        // Evento de salida (sesión origen)
+        $auditFrom = new SessionAudit();
+        $auditFrom->setSession($previousSession);
+        $auditFrom->setUserIdentifier($user->getUserIdentifier());
+        $auditFrom->setAuditType('user_changed_from');
+        $auditFrom->setReason($reason);
+        $auditFrom->setAffectedUsers($baseAffectedUser);
+        $auditFrom->setAffectedReservationsCount(1);
+        $auditFrom->setChangeFlowId($changeFlowId);
+        $auditFrom->setReservationId($reservationId);
+        $auditFrom->setFromSessionId($previousSessionId);
+        $auditFrom->setToSessionId($newSessionId);
+        $auditFrom->setFromPlace($previousPlace);
+        $auditFrom->setToPlace($newPlace);
+
+        // Evento de entrada (sesión destino)
+        $auditTo = new SessionAudit();
+        $auditTo->setSession($newSession);
+        $auditTo->setUserIdentifier($user->getUserIdentifier());
+        $auditTo->setAuditType('user_changed_to');
+        $auditTo->setReason($reason);
+        $auditTo->setAffectedUsers($baseAffectedUser);
+        $auditTo->setAffectedReservationsCount(1);
+        $auditTo->setChangeFlowId($changeFlowId);
+        $auditTo->setReservationId($reservationId);
+        $auditTo->setFromSessionId($previousSessionId);
+        $auditTo->setToSessionId($newSessionId);
+        $auditTo->setFromPlace($previousPlace);
+        $auditTo->setToPlace($newPlace);
+
+        $this->em->persist($auditFrom);
+        $this->em->persist($auditTo);
         $this->em->flush();
 
-        $this->logger->info('Auditoría de cambio por usuario creada', [
-            'previous_session_id' => $previousSession->getId(),
-            'new_session_id' => $newSession->getId(),
+        $this->logger->info('Auditoría bidireccional de cambio por usuario creada', [
+            'change_flow_id' => $changeFlowId,
+            'previous_session_id' => $previousSessionId,
+            'new_session_id' => $newSessionId,
             'user_identifier' => $user->getUserIdentifier(),
-            'reservation_id' => $reservation->getId(),
+            'reservation_id' => $reservationId,
             'has_reason' => $reason !== null,
         ]);
+    }
+
+    private function generateChangeFlowId(): string
+    {
+        $bytes = random_bytes(16);
+        $bytes[6] = chr((ord($bytes[6]) & 0x0f) | 0x40);
+        $bytes[8] = chr((ord($bytes[8]) & 0x3f) | 0x80);
+
+        $hex = bin2hex($bytes);
+
+        return sprintf(
+            '%s-%s-%s-%s-%s',
+            substr($hex, 0, 8),
+            substr($hex, 8, 4),
+            substr($hex, 12, 4),
+            substr($hex, 16, 4),
+            substr($hex, 20, 12)
+        );
     }
 }
