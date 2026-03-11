@@ -158,13 +158,13 @@ Este listado se construye por bloques para no perder issues por numeración reut
 6. Issue N-6 - Correo en lista de espera
 7. Issue N-7 - Crear horario por hora (no por orden de ingreso)
 
-#### Bloque C - Issues de mejora funcional/producto (numeración reutilizada #43 a #50)
+#### Bloque C - Issues de mejora funcional/producto (numeración operativa: #43-#46, #48-#50 y #55)
 
 1. Issue #43 - Ver quién canceló en la info de clase (backend)
 2. Issue #44 - Prueba de correos (esperar servidor)
 3. Issue #45 - Horario abierto en creación de clases (formateable)
 4. Issue #46 - Confirmación al cambiar clase si tiene reservas
-5. Issue #47 - Mapa interactivo de lugares (drag & drop)
+5. Issue #55 - Mapa de asientos en modo ajedrez editable (MVP Opción B)
 6. Issue #48 - Mejorar info de foto de instructores (backend)
 7. Issue #49 - Búsqueda de usuarios nombre + apellido (sin duplicados)
 8. Issue #50 - Optimizar queries de caja/pagos (índices faltantes)
@@ -203,7 +203,8 @@ Estado consolidado (según documentos en `FIXES` y evidencia de historial en `ma
 
 #### Nota de control de numeración
 
-- Existen IDs repetidos en distintas capas del plan (ejemplo: #43-#49), por eso este reporte los separa por bloques.
+- Existen IDs repetidos en distintas capas del plan (ejemplo: #48-#49), por eso este reporte los separa por bloques.
+- El issue del mapa se renumeró a #55 para evitar colisión con el bloque técnico.
 - Para ejecución operativa se recomienda usar además el nombre del issue + bloque, no solo el número.
 
 ---

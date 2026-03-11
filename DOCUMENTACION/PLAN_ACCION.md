@@ -1,7 +1,7 @@
 # 📋 PLAN DE ACCIÓN - PBStudio
 
-**Fecha actualización:** 10 Marzo 2026  
-**Status:** 55 issues identificados (46 secuenciales + 8 nuevos de reunión DG renumerados #47-#54 + 1 nuevo de auditoría bidireccional)  
+**Fecha actualización:** 11 Marzo 2026  
+**Status:** 55 issues identificados (46 secuenciales + 8 nuevos de reunión DG con numeración operativa #43, #48-#50 y #52-#55 + 1 nuevo de auditoría bidireccional)  
 **Issues resueltos (plan técnico):** 11 ✅ (N-1, N-3, N-5, #8, #29, #38 marcados en esta revisión)  
 **Tickets finalizados en Jira:** 19 ✅ (incluye épicas y subtareas)  
 **Issues pendientes (plan técnico):** 44 (agrupados por categoría, sin duplicados)  
@@ -1574,13 +1574,20 @@ Sistema normaliza y guarda como: "09:30"
 
 ---
 
-### Issue #47: 🪑 Mapa Interactivo de Lugares - Drag & Drop (Creación de Clase)
+### Issue #55: 🪑 Mapa de Asientos en Modo Ajedrez Editable (Creación de Clase)
 
 **Prioridad:** 🟠 IMPORTANTE  
-**Timeline estimado:** 5-7 horas (drag & drop + persistencia)  
-**Contexto:** Al crear una clase, el admin **define automáticamente** la cantidad de sillas/camillas y las **acomoda visualmente** en el aula usando drag & drop interactivo.
+**Timeline estimado:** 3-5 horas (MVP Opción B)  
+**Status:** 📋 DOCUMENTADO - 🎫 SCRUM-84 (Jira, 11/03/2026) - PENDIENTE IMPLEMENTACIÓN  
+**Contexto:** Se adopta Opción B como MVP: panel tipo tabla de ajedrez editable por celdas (activar/desactivar lugares), manteniendo compatibilidad con el modelo actual de asientos por número.
 
-**Flujo de Usuario (Admin):**
+**Decisión de diseño (11/03/2026):**
+- Implementar ahora Opción B (grid editable por celdas).
+- Dejar Opción A (editable total libre/drag & drop avanzado) como evolución futura.
+- Jira: [SCRUM-84](https://devpbstudio.atlassian.net/browse/SCRUM-84)
+- Documento técnico detallado: [DOCUMENTACION/FIXES_PENDIENTES/ISSUE_55_MAPA_ASIENTOS_MODO_AJEDREZ.md](FIXES_PENDIENTES/ISSUE_55_MAPA_ASIENTOS_MODO_AJEDREZ.md)
+
+**Backlog de evolución futura (Opción A - editable total, no MVP actual):**
 
 **Paso 1: Definir capacidad**
 ```
