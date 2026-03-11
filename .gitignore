@@ -6,11 +6,24 @@ var/log/
 public/build
 backups/
 .phpunit.result.cache
+.env
 .env.local
 .env.*.local
+.env.prod
+.env.prod.local
+.env.staging
+.env.staging.local
 .idea
 .vscode
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+
+# Sensitive leftovers in Especificaciones
+Especificaciones/.env
+Especificaciones/.env.*
+Especificaciones/*.sql
+Especificaciones/*.sql.gz
+Especificaciones/*.tar.gz
+Especificaciones/*.rar
