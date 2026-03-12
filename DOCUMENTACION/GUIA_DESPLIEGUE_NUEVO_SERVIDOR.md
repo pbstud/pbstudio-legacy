@@ -16,10 +16,12 @@
 5. [Checklist completo de instalación paso a paso](#5-checklist-completo-de-instalación-paso-a-paso)
 6. [Variables de entorno requeridas](#6-variables-de-entorno-requeridas)
 7. [Comandos programados (Crons)](#7-comandos-programados-crons)
-8. [Configuración post-instalación desde el backend](#8-configuración-post-instalación-desde-el-backend)
-9. [Verificaciones finales](#9-verificaciones-finales)
-10. [Notas adicionales](#10-notas-adicionales)
-11. [Runbook ejecutable (Servidor destino)](#11-runbook-ejecutable--servidor-destino-linux)
+8. [Integración de Analytics — Tracking codes](#8-integración-de-analytics--tracking-codes)
+9. [Configuración post-instalación desde el backend](#9-configuración-post-instalación-desde-el-backend)
+10. [Verificaciones finales](#10-verificaciones-finales)
+11. [Notas adicionales](#11-notas-adicionales)
+12. [Runbook ejecutable (Servidor destino)](#12-runbook-ejecutable--servidor-destino-linux)
+13. [Comandos exactos — instalación completa](#13-comandos-exactos--instalación-completa)
 
 ---
 
@@ -715,7 +717,7 @@ Lista completa de variables que deben existir en el servidor. Las marcadas con �
 | `DATABASE_URL` | URL de conexión a MySQL | `mysql://user:pass@127.0.0.1:3306/dbname` |
 | `MESSENGER_TRANSPORT_DSN` | Transporte del bus de mensajes | `doctrine://default?auto_setup=0` |
 | `MAILER_DSN` | Configuración de envío de correo | `null://null` o DSN real |
-| `RESETTING_RETRY_TTL` ⚠️ | TTL del token de recuperación de contraseña (segundos) | `7200` (2 horas) |
+| `RESETTING_RETRY_TTL` | TTL del token de recuperación de contraseña (segundos) | `7200` (2 horas) — valor base en `.env` desde 12-03-2026 |
 
 ---
 
@@ -824,7 +826,7 @@ gtag('config', '{{ env("GOOGLE_ANALYTICS_ID") }}');
 
 Una vez el servidor arranca correctamente, estos parámetros deben configurarse desde el panel `/backend` antes de habilitar el sitio al público.
 
-### 8.1 Conekta (Pagos)
+### 9.1 Conekta (Pagos)
 
 Ruta: Panel Backend → Configuración → Conekta
 
@@ -837,7 +839,7 @@ Parámetros necesarios:
 
 Sin esta configuración, el flujo de compra de paquetes falla con error 500.
 
-### 8.2 Configuración general del sitio
+### 9.2 Configuración general del sitio
 
 Verificar en el backend:
 - Sucursales activas y visibles
@@ -845,7 +847,7 @@ Verificar en el backend:
 - Disciplinas activas
 - Horario de cancelación configurado (horas antes para grupos e individuales)
 
-### 8.3 Primera sesión de prueba
+### 9.3 Primera sesión de prueba
 
 Crear al menos una sesión de clase para verificar el flujo completo:
 1. Crear sesión desde backend
@@ -897,7 +899,7 @@ php bin/console app:waiting-list:expire --env=prod
 
 ---
 
-## Notas adicionales
+## 11. Notas adicionales
 
 ### Sobre `beberlei/doctrineextensions`
 
@@ -943,7 +945,7 @@ Los logs se guardan en `var/log/prod.log` en formato JSON (configuración de mon
 
 ---
 
-## 11. Runbook ejecutable — Servidor destino (Linux)
+## 12. Runbook ejecutable — Servidor destino (Linux)
 
 Este bloque es para ejecutar en servidor limpio de staging o pre-produccion, desde shell Linux, con permisos de despliegue y sudo.
 
@@ -963,7 +965,7 @@ SITE_URL='https://staging.pbstudio.mx' \
 bash DOCUMENTACION/scripts/runbook_servidor_destino_linux.sh
 ```
 
-### 11.1 Variables que debes ajustar antes de ejecutar
+### 12.1 Variables que debes ajustar antes de ejecutar
 
 ```bash
 export APP_PATH="/var/www/pbstudio81"
@@ -975,7 +977,7 @@ export DB_PORT="3306"
 export SITE_URL="https://staging.pbstudio.mx"
 ```
 
-### 11.2 Preflight de servidor
+### 12.2 Preflight de servidor
 
 ```bash
 set -euo pipefail
@@ -989,7 +991,7 @@ php -v
 php -m | egrep "gd|exif|intl|pdo_mysql|mbstring"
 ```
 
-### 11.3 Checkout de código
+### 12.3 Checkout de código
 
 ```bash
 sudo mkdir -p "$APP_PATH"
@@ -1005,7 +1007,7 @@ git checkout main
 git pull --ff-only
 ```
 
-### 11.4 Configurar entorno de producción
+### 12.4 Configurar entorno de producción
 
 ```bash
 SECRET_VALUE="$(php -r 'echo bin2hex(random_bytes(32));')"
@@ -1024,7 +1026,7 @@ EOF
 chmod 600 .env.prod.local
 ```
 
-### 11.5 Build de aplicación
+### 12.5 Build de aplicación
 
 ```bash
 composer install --no-dev --optimize-autoloader
@@ -1042,7 +1044,7 @@ php bin/console cache:clear --env=prod
 php bin/console cache:warmup --env=prod
 ```
 
-### 11.6 Smoke checks (GO / NO-GO)
+### 12.6 Smoke checks (GO / NO-GO)
 
 ```bash
 php bin/console about --env=prod | egrep "Environment|Debug"
@@ -1063,10 +1065,191 @@ Resultado esperado:
 - `lint:container` en `OK`
 - Comandos `app:*` sin excepciones
 
-### 11.7 Crons finales
+### 12.7 Crons finales
 
 ```cron
 0 0 * * * www-data /usr/bin/php /var/www/pbstudio81/bin/console app:transaction:checkexpiration --no-debug --env=prod >> /var/log/pbstudio/transaction.checkexpiration.log 2>&1
 */15 * * * * www-data /usr/bin/php /var/www/pbstudio81/bin/console app:session:autoclosing --no-debug --env=prod >> /var/log/pbstudio/session.autoclosing.log 2>&1
 0 * * * * www-data /usr/bin/php /var/www/pbstudio81/bin/console app:waiting-list:expire --no-debug --env=prod >> /var/log/pbstudio/waiting-list.log 2>&1
+```
+
+---
+
+## 13. Comandos exactos — instalación completa
+
+Ejecutar en orden desde la carpeta raíz del proyecto en el servidor. Ajustar las variables del bloque 1 antes de comenzar.
+
+### Bloque 1 — Variables (editar antes de ejecutar)
+
+```bash
+export APP_PATH="/var/www/pbstudio81"
+export DB_NAME="pbstudio"
+export DB_USER="pbstudio_user"
+export DB_PASS="CAMBIAR_PASSWORD"
+export DB_HOST="127.0.0.1"
+export DB_PORT="3306"
+export SITE_URL="https://staging.pbstudio.mx"
+```
+
+### Bloque 2 — Paquetes del sistema y extensiones PHP
+
+```bash
+sudo apt update
+sudo apt install -y git unzip npm \
+  php8.2 php8.2-cli php8.2-fpm php8.2-mysql php8.2-curl \
+  php8.2-xml php8.2-zip php8.2-mbstring php8.2-gd php8.2-intl
+
+php -v
+php -m | grep -E "gd|intl|pdo_mysql|mbstring"
+```
+
+### Bloque 3 — Clonar o actualizar repositorio
+
+```bash
+sudo mkdir -p "$APP_PATH"
+sudo chown -R "$USER":"$USER" "$APP_PATH"
+
+git clone https://github.com/pbstud/pbstudio-legacy.git "$APP_PATH"
+cd "$APP_PATH"
+git checkout main
+```
+
+### Bloque 4 — Base de datos
+
+```sql
+CREATE DATABASE pbstudio CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE USER 'pbstudio_user'@'localhost' IDENTIFIED BY 'CAMBIAR_PASSWORD';
+GRANT ALL PRIVILEGES ON pbstudio.* TO 'pbstudio_user'@'localhost';
+FLUSH PRIVILEGES;
+```
+
+### Bloque 5 — Archivo de entorno
+
+```bash
+SECRET_VALUE="$(php -r 'echo bin2hex(random_bytes(32));')"
+
+cat > .env.prod.local <<EOF
+APP_ENV=prod
+APP_DEBUG=0
+APP_SECRET=${SECRET_VALUE}
+DATABASE_URL="mysql://${DB_USER}:${DB_PASS}@${DB_HOST}:${DB_PORT}/${DB_NAME}"
+MESSENGER_TRANSPORT_DSN=doctrine://default?auto_setup=0
+MAILER_DSN=null://null
+RESETTING_RETRY_TTL=7200
+SITE_URL=${SITE_URL}
+EOF
+
+chmod 600 .env.prod.local
+```
+
+### Bloque 6 — Dependencias y assets
+
+```bash
+composer install --no-dev --optimize-autoloader
+npm install
+npm run build
+```
+
+### Bloque 7 — Base de datos: migraciones y messenger
+
+```bash
+php bin/console doctrine:migrations:migrate --no-interaction --env=prod
+php bin/console messenger:setup-transports --env=prod
+```
+
+### Bloque 8 — Directorios de media y permisos
+
+```bash
+mkdir -p public/media/uploads/instructors
+mkdir -p public/media/uploads/site
+mkdir -p public/media/cache
+sudo chown -R www-data:www-data public/media var
+sudo chmod -R 775 public/media var
+```
+
+### Bloque 9 — Cache de producción
+
+```bash
+php bin/console cache:clear --env=prod
+php bin/console cache:warmup --env=prod
+```
+
+### Bloque 10 — (Opcional) Cargar backup de datos
+
+```bash
+# Ejecutar SI se quiere cargar datos de prueba existentes
+mysql -u "$DB_USER" -p "$DB_NAME" < Especificaciones/pbstudio_back.sql
+
+# Validar integridad tras la importación
+php bin/console doctrine:schema:validate --env=prod
+```
+
+### Bloque 11 — Usuario administrador
+
+```bash
+# Ejecutar SOLO si el backup no incluye usuario de staff
+php bin/console app:staff:create --env=prod
+```
+
+### Bloque 12 — Smoke checks (GO / NO-GO)
+
+```bash
+php bin/console about --env=prod | grep -E "Environment|Debug"
+php bin/console doctrine:schema:validate --env=prod
+php bin/console lint:container --env=prod
+php bin/console debug:router --env=prod | wc -l
+php bin/console list app --env=prod
+php bin/console app:session:autoclosing --env=prod
+php bin/console app:transaction:checkexpiration --env=prod
+php bin/console app:waiting-list:expire --env=prod
+```
+
+### Bloque 13 — Servidor web (Nginx)
+
+```bash
+sudo nano /etc/nginx/sites-available/pbstudio81
+```
+
+```nginx
+server {
+    listen 80;
+    server_name staging.pbstudio.mx;
+    root /var/www/pbstudio81/public;
+
+    location / {
+        try_files $uri /index.php$is_args$args;
+    }
+
+    location ~ ^/index\.php(/|$) {
+        fastcgi_pass unix:/run/php/php8.2-fpm.sock;
+        fastcgi_split_path_info ^(.+\.php)(/.*)$;
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
+        fastcgi_param DOCUMENT_ROOT $realpath_root;
+        internal;
+    }
+}
+```
+
+```bash
+sudo ln -s /etc/nginx/sites-available/pbstudio81 /etc/nginx/sites-enabled/
+sudo nginx -t
+sudo systemctl reload nginx
+```
+
+### Bloque 14 — Crons
+
+```bash
+mkdir -p /var/log/pbstudio
+sudo chown www-data:www-data /var/log/pbstudio
+
+sudo crontab -u www-data -e
+```
+
+Agregar estas líneas:
+
+```cron
+0 0 * * * /usr/bin/php /var/www/pbstudio81/bin/console app:transaction:checkexpiration --no-debug --env=prod >> /var/log/pbstudio/transaction.log 2>&1
+*/15 * * * * /usr/bin/php /var/www/pbstudio81/bin/console app:session:autoclosing --no-debug --env=prod >> /var/log/pbstudio/session.log 2>&1
+0 * * * * /usr/bin/php /var/www/pbstudio81/bin/console app:waiting-list:expire --no-debug --env=prod >> /var/log/pbstudio/waitinglist.log 2>&1
 ```

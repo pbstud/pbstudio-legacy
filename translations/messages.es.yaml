@@ -1,5 +1,3 @@
-Filter: Buscar
-
 btn:
     save: Guardar
     update: Guardar Cambios
@@ -8,6 +6,7 @@ error:
     invalid_coupon: El cupón es inválido o ha expirado.
 
 filter:
+    title: Buscar
     name: Buscar por Nombre
     name_code: Buscar por Nombre, Código
     transaction_discount:
