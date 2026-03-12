@@ -503,10 +503,19 @@ class ProfileController extends AbstractController
 
     private function isSessionAllowedForChangeTarget(Reservation $reservation, Session $session): bool
     {
+        $currentSession = $reservation->getSession();
+        if ($currentSession === null) {
+            return false;
+        }
+
         $currentSessionId = $reservation->getSession()?->getId();
         $targetSessionId = $session->getId();
 
         if ($currentSessionId === null || $targetSessionId === null || $currentSessionId === $targetSessionId) {
+            return false;
+        }
+
+        if ($currentSession->isIndividual() !== $session->isIndividual()) {
             return false;
         }
 

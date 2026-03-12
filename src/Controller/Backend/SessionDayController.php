@@ -155,7 +155,7 @@ class SessionDayController extends AbstractController
                     'trace'   => $e->getTraceAsString(),
                 ]);
 
-                $data['data'] = $request->request->get('session');
+                $data['data'] = $request->request->all('session');
             }
         }
 

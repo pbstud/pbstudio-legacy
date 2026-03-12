@@ -8,17 +8,8 @@ $(function () {
     let $studioFilters = $('.studio-filter');
 
     function updateEmptyDays() {
-        $('.change-week .day').each(function () {
-            let $day = $(this);
-            let hasVisible = $day.find('.session-item').not('.hide').length > 0;
-            $day.toggleClass('hide', !hasVisible);
-        });
-
-        $('.change-week').each(function () {
-            let $week = $(this);
-            let hasVisible = $week.find('.day').not('.hide').length > 0;
-            $week.toggleClass('hide', !hasVisible);
-        });
+        // Keep all calendar slots visible to avoid jumping layout while filtering.
+        $('.change-week, .change-week .day').removeClass('hide');
     }
 
     function filterItems() {
