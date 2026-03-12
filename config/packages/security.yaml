@@ -39,6 +39,10 @@ security:
                 enable_csrf: true
                 default_target_path: backend_dashboard
 
+            login_throttling:
+                max_attempts: 5
+                interval: '15 minutes'
+
             logout:
                 path: backend_logout
                 target: backend_login
@@ -63,7 +67,9 @@ security:
                 success_handler: App\Security\AuthenticationSuccessHandler
                 failure_handler: App\Security\AuthenticationFailureHandler
 
-            login_throttling: null
+            login_throttling:
+                max_attempts: 5
+                interval: '15 minutes'
 
             logout:
                 path: /logout
