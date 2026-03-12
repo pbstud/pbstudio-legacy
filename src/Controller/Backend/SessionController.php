@@ -202,6 +202,7 @@ class SessionController extends AbstractController
             $session
                 ->setExerciseRoomCapacity($exerciseRoom->getCapacity())
                 ->setPlacesNotAvailable($exerciseRoom->getPlacesNotAvailable())
+                ->setSeatLayout($exerciseRoom->getSeatLayout())
                 ->setAvailableCapacity($exerciseRoom->getAvailableCapacity())
                 ->setType($exerciseRoom->getType())
             ;
@@ -542,6 +543,68 @@ class SessionController extends AbstractController
         ]);
     }
 
+    #[Route('/{id}/seats', name: 'backend_session_seats', methods: ['GET', 'POST'])]
+    #[IsGranted('ALLOWED_ROUTE_ACCESS')]
+    public function seats(
+        Request $request,
+        Session $session,
+        EntityManagerInterface $em,
+        ReservationRepository $reservationRepository,
+    ): Response {
+        if ($request->isMethod('POST')) {
+            if (!$this->isCsrfTokenValid('session_seats_' . $session->getId(), $request->request->get('_token'))) {
+                $this->addFlash('danger', 'Token de seguridad inválido.');
+                return $this->redirectToRoute('backend_session_seats', ['id' => $session->getId()]);
+            }
+
+            $raw = $request->request->get('places_not_available', '');
+            $capacity = $session->getExerciseRoomCapacity();
+            $layout = $this->sanitizeSeatLayout($request->request->get('seat_layout'), $capacity ?? 0);
+            $saveAsDefault = $request->request->getBoolean('save_as_default');
+
+            $parsed = array_values(array_unique(array_filter(
+                array_map('intval', array_filter(explode(',', $raw), 'strlen')),
+                fn(int $n) => $n >= 1 && $n <= $capacity
+            )));
+            sort($parsed);
+
+            $session->setPlacesNotAvailable($parsed ?: null);
+            $session->setSeatLayout($layout);
+            $session->updateAvailableCapacity();
+
+            if ($saveAsDefault && $session->getExerciseRoom() instanceof ExerciseRoom) {
+                $session->getExerciseRoom()
+                    ->setPlacesNotAvailable($parsed ?: null)
+                    ->setSeatLayout($layout)
+                ;
+            }
+
+            $em->flush();
+
+            $this->addFlash(
+                'success',
+                $saveAsDefault
+                    ? 'Disposición actualizada y guardada como plantilla por defecto del salón.'
+                    : 'Disposición de asientos actualizada solo para esta clase.'
+            );
+
+            return $this->redirectToRoute('backend_session_seats', ['id' => $session->getId()]);
+        }
+
+        $reservations   = $reservationRepository->getReservationsBySession($session);
+        $reservedPlaces = array_values(array_filter(
+            array_map(fn($r) => $r->getPlaceNumber(), $reservations),
+            fn($p) => $p !== null
+        ));
+
+        return $this->render('backend/session/seats.html.twig', [
+            'session'         => $session,
+            'seat_layout'     => $this->resolveSeatLayout($session),
+            'reserved_places' => $reservedPlaces,
+            'cancel_form'     => $this->createCancelForm($session)->createView(),
+        ]);
+    }
+
     #[Route('/{id}/places', name: 'backend_session_places', methods: ['GET'])]
     public function places(Session $session): JsonResponse
     {
@@ -582,5 +645,80 @@ class SessionController extends AbstractController
             ]))
             ->getForm()
         ;
+    }
+
+    private function resolveSeatLayout(Session $session): ?array
+    {
+        $capacity = (int) ($session->getExerciseRoomCapacity() ?? 0);
+
+        $layout = $this->sanitizeSeatLayout($session->getSeatLayout(), $capacity);
+        if (null !== $layout) {
+            return $layout;
+        }
+
+        $exerciseRoom = $session->getExerciseRoom();
+        if ($exerciseRoom instanceof ExerciseRoom) {
+            $layout = $this->sanitizeSeatLayout($exerciseRoom->getSeatLayout(), $capacity);
+            if (null !== $layout) {
+                return $layout;
+            }
+        }
+
+        return $this->buildSequentialSeatLayout($capacity);
+    }
+
+    private function sanitizeSeatLayout(mixed $rawLayout, int $capacity): ?array
+    {
+        if (is_string($rawLayout)) {
+            $rawLayout = '' !== trim($rawLayout) ? json_decode($rawLayout, true) : null;
+        }
+
+        if (!is_array($rawLayout)) {
+            return null;
+        }
+
+        $maxSlots = 100;
+        $maxSeats = max(0, $capacity);
+        $usedSlots = [];
+        $layout = [];
+
+        foreach ($rawLayout as $seat => $slot) {
+            $seatNumber = (int) $seat;
+            $slotNumber = (int) $slot;
+
+            if ($seatNumber < 1 || $seatNumber > $maxSeats) {
+                continue;
+            }
+
+            if ($slotNumber < 1 || $slotNumber > $maxSlots || isset($usedSlots[$slotNumber])) {
+                continue;
+            }
+
+            $layout[(string) $seatNumber] = $slotNumber;
+            $usedSlots[$slotNumber] = true;
+        }
+
+        if ([] === $layout) {
+            return null;
+        }
+
+        ksort($layout, SORT_NUMERIC);
+
+        return $layout;
+    }
+
+    private function buildSequentialSeatLayout(int $capacity): ?array
+    {
+        $limit = min(max(0, $capacity), 100);
+        if (0 === $limit) {
+            return null;
+        }
+
+        $layout = [];
+        for ($seat = 1; $seat <= $limit; ++$seat) {
+            $layout[(string) $seat] = $seat;
+        }
+
+        return $layout;
     }
 }

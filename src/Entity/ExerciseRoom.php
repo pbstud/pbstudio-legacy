@@ -47,6 +47,9 @@ class ExerciseRoom implements TimestampableInterface
     #[ORM\Column(type: Types::SIMPLE_ARRAY, nullable: true)]
     private ?array $placesNotAvailable = [];
 
+    #[ORM\Column(type: Types::JSON, nullable: true)]
+    private ?array $seatLayout = null;
+
     public function __toString()
     {
         return (string) $this->name;
@@ -142,6 +145,18 @@ class ExerciseRoom implements TimestampableInterface
     public function setPlacesNotAvailable(?array $placesNotAvailable): static
     {
         $this->placesNotAvailable = $placesNotAvailable;
+
+        return $this;
+    }
+
+    public function getSeatLayout(): ?array
+    {
+        return $this->seatLayout;
+    }
+
+    public function setSeatLayout(?array $seatLayout): static
+    {
+        $this->seatLayout = $seatLayout;
 
         return $this;
     }

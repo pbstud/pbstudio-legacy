@@ -62,10 +62,19 @@ class RouteAccessVoter extends Voter
         }
 
         $permissions = ($user instanceof Staff) ? $user->getPermissions() : [];
-        $result = in_array($subject, $permissions, true);
+
+        // Rutas que heredan el permiso de otra ruta (alias implícitos).
+        // Si el usuario tiene acceso a la ruta "padre", también tiene acceso a la ruta "hijo".
+        $impliedBy = [
+            'backend_session_seats' => 'backend_session_edit',
+        ];
+
+        $effectiveSubject = $impliedBy[$subject] ?? $subject;
+        $result = in_array($effectiveSubject, $permissions, true);
 
         $this->logger->debug('[RouteAccessVoter] Verificación de permiso de ruta', [
             'ruta'             => $subject,
+            'ruta_efectiva'    => $effectiveSubject,
             'permisos_usuario' => $permissions,
             'acceso_concedido' => $result,
         ]);

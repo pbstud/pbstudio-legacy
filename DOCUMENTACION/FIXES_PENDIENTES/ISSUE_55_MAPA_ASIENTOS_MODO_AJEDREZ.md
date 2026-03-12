@@ -1,7 +1,7 @@
 # ISSUE #55: Mapa de Asientos en Modo Ajedrez Editable con Drag & Drop (MVP Opcion B)
 
 **Fecha de documentacion:** 11/03/2026  
-**Actualizado:** 11/03/2026 (cambio a drag & drop de asientos)  
+**Actualizado:** 12/03/2026 (tamaño tablero, diseño editor, puntos de entrada)  
 **Prioridad:** Alta  
 **Estado:** Documentado - SCRUM-84 creado, pendiente implementacion  
 **Jira:** SCRUM-84 (11/03/2026)
@@ -41,6 +41,83 @@ Objetivo del MVP:
 1. Posicionar asientos en cualquier coordenada del canvas (no grid).
 2. Multiples layouts personalizados por salon con versionado.
 3. Edicion mas flexible pero con mayor complejidad.
+
+---
+
+## 2.5 Decisiones de implementacion (12/03/2026)
+
+### 2.5.1 Tamaño del tablero
+
+- **Grid fijo: 10 × 10** (100 celdas) para todos los salones en el MVP.
+- Las celdas con número de asiento > `capacity` del salón se muestran sombreadas e inactivas ("fuera de rango"). No son reservables ni configurables.
+- Ejemplo: capacidad 20 → solo las primeras 20 celdas (llenando fila por fila) son activas; las 80 restantes están deshabilitadas visualmente.
+- Se revisará ajustar el tamaño por salón en Fase 2 si la capacidad máxima del negocio lo requiere.
+
+### 2.5.2 Diseño del editor (UI clásica)
+
+El editor se abre como un **modal de Bootstrap** dentro del admin, sin abandonar la página actual. Diseño:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  Disposición de Asientos — Salón "Sala A"        [×] Cerrar │
+├─────────────────────────────────────────────────────────────┤
+│  Capacidad: 20   Disponibles: 17   No disponibles: 3        │
+├──────────────────────────────────┬──────────────────────────┤
+│                                  │  Asientos disponibles:   │
+│   TABLERO 10×10                  │  ┌──┐ ┌──┐ ┌──┐ ┌──┐   │
+│                                  │  │ 1│ │ 2│ │ 3│ │ 4│   │
+│  [ 1][ 2][██][██][ 5][ 6][ 7]   │  └──┘ └──┘ └──┘ └──┘   │
+│  [ 8][ 9][10][11][12][13][14]   │                          │
+│  [15][16][17][18][19][20][  ]   │  Asientos no coloc.:     │
+│  [  ][  ][  ][  ][  ][  ][  ]   │  ┌──┐ ┌──┐             │
+│  ... (celdas fuera de rango      │  │██│ │██│  (no disp.) │
+│       sombreadas en gris)        │  └──┘ └──┘             │
+│                                  │                          │
+│  [ ] celda vacía                 │  [ Auto-llenar ]         │
+│  [N] asiento N colocado          │  [ Limpiar todo ]        │
+│  [██] asiento deshabilitado      │                          │
+│  [  ] fuera de capacidad         │                          │
+├──────────────────────────────────┴──────────────────────────┤
+│  [Cancelar]                              [Guardar cambios]  │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**Interacción:**
+- Fase 1 MVP: **click en celda activa** para habilitar/deshabilitar asiento (toggle). Sin drag & drop en esta fase.
+- Celda activa disponible → click → queda marcada como **no disponible** (fondo rojo/oscuro).
+- Celda activa no disponible → click → queda **disponible** nuevamente.
+- Celdas fuera del rango de capacidad → no interactivas, fondo gris apagado.
+- El contador de disponibles/no disponibles se actualiza en tiempo real.
+- "Auto-llenar": marca todos los asientos 1..N como disponibles (limpia los no disponibles).
+- "Limpiar todo": marca todos como no disponibles.
+- Al guardar, se escribe en el `<input>` oculto del formulario padre con la lista de asientos no disponibles.
+
+**Nota Fase 2:** El panel lateral de arrastre (drag & drop) se añadirá en Fase 2 sobre esta misma base.
+
+### 2.5.3 Puntos de entrada del editor
+
+Hay **dos contextos** desde donde se llama al editor. En ambos reemplaza el campo tagsinput actual:
+
+#### Entrada A — Editar Salón (`backend_exerciseroom_edit`)
+
+- **Archivo:** `templates/backend/exerciseroom/_form.html.twig`
+- **Contexto:** El admin configura el **diseño por defecto** del salón. Lo que se guarda aquí (`ExerciseRoom.placesNotAvailable`) se copia automáticamente a todas las sesiones nuevas que se creen en ese salón.
+- **Dónde se añade:** En lugar del campo `form.placesNotAvailable` (tagsinput actual), se muestra un botón **"Configurar disposición de asientos"** que abre el modal del editor.
+- **Al guardar en el modal:** Actualiza `ExerciseRoom.placesNotAvailable` → es el nuevo default del salón.
+
+#### Entrada B — Editar Clase (`backend_session_edit`)
+
+- **Archivo:** `templates/backend/session/_form.html.twig` y `templates/backend/session/edit.html.twig`
+- **Contexto:** El admin ajusta la distribución de una clase específica, sin tocar el diseño por defecto del salón (excepto si activa la opción de guardarlo como default — ver Fase 2).
+- **Dónde se añade:** En la plantilla de edición de sesión, debajo de los campos de capacidad, un botón **"Editar disposición de asientos"** que abre el modal cargado con `Session.placesNotAvailable` actual.
+- **Al guardar en el modal:** Actualiza solo `Session.placesNotAvailable` de esa clase. No afecta el salón ni otras sesiones.
+- **Fase 2:** Al guardar aparecerá un checkbox "Establecer como distribución por defecto del salón" (ya documentado en sección 12).
+
+#### Entrada C — Nueva Clase (`backend_session_new`) — **Fase 2**
+
+- La nueva clase hereda `placesNotAvailable` del salón al momento de crearla (comportamiento actual).
+- En MVP no se muestra el editor al crear; el admin edita después si necesita ajustar.
+- En Fase 2 se puede añadir el editor también en la pantalla de creación.
 
 ---
 
@@ -310,6 +387,10 @@ Para evolucionar sin romper MVP:
 ### Fase 2 (Hardening)
 
 1. Plantilla por salon (default reusable, copiar entre clases).
+   - **Nota (12/03/2026):** Al editar la distribución de asientos de una sesión específica, el admin tendrá dos opciones:
+     - **Solo para esta clase**: Guarda la distribución solo en esa sesión. El diseño por defecto del salón (`ExerciseRoom.placesNotAvailable`) NO se modifica. Las demás clases no se ven afectadas.
+     - **Establecer como distribución por defecto del salón**: Además de guardar en la sesión, actualiza `ExerciseRoom.placesNotAvailable` con el nuevo diseño. Las clases futuras que se creen en ese salón heredarán esta distribución. Las clases ya existentes **no** se modifican.
+   - Esta opción se implementará como un checkbox/toggle en el formulario de edición de la distribución de asientos, **no** en el formulario general de la sesión.
 2. Mejoras UX (auto-fill, limpiar, restaurar presets).
 3. Telemetria/logs de cambios de configuracion.
 4. Performance: Caching de GET configuracion, pagination si multiples clases.

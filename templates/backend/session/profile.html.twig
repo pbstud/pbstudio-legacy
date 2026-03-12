@@ -78,6 +78,13 @@
                                             </li>
                                         {% endif %}
                                     {% endif %}
+                                    {% if is_allowed_route('backend_session_seats') %}
+                                        <li role="presentation" {% if 'tab_seats' == active_tab %}class="active"{% endif %}>
+                                            <a href="{{ path('backend_session_seats', { 'id': session.id }) }}">
+                                                <i class="fa fa-th"></i> Asientos
+                                            </a>
+                                        </li>
+                                    {% endif %}
                                     <li role="presentation" {% if 'tab_audit' == active_tab %}class="active"{% endif %}>
                                         <a href="{{ path('backend_session_audit', { 'id': session.id }) }}">
                                             <i class="fa fa-history"></i> Auditoría
