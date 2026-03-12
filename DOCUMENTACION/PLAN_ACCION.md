@@ -7,6 +7,13 @@
 **Issues pendientes (plan técnico):** 44 (agrupados por categoría, sin duplicados)  
 **Timeline:** Fix inmediato → Producción en 5-6 días
 
+## Actualizacion despliegue (12/03/2026)
+
+- Validacion tecnica local en `prod` completada: `about`, `schema:validate`, `cache:warmup`, `lint:container`, `debug:router`, `list app`.
+- Salud de calidad confirmada: `phpunit` OK (22 tests, 52 assertions) y lint PHP `src/` OK (143/143).
+- Hardening aplicado en repo: `login_throttling` activo en firewalls `main/backend` y `RESETTING_RETRY_TTL=7200` en `.env`.
+- Pendiente para GO final en servidor destino: definir `APP_SECRET` unico en `.env.prod.local`, replicar extensiones `gd/exif/intl`, ejecutar runbook de despliegue en `GUIA_DESPLIEGUE_NUEVO_SERVIDOR.md` (seccion 11) y validar crons.
+
 ---
 
 ## 🚨 ISSUES CRÍTICOS (Arreglar HOY)
@@ -1626,7 +1633,7 @@ Sistema normaliza y guarda como: "09:30"
 │   ├──┼──┼──┼──┼──┤    ← Usuario puede reservarla    │
 │   │  │  │  │  │  │                                  │
 │   ├──┼──┼──┼──┼──┤                                  │
-│   │  │🪑│  │  │🪑│    ← Solo 3 sillas disponibles    │
+│   │  │🪑│  │  │🪑 │    ← Solo 3 sillas disponibles   │
 │   └──┴──┴──┴──┴──┘       en esta configuración      │
 │                                                     │
 └─────────────────────────────────────────────────────┘

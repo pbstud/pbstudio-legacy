@@ -19,6 +19,7 @@
 8. [Configuración post-instalación desde el backend](#8-configuración-post-instalación-desde-el-backend)
 9. [Verificaciones finales](#9-verificaciones-finales)
 10. [Notas adicionales](#10-notas-adicionales)
+11. [Runbook ejecutable (Servidor destino)](#11-runbook-ejecutable--servidor-destino-linux)
 
 ---
 
@@ -39,6 +40,36 @@ Se realizó un análisis de estabilidad completo del código fuente antes del de
 - Cache warmup: exitosa en `dev`; requiere repetirse en `prod`
 - Routing: sin errores, sin rutas duplicadas
 - Todos los servicios del contenedor compilables correctamente
+
+### 1.1 Estado de estabilizacion actualizado (12-03-2026)
+
+Se ejecuto una segunda validacion tecnica enfocada en readiness de pruebas de produccion (`--env=prod`). Resultado:
+
+- `php -l` sobre `src/`: **143/143 archivos OK**
+- `php bin/phpunit`: **OK (22 tests, 52 assertions)**
+- `php bin/console doctrine:schema:validate --env=prod`: **OK**
+- `php bin/console cache:warmup --env=prod`: **OK**
+- `php bin/console lint:container --env=prod`: **OK**
+- `php bin/console debug:router --env=prod`: **107 rutas cargadas**
+- `php bin/console list app --env=prod`: **OK**
+
+**Veredicto actual:** GO condicional.
+
+**Bloqueos para GO final (antes de prueba productiva):**
+1. Replicar en el servidor destino la habilitacion de extensiones requeridas por PHP (`gd`, `exif` y `intl`) y reiniciar el servicio web o PHP-FPM/IIS si usa una instancia distinta a la CLI validada.
+2. Confirmar variables de produccion en `.env.prod.local` (`APP_ENV=prod`, `APP_DEBUG=0`, `APP_SECRET` unico por entorno, `RESETTING_RETRY_TTL=7200`).
+3. Crear directorios faltantes de media en servidor limpio: `public/media/uploads/site` y `public/media/cache` (ademas de permisos de escritura).
+
+**Acciones iniciadas en el repositorio (12-03-2026):**
+- Activar `login_throttling` en firewalls `main` y `backend`.
+- Agregar `RESETTING_RETRY_TTL=7200` en `.env` como valor base para evitar error 500 en flujo de recuperacion cuando falta override de entorno.
+
+**Acciones ejecutadas en el entorno de validacion (12-03-2026):**
+- Se habilitaron las extensiones `gd`, `exif` e `intl` en la instalacion activa de PHP 8.2.
+- Se revalido el namespace `app` en `prod` sin errores de drivers de imagen.
+- Se verifico `Environment=prod` y `Debug=false` con `php bin/console about --env=prod`.
+- Se confirmo la tabla `messenger_messages` existente (`cnt=1`).
+- Se confirmo la existencia local de `public/media/uploads/instructors`, `public/media/uploads/site` y `public/media/cache`.
 
 ---
 
@@ -77,9 +108,13 @@ APP_SECRET=<valor_generado_con_el_comando_anterior>
 
 ---
 
-### 2.2 `RESETTING_RETRY_TTL` no definida en `.env` — CRÍTICO
+### 2.2 `RESETTING_RETRY_TTL` no definida en entorno de servidor limpio — CRÍTICO
 
-**Archivo:** `.env` (ausente), `config/services.yaml` (referencia existente)
+**Archivo:** `.env` y `.env.prod.local`, `config/services.yaml` (referencia existente)
+
+**Estado actualizado (12-03-2026):**
+- Repositorio base: `RESETTING_RETRY_TTL=7200` agregado en `.env`.
+- Servidor nuevo: debe definirse en `.env.prod.local` para no depender de defaults.
 
 **Por qué es crítico:**  
 `services.yaml` declara el parámetro:
@@ -90,7 +125,7 @@ parameters:
 
 Y `ResettingController` lo usa en tres métodos: `checkEmail()`, `validatePasswordExpired()` y `reset()`.
 
-En un servidor limpio donde la variable no está definida en `.env`, **cualquier acceso al flujo de recuperación de contraseña lanza una excepción** (`EnvNotFoundException`). El usuario ve un error 500, y la función de recuperación de contraseña queda completamente inutilizable.
+En un servidor limpio donde la variable no está definida en variables de entorno activas, **cualquier acceso al flujo de recuperación de contraseña puede lanzar una excepción** (`EnvNotFoundException`). El usuario ve un error 500, y la función de recuperación de contraseña queda completamente inutilizable.
 
 El flujo afectado es:
 - `/restablecer/solicitud` → no falla aquí
@@ -98,9 +133,9 @@ El flujo afectado es:
 - `/restablecer/check-email` → falla al obtener el parámetro
 - `/restablecer/{token}` → falla al obtener el parámetro
 
-**Fix obligatorio:**
+**Fix obligatorio en servidor:**
 
-En el `.env` del nuevo servidor agregar:
+En `.env.prod.local` del nuevo servidor agregar:
 ```ini
 RESETTING_RETRY_TTL=7200
 ```
@@ -176,19 +211,22 @@ Esto crea las tablas necesarias (`messenger_messages`) en la base de datos.
 
 ## 3. Problemas importantes
 
-### 3.1 Brute force en login de usuarios desactivado explícitamente
+### 3.1 Brute force en login de usuarios (mitigado en repo, pendiente despliegue)
 
 **Archivo:** `config/packages/security.yaml`  
 **Firewall:** `main` (usuarios front-end)
 
-**Situación actual:**
+**Situación detectada originalmente:**
 ```yaml
 main:
     # ...
     login_throttling: null   # <-- desactiva explícitamente la protección
 ```
 
-El firewall `backend` tampoco tiene `login_throttling` configurado.
+El firewall `backend` tampoco tenía `login_throttling` configurado.
+
+**Estado actualizado (12-03-2026):**
+Ya se activó `login_throttling` en `main` y `backend` dentro del repositorio. Falta desplegar esta version en servidor para que la mitigacion quede activa en entorno de pruebas/produccion.
 
 **Consecuencia:**  
 No hay límite de intentos de login. Un atacante puede realizar fuerza bruta sobre correos y contraseñas de usuarios sin ninguna restricción de velocidad.
@@ -225,6 +263,9 @@ backend:
 | `public/media/cache/` | Cache de thumbails de Liip Imagine | No (`.gitignore`) |
 
 Si los directorios no existen al intentar subir una imagen, PHP lanza un error de escritura. Si `public/media/cache/` no existe, Liip Imagine falla al intentar servir imágenes redimensionadas.
+
+**Estado local actualizado (12-03-2026):**
+En este workspace ya se crearon `public/media/uploads/site` y `public/media/cache` para pruebas locales. En servidor nuevo deben crearse manualmente en el proceso de despliegue.
 
 **Fix:**
 ```bash
@@ -314,7 +355,7 @@ SITE_URL=https://staging.pbstudio.mx
 
 ### Prerrequisitos del servidor
 
-- [ ] PHP >= 8.2 con extensiones: `ctype`, `iconv`, `fileinfo`, `pdo_mysql`, `gd`, `intl`, `mbstring`, `openssl`
+- [ ] PHP >= 8.2 con extensiones: `ctype`, `iconv`, `fileinfo`, `pdo_mysql`, `gd`, `exif`, `intl`, `mbstring`, `openssl`
 - [ ] MySQL >= 5.7 / MariaDB >= 10.3
 - [ ] Composer >= 2.x
 - [ ] Node.js >= 16 + npm >= 8
@@ -902,135 +943,130 @@ Los logs se guardan en `var/log/prod.log` en formato JSON (configuración de mon
 
 ---
 
-## 11. Resumen de comandos — Secuencia completa para levantar el proyecto
+## 11. Runbook ejecutable — Servidor destino (Linux)
 
-Ejecutar en orden desde la raíz del proyecto en la terminal del servidor.
+Este bloque es para ejecutar en servidor limpio de staging o pre-produccion, desde shell Linux, con permisos de despliegue y sudo.
 
-### Paso 1 — Clonar el repositorio
+Script automatizado disponible:
+
+`DOCUMENTACION/scripts/runbook_servidor_destino_linux.sh`
+
+Uso rapido:
 
 ```bash
-git clone https://github.com/pbstud/pbstudio-legacy.git pbstudio81
-cd pbstudio81
+chmod +x DOCUMENTACION/scripts/runbook_servidor_destino_linux.sh
+APP_PATH=/var/www/pbstudio81 \
+DB_NAME=pbstudio \
+DB_USER=pbstudio_user \
+DB_PASS='CAMBIAR_PASSWORD' \
+SITE_URL='https://staging.pbstudio.mx' \
+bash DOCUMENTACION/scripts/runbook_servidor_destino_linux.sh
 ```
 
-### Paso 2 — Crear y configurar el archivo .env
+### 11.1 Variables que debes ajustar antes de ejecutar
 
 ```bash
-# Copiar la plantilla
-cp .env .env.local
-
-# Editar con los valores reales del servidor
-nano .env.local
+export APP_PATH="/var/www/pbstudio81"
+export DB_NAME="pbstudio"
+export DB_USER="pbstudio_user"
+export DB_PASS="CAMBIAR_PASSWORD"
+export DB_HOST="127.0.0.1"
+export DB_PORT="3306"
+export SITE_URL="https://staging.pbstudio.mx"
 ```
 
-Variables mínimas obligatorias a editar:
+### 11.2 Preflight de servidor
+
 ```bash
+set -euo pipefail
+
+sudo apt update
+sudo apt install -y git unzip npm composer \
+  php8.2 php8.2-cli php8.2-fpm php8.2-mysql php8.2-curl php8.2-xml php8.2-zip php8.2-mbstring \
+  php8.2-gd php8.2-exif php8.2-intl
+
+php -v
+php -m | egrep "gd|exif|intl|pdo_mysql|mbstring"
+```
+
+### 11.3 Checkout de código
+
+```bash
+sudo mkdir -p "$APP_PATH"
+sudo chown -R "$USER":"$USER" "$APP_PATH"
+
+if [ ! -d "$APP_PATH/.git" ]; then
+  git clone https://github.com/pbstud/pbstudio-legacy.git "$APP_PATH"
+fi
+
+cd "$APP_PATH"
+git fetch --all
+git checkout main
+git pull --ff-only
+```
+
+### 11.4 Configurar entorno de producción
+
+```bash
+SECRET_VALUE="$(php -r 'echo bin2hex(random_bytes(32));')"
+
+cat > .env.prod.local <<EOF
 APP_ENV=prod
-APP_SECRET=<generar con: php -r "echo bin2hex(random_bytes(32));"> 
-DATABASE_URL="mysql://usuario:password@127.0.0.1:3306/pbstudio?serverVersion=8.0&charset=utf8mb4"
+APP_DEBUG=0
+APP_SECRET=${SECRET_VALUE}
+DATABASE_URL="mysql://${DB_USER}:${DB_PASS}@${DB_HOST}:${DB_PORT}/${DB_NAME}"
 MESSENGER_TRANSPORT_DSN=doctrine://default?auto_setup=0
 MAILER_DSN=null://null
 RESETTING_RETRY_TTL=7200
+SITE_URL=${SITE_URL}
+EOF
+
+chmod 600 .env.prod.local
 ```
 
-### Paso 3 — Instalar dependencias PHP
+### 11.5 Build de aplicación
 
 ```bash
 composer install --no-dev --optimize-autoloader
-```
+npm install
+npm run build
 
-### Paso 4 — Instalar dependencias JS y compilar assets
+php bin/console doctrine:migrations:migrate --no-interaction --env=prod
+php bin/console messenger:setup-transports --env=prod
 
-```bash
-yarn install
-yarn build
-```
+mkdir -p public/media/uploads/instructors public/media/uploads/site public/media/cache
+sudo chown -R www-data:www-data public/media var
+sudo chmod -R 775 public/media var
 
-### Paso 5 — Limpiar y calentar caché
-
-```bash
 php bin/console cache:clear --env=prod
 php bin/console cache:warmup --env=prod
 ```
 
-### Paso 6 — Crear base de datos y ejecutar migraciones
+### 11.6 Smoke checks (GO / NO-GO)
 
 ```bash
-# Crear la BD si no existe
-php bin/console doctrine:database:create --env=prod
-
-# Ejecutar migraciones
-php bin/console doctrine:migrations:migrate --no-interaction --env=prod
-```
-
-### Paso 7 — Configurar el messenger (cola de mensajes)
-
-```bash
-php bin/console messenger:setup-transports --env=prod
-```
-
-### Paso 8 — Crear directorios de media
-
-```bash
-mkdir -p public/media/uploads/instructors
-mkdir -p public/media/uploads/site
-mkdir -p public/media/cache
-
-# Dar permisos al usuario del servidor web (ajustar www-data o apache según el servidor)
-chown -R www-data:www-data public/media
-chmod -R 775 public/media
-```
-
-### Paso 9 — (Opcional) Cargar backup con datos de prueba
-
-```bash
-mysql -u usuario -p pbstudio < Especificaciones/pbstudio_back.sql
-```
-
-### Paso 10 — Validar que todo está en orden
-
-```bash
-# Schema de BD sincronizado
+php bin/console about --env=prod | egrep "Environment|Debug"
 php bin/console doctrine:schema:validate --env=prod
+php bin/console lint:container --env=prod
+php bin/console debug:router --env=prod | wc -l
+php bin/console list app --env=prod
 
-# Rutas cargadas correctamente
-php bin/console debug:router --env=prod 2>&1 | tail -10
-
-# Servicios compilados sin errores
-php bin/console cache:warmup --env=prod
-
-# Test de crons manualmente
 php bin/console app:session:autoclosing --env=prod
 php bin/console app:transaction:checkexpiration --env=prod
 php bin/console app:waiting-list:expire --env=prod
 ```
 
-### Paso 11 — Ajuste de zona horaria en PHP
+Resultado esperado:
+- `Environment` en `prod`
+- `Debug` en `false`
+- `schema:validate` en `OK`
+- `lint:container` en `OK`
+- Comandos `app:*` sin excepciones
 
-En `php.ini` del servidor:
-```ini
-date.timezone = America/Mexico_City
-```
+### 11.7 Crons finales
 
-Reiniciar PHP-FPM o Apache después del cambio:
-```bash
-# Apache
-sudo systemctl restart apache2
-
-# Nginx + PHP-FPM
-sudo systemctl restart php8.2-fpm
-sudo systemctl restart nginx
-```
-
-### Paso 12 — Configurar crons
-
-```bash
-crontab -e
-```
-
-Agregar las siguientes líneas:
 ```cron
-0 0 * * * php /var/www/pbstudio81/bin/console app:transaction:checkexpiration --no-debug --env=prod 2>&1 >> /var/www/pbstudio81/var/log/transaction.checkexpiration.log
-*/15 * * * * php /var/www/pbstudio81/bin/console app:session:autoclosing --no-debug --env=prod 2>&1 >> /var/www/pbstudio81/var/log/session.autoclosing.log
-0 */1 * * * php /var/www/pbstudio81/bin/console app:waiting-list:expire --no-debug --env=prod 2>&1 >> /var/www/pbstudio81/var/log/waiting-list.log
+0 0 * * * www-data /usr/bin/php /var/www/pbstudio81/bin/console app:transaction:checkexpiration --no-debug --env=prod >> /var/log/pbstudio/transaction.checkexpiration.log 2>&1
+*/15 * * * * www-data /usr/bin/php /var/www/pbstudio81/bin/console app:session:autoclosing --no-debug --env=prod >> /var/log/pbstudio/session.autoclosing.log 2>&1
+0 * * * * www-data /usr/bin/php /var/www/pbstudio81/bin/console app:waiting-list:expire --no-debug --env=prod >> /var/log/pbstudio/waiting-list.log 2>&1
 ```
