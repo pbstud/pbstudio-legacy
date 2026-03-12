@@ -10,7 +10,7 @@
 
 ## 1. Resumen ejecutivo
 
-Se define como decision tecnica implementar un mapa de asientos en modo tablero de ajedrez EDITABLE CON DRAG & DROP (Opcion B mejorada). Admin arrastra asientos numerados y los suelta en celdas del grid para posicionarlos. Dejar la experiencia totalmente libre sin grid (Opcion A) como evolucion posterior.
+Se define como decision tecnica implementar un mapa de asientos en modo tablero de ajedrez EDITABLE CON DRAG & DROP. Admin arrastra asientos numerados y los suelta en celdas del grid para posicionarlos. Dejar la experiencia totalmente libre sin grid como evolucion posterior.
 
 Objetivo del MVP:
 
@@ -25,7 +25,7 @@ Objetivo del MVP:
 
 ### 2.1 Opcion elegida (ahora)
 
-**Opcion B - Tablero de Ajedrez con Drag & Drop de Asientos**
+**Tablero de Ajedrez con Drag & Drop de Asientos**
 
 1. El admin define capacidad y ve un grid determinisitco (filas/columnas).
 2. Ve lista de asientos disponibles (1, 2, 3, ..., N) como objetos draggables.
@@ -87,10 +87,10 @@ Implicacion:
 2. Mostrar asientos FISICAMENTE en sus posiciones (row, col) dentro del grid.
 3. Cada asiento muestra su NUMERO dentro del icono/celda.
 4. Estados visuales:
-   - **DISPONIBLE**: Asiento vacio (numero visible), fondo verde, cursor pointer, clickable
-   - **OCUPADO**: Asiento lleno (numero visible), fondo rojo, tooltip con nombre usuario, no clickable
-   - **SELECCIONADO**: Highlight azul/borde bold alrededor del asiento actual
-   - **MI_ASIENTO**: Badge dorado "mi asiento" si usuario ya tiene reserva en esa clase
+   - **DISPONIBLE**: Asiento vacio (numero visible), fondo blanco, cursor pointer, clickable
+   - **OCUPADO**: Asiento lleno (numero visible), fondo gris, no clickable
+   - **SELECCIONADO**: color verde alrededor del objeto del asiento seleccionado
+   - **MI_ASIENTO**: color verde completo "mi asiento" si usuario ya tiene reserva en esa clase
 5. Click en asiento disponible lo selecciona para reservacion.
 6. Grid responsive segun tamano de pantalla; asientos mantienen posiciones relativas.
 
@@ -152,7 +152,7 @@ Formula deterministica para validar/calcular posiciones:
    - Ejemplos: capacidad 20 → 4x5 o 5x4, capacidad 15 → 3x5 o 5x3
 2. O admin puede forzar filas/columnas explicitamente si capacidad es atipica.
 3. Validacion: `rows * cols >= capacity` (celdas excedentes quedan vacias, no reservables).
-4. Al usar "Auto-llenar": distribuir asientos 1..N secuencialmente por filas (row-major order).
+4. Al usar "Auto-llenar": se carga la ultima versionado de la distribucion.
 5. **Calculo de capacidad disponible**: availableCapacity = (total colocados) - (ocupadas por reservas)
 
 ### 5.4 Compatibilidad con reservacion actual
