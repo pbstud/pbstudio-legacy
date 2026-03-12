@@ -8,6 +8,9 @@ backups/
 .phpunit.result.cache
 .env.local
 .env.*.local
+Especificaciones/.env
+Especificaciones/.env.test
+public/media/uploads/instructors/
 .idea
 .vscode
 npm-debug.log*
