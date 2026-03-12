@@ -1052,7 +1052,7 @@ php bin/console doctrine:schema:validate --env=prod
 php bin/console lint:container --env=prod
 php bin/console debug:router --env=prod | wc -l
 php bin/console list app --env=prod
-
++
 php bin/console app:session:autoclosing --env=prod
 php bin/console app:transaction:checkexpiration --env=prod
 php bin/console app:waiting-list:expire --env=prod
