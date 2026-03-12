@@ -1,0 +1,57 @@
+﻿{
+    "epic":  {
+                 "key":  "SCRUM-94",
+                 "url":  "https://devpbstudio.atlassian.net/browse/SCRUM-94"
+             },
+    "tasks":  [
+                  {
+                      "key":  "SCRUM-95",
+                      "summary":  "TAREA - Preparar entorno prod-like en servidor de test",
+                      "url":  "https://devpbstudio.atlassian.net/browse/SCRUM-95"
+                  },
+                  {
+                      "key":  "SCRUM-99",
+                      "summary":  "TAREA - Validar operacion y documentar despliegue",
+                      "url":  "https://devpbstudio.atlassian.net/browse/SCRUM-99"
+                  }
+              ],
+    "subtasks":  [
+                     {
+                         "key":  "SCRUM-96",
+                         "parent":  "SCRUM-95",
+                         "summary":  "Subtask - Habilitar extensiones PHP gd/exif/intl",
+                         "url":  "https://devpbstudio.atlassian.net/browse/SCRUM-96"
+                     },
+                     {
+                         "key":  "SCRUM-97",
+                         "parent":  "SCRUM-95",
+                         "summary":  "Subtask - Configurar .env.prod.local y variables criticas",
+                         "url":  "https://devpbstudio.atlassian.net/browse/SCRUM-97"
+                     },
+                     {
+                         "key":  "SCRUM-98",
+                         "parent":  "SCRUM-95",
+                         "summary":  "Subtask - Preparar media, permisos y tabla messenger",
+                         "url":  "https://devpbstudio.atlassian.net/browse/SCRUM-98"
+                     },
+                     {
+                         "key":  "SCRUM-100",
+                         "parent":  "SCRUM-99",
+                         "summary":  "Subtask - Ejecutar smoke checks en modo prod",
+                         "url":  "https://devpbstudio.atlassian.net/browse/SCRUM-100"
+                     },
+                     {
+                         "key":  "SCRUM-101",
+                         "parent":  "SCRUM-99",
+                         "summary":  "Subtask - Ejecutar pruebas automatizadas",
+                         "url":  "https://devpbstudio.atlassian.net/browse/SCRUM-101"
+                     },
+                     {
+                         "key":  "SCRUM-102",
+                         "parent":  "SCRUM-99",
+                         "summary":  "Subtask - Publicar runbook y checklist de despliegue",
+                         "url":  "https://devpbstudio.atlassian.net/browse/SCRUM-102"
+                     }
+                 ],
+    "timestamp":  "2026-03-12 11:37:05"
+}

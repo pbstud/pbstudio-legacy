@@ -1,0 +1,23 @@
+﻿=== START 2026-03-12 11:36:50 ===
+[2026-03-12 11:36:50] Resolviendo campo Epic Link
+[2026-03-12 11:36:50] EpicLinkFieldId=customfield_10014
+[2026-03-12 11:36:50] Creando epica
+[2026-03-12 11:36:52] OK [EPIC] SCRUM-94
+[2026-03-12 11:36:52] Creando tarea: TAREA - Preparar entorno prod-like en servidor de test
+[2026-03-12 11:36:53] OK [TASK(parent)] SCRUM-95
+[2026-03-12 11:36:53] Creando subtask bajo SCRUM-95: Subtask - Habilitar extensiones PHP gd/exif/intl
+[2026-03-12 11:36:55] OK [SUBTASK] SCRUM-96
+[2026-03-12 11:36:55] Creando subtask bajo SCRUM-95: Subtask - Configurar .env.prod.local y variables criticas
+[2026-03-12 11:36:56] OK [SUBTASK] SCRUM-97
+[2026-03-12 11:36:57] Creando subtask bajo SCRUM-95: Subtask - Preparar media, permisos y tabla messenger
+[2026-03-12 11:36:58] OK [SUBTASK] SCRUM-98
+[2026-03-12 11:36:58] Creando tarea: TAREA - Validar operacion y documentar despliegue
+[2026-03-12 11:37:00] OK [TASK(parent)] SCRUM-99
+[2026-03-12 11:37:00] Creando subtask bajo SCRUM-99: Subtask - Ejecutar smoke checks en modo prod
+[2026-03-12 11:37:01] OK [SUBTASK] SCRUM-100
+[2026-03-12 11:37:02] Creando subtask bajo SCRUM-99: Subtask - Ejecutar pruebas automatizadas
+[2026-03-12 11:37:03] OK [SUBTASK] SCRUM-101
+[2026-03-12 11:37:03] Creando subtask bajo SCRUM-99: Subtask - Publicar runbook y checklist de despliegue
+[2026-03-12 11:37:04] OK [SUBTASK] SCRUM-102
+[2026-03-12 11:37:05] Resultado guardado en C:\pbstudio\PBStudio81\DOCUMENTACION\JIRA\EPIC_ServerTestProd_Result.json
+[2026-03-12 11:37:05] === END ===
