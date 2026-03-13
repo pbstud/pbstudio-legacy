@@ -9,6 +9,41 @@
 ## 🆕 ACTUALIZACION RAPIDA (13/03/2026)
 
 1. Se implemento horario flexible HH:mm en backend de clases para crear y editar.
+## 🔍 AUDITORIA COMPLETA CODIGO vs DOCS (13/03/2026)
+
+Auditoría técnica completa: cada controlador, servicio, repositorio y migración verificado contra documentación.
+
+**Hallazgos principales:**
+
+1. **Migraciones:** 7 activas (no 5). Agregadas `Version20260309000000` (`session_audit`) y `Version20260312000100` (`seat_layout` JSON). Documentado en `AUDITORIA_TECNICA_INTEGRAL.md`.
+
+2. **Rutas nuevas en producción** (no estaban en plan):
+   - `/backend/session/{id}/seats` (GET|POST) — editor de mapa de asientos, CSRF OK, IsGranted OK.
+   - `/backend/session/{id}/edit-confirm` (POST) — confirmación al deshabilitar asientos con reservas, CSRF OK, IsGranted OK, motivo obligatorio.
+   - `/backend/session/{id}/waitinglist` (GET) — lista de espera por clase, IsGranted OK.
+
+3. **Issue #50 parcialmente implementado:** `editConfirm()` activo para conflicto de asientos. No cubre cambios generales (instructor/horario/salón).
+
+4. **Nuevos componentes en código** (no documentados previamente):
+   - `src/Service/ReservationCancellationService.php` — cancelación masiva con auditoría y devolución de crédito.
+   - `src/Util/SeatLayoutMapper.php` — mapeo de layout de asientos para vista de reservación.
+   - `src/Entity/SessionAudit.php` — entidad de auditoría bidireccional.
+
+5. **Pendientes críticos confirmados en código (sin cambio):**
+   - Issue #9: `WaitingListService::validate()` muta `dateStart` sin `clone`.
+   - Issue #11A: `backend_reservation_attended` → `/{id}/attended` fuera de firewall, sin CSRF ni IsGranted.
+   - Issue #12: `phpinfo()` activo en `/backend/test` sin restricción de entorno.
+   - Issue #19: `reservation_waitinglist` sin `ROLE_USER`.
+   - Issue #41: `cancel()` fuerza `STATUS_OPEN` sin recalcular.
+   - Issue #46: `TransactionController::new()` despacha `TransactionEvent` base, no `TransactionSuccessEvent` → `coupon.used` no se incrementa.
+
+6. **Tests:** 28 tests, 67 assertions — OK. Sin regresiones.
+
+---
+
+## 🆕 ACTUALIZACION RAPIDA (13/03/2026)
+
+1. Se implemento horario flexible HH:mm en backend de clases para crear y editar.
 2. Se ajusto carga masiva (nuevo y editar dia) para capturar hora por fila y validar formato HH:mm en backend.
 3. Los cambios quedaron integrados en `main` y publicados en `origin/main`.
    - Commit feature: `4d0acbda`

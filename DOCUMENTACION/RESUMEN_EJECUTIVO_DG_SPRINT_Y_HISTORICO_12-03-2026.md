@@ -35,14 +35,14 @@ Por que fue clave:
 7. SCRUM-11 - Validacion de apellido en registro.
 8. SCRUM-12 - Control de asientos reservados.
 9. SCRUM-14 - Epic de auditoria y trazabilidad.
-10. SCRUM-15 - Registro de cancelaciones y cambios por usuario.
+10. SCRUM-15 - Registro de cancelaciones y cambios por usuario.   
 11. SCRUM-16 - Validacion de eventos de auditoria en base de datos.
 12. SCRUM-17 - Persistencia del motivo de cambio/cancelacion.
 13. SCRUM-18 - Verificacion de visualizacion en panel de auditoria.
 14. SCRUM-19 - Pruebas de trazabilidad en logs.
 15. SCRUM-20 - Correccion de carga masiva de horarios.
 16. SCRUM-23 - Cambio de reservacion con clases futuras disponibles.
-17. SCRUM-24 - Correccion de doble asiento por concurrencia.
+17. SCRUM-24 - Correccion de doble asiento por concurrencia.    
 18. SCRUM-28 - Mejora de rendimiento en listados de reservaciones.
 19. SCRUM-61 - Carga masiva de horarios (traza y cierre tecnico).
 20. SCRUM-62 - Carga masiva de horarios (complemento de cierre).

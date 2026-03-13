@@ -2,15 +2,15 @@
 
 **Fecha actualización:** 13 Marzo 2026  
 **Status:** 55 issues identificados (46 secuenciales + 8 nuevos de reunión DG con numeración operativa #43, #48-#50 y #52-#55 + 1 nuevo de auditoría bidireccional)  
-**Issues resueltos (plan técnico):** 12 ✅ (N-1, N-3, N-5, N-7, #8, #29, #38 marcados en esta revisión)  
+**Issues resueltos (plan técnico):** 21 ✅ (incluye #1-#4, N-1, N-3, N-5, N-7, N-8, #8, #14, #25, #27, #29, #35, #38, #42, #43 (DG), #49, #53 y #55)  
 **Tickets finalizados en Jira:** 38 ✅ (último corte compartido `Jira (3).csv`)  
-**Issues pendientes (plan técnico):** 43 (agrupados por categoría, sin duplicados)  
+**Issues pendientes (plan técnico):** 35 (incluye pendientes y parciales, agrupados por categoría)  
 **Timeline:** Fix inmediato → Producción en 5-6 días
 
 ## Actualizacion despliegue (12/03/2026)
 
 - Validacion tecnica local en `prod` completada: `about`, `schema:validate`, `cache:warmup`, `lint:container`, `debug:router`, `list app`.
-- Salud de calidad confirmada: `phpunit` OK (22 tests, 52 assertions) y lint PHP `src/` OK (143/143).
+- Salud de calidad confirmada: `phpunit` OK (28 tests, 67 assertions, corrida 13/03/2026) y lint PHP `src/` OK (143/143).
 - Hardening aplicado en repo: `login_throttling` activo en firewalls `main/backend` y `RESETTING_RETRY_TTL=7200` en `.env`.
 - Pendiente para GO final en servidor destino: definir `APP_SECRET` unico en `.env.prod.local`, replicar extensiones `gd/exif/intl`, ejecutar runbook de despliegue en `GUIA_DESPLIEGUE_NUEVO_SERVIDOR.md` (seccion 11) y validar crons.
 
@@ -22,6 +22,34 @@
   - SCRUM-84 (Feature) - Finalizada.
   - SCRUM-93 (Epic) - Finalizada.
   - SCRUM-103 (Feature horario flexible HH:mm) - Finalizada.
+
+---
+
+## 🚨 ISSUES CRÍTICOS (Arreglar HOY)
+## Auditoria Tecnica (13/03/2026)
+
+**Objetivo:** Re-auditoría completa código vs. documentación tras los últimos sprints. Verificación línea a línea contra fuente actual.
+
+**Hallazgos nuevos respecto al corte anterior:**
+
+1. **7 migraciones** activas (antes se documentaban 5): `Version20260309000000` (tabla `session_audit`, SCRUM-81) y `Version20260312000100` (columnas `seat_layout` JSON en `exercise_room`/`session`, SCRUM-84/93).
+
+2. **Rutas nuevas confirmadas en código** (no documentadas en PLAN_ACCION anteriormente):
+  - `backend_session_seats` (GET|POST `/backend/session/{id}/seats`) — mapa de asientos editable, con `IsGranted` y CSRF. Parte de SCRUM-84.
+  - `backend_session_edit_confirm` (POST `/backend/session/{id}/edit-confirm`) — confirmación al deshabilitar asientos con reservaciones activas; requiere razón (10-500 chars), CSRF y cancelación vía `ReservationCancellationService`. Implementa aspecto parcial de Issue #50.
+  - `backend_session_waitinglist` (GET `/backend/session/{id}/waitinglist`) — lista de espera por clase, con `IsGranted`.
+
+3. **Issue #50 PARCIALMENTE implementado:** Confirmación de conflicto de asientos activa. Pendiente: notificación genérica al cambiar datos de la clase (instructor, horario, salón) con reservaciones existentes.
+
+4. **Issue #11 matizado:** Las rutas `backend_session_get`, `backend_session_places`, `backend_coupon_validate`, `backend_user_stats`, `backend_user_transactions`, `backend_user_reservations`, `backend_user_reservation_detail` están dentro del firewall `/backend` (ROLE_STAFF vía `access_control`). La ruta `backend_reservation_attended` (`/{id}/attended`) está FUERA del firewall — verdaderamente expuesta a usuarios anónimos.
+
+5. **Issue #46 confirmado pendiente:** `TransactionController::new()` despacha `TransactionEvent` (base). `TransactionSuccessListener` escucha `TransactionSuccessEvent`. El contador `coupon.used` NO se incrementa en flujo backend.
+
+6. **Issue #9 confirmado pendiente:** `WaitingListService::validate()` sigue mutando `$session->getDateStart()` sin `clone`.
+
+7. **Issue #41 confirmado pendiente:** `ReservationService::cancel()` sigue ejecutando `$session->setStatus(Session::STATUS_OPEN)` sin recalcular el estado real.
+
+8. **Tests:** phpunit OK — 28 tests, 67 assertions (13/03/2026).
 
 ---
 
@@ -201,15 +229,16 @@ php bin/console config:debug mailer
 
 ---
 
-### Issue N-2: 🟠 Cambiar o cancelar clase hasta 2h antes con devolucion
+### Issue N-2: 🟡 Cambiar o cancelar clase hasta 2h antes con devolucion
 
 **Severidad:** 🟠 IMPORTANTE
+**Status:** 🟡 PARCIAL - Existe cancelación con devolución de crédito y ventana configurable, pero no hay regla explícita de 2h en código.
 
 **Contexto:** Cancelacion y reembolso en [src/Service/Reservation/ReservationService.php](../src/Service/Reservation/ReservationService.php) y [src/Controller/Backend/TransactionController.php](../src/Controller/Backend/TransactionController.php).
 
 **Rutas/Flujo:** /reservacion/{id}/cancelar, /backend/transaction/{id}/cancel
 
-**Sintoma:** La cancelacion no contempla devolucion dentro de una ventana de 2h.
+**Sintoma:** La cancelación sí devuelve crédito al usuario, pero la ventana depende de configuración (`time_cancel_group`/`time_cancel_individual`) y no de una regla fija de 2h.
 
 **Impacto:** Experiencia y confianza del cliente.
 
@@ -341,17 +370,18 @@ php bin/console config:debug mailer
 
 ---
 
-### Issue N-8: 🟠 Auditoría bidireccional en cambio de reservación
+### Issue N-8: ✅ Auditoría bidireccional en cambio de reservación — RESUELTO
 
 **Severidad:** 🟠 IMPORTANTE
+**Status:** ✅ IMPLEMENTADO - Se registran eventos de salida y entrada con `change_flow_id` y campos cruzados de sesión/asiento.
 
-**Contexto:** El cambio de reservación por usuario registra auditoría principalmente en la sesión de origen. Referencias: [src/Controller/ProfileController.php](../src/Controller/ProfileController.php), [src/Service/ReservationCancellationService.php](../src/Service/ReservationCancellationService.php), [src/Controller/Backend/SessionController.php](../src/Controller/Backend/SessionController.php), [templates/backend/session/audit.html.twig](../templates/backend/session/audit.html.twig).
+**Contexto:** Se implementó trazabilidad bidireccional en cambio de reservación. Referencias: [src/Controller/ProfileController.php](../src/Controller/ProfileController.php), [src/Service/ReservationCancellationService.php](../src/Service/ReservationCancellationService.php), [src/Entity/SessionAudit.php](../src/Entity/SessionAudit.php), [templates/backend/session/audit.html.twig](../templates/backend/session/audit.html.twig).
 
 **Rutas/Flujo:** /reservacion/{id}/cambiar/{sessionId}, /backend/session/{id}/audit
 
-**Sintoma:** El panel de auditoría no permite seguir completo el cambio desde ambas sesiones (de dónde salió y a cuál entró) con una correlación única.
+**Estado actual:** Cada cambio genera `user_changed_from` y `user_changed_to` con `change_flow_id`, `reservation_id`, `from_session_id`, `to_session_id`, `from_place` y `to_place`.
 
-**Impacto:** Trazabilidad incompleta para soporte, validación operativa y análisis de incidencias.
+**Impacto:** Trazabilidad completa para soporte, validación operativa y análisis de incidencias.
 
 **Plan de solucion:**
 - Registrar dos eventos por cambio: salida (origen) y entrada (destino).
@@ -369,51 +399,21 @@ php bin/console config:debug mailer
 ### Issue #4b: ⚡ Rate Limiting - Login
 
 **Severidad:** 🟡 IMPORTANTE
+**Status:** 🟡 PARCIAL - `login_throttling` activo en frontend/backend; falta `framework.rate_limiter` dedicado para otros flujos (ej. recuperación).
 
-**Contexto:** `login_throttling` esta en null y no hay `rate_limiter` configurado en [config/packages/security.yaml](../config/packages/security.yaml) y [config/packages/framework.yaml](../config/packages/framework.yaml).
+**Contexto:** La autenticación ya tiene throttling en [config/packages/security.yaml](../config/packages/security.yaml); [config/packages/framework.yaml](../config/packages/framework.yaml) no define `rate_limiter` adicional.
 
 **Rutas/Flujo:** /login
 
-**Problema:** Sin protección contra brute-force
+**Problema:** No está desprotegido el login, pero el hardening está incompleto si se quiere política unificada de rate limiting para todo endpoint sensible.
 
-**Implementación:**
-```yaml
-# config/packages/framework.yaml
-framework:
-    rate_limiter:
-        login_limiter:
-            strategy: 'moving_window'
-            limit: 5
-            interval: '15 minutes'
-            
-        register_limiter:
-            strategy: 'fixed_window'
-            limit: 10
-            interval: '1 hour'
-```
+**Verificación en código:**
+- `main` firewall: `login_throttling` 5 intentos / 15 minutos.
+- `backend` firewall: `login_throttling` 5 intentos / 15 minutos.
+- No se encontró `framework.rate_limiter` configurado.
 
-En controller:
-```php
-// src/Controller/SecurityController.php
-use Symfony\Component\RateLimiter\RateLimiterFactory;
-
-class SecurityController
-{
-    public function __construct(private RateLimiterFactory $loginLimiter) {}
-    
-    #[Route(path: '/login')]
-    public function login(Request $request)
-    {
-        // Rate limit check
-        $limiter = $this->loginLimiter->create($request->getClientIp());
-        if (!$limiter->consume(1)->isAccepted()) {
-            throw new TooManyRequestsHttpException();
-        }
-        
-        // ... rest of login logic
-    }
-}
-```
+**Tiempo:** 2-3 horas
+**Test:** Intentar 6 logins en < 15 min debe fallar; validar además límites en `/restablecer/send-email`.
 
 ---
 
@@ -441,6 +441,7 @@ class SecurityController
 ### Issue #9: 🟡 Mutación de dateStart en WaitingList
 
 **Severidad:** 🟡 IMPORTANTE
+**Status:** 🔴 PENDIENTE - Riesgo vigente.
 
 **Contexto:** Mutacion del DateTime en [src/Service/WaitingList/WaitingListService.php](../src/Service/WaitingList/WaitingListService.php).
 
@@ -467,31 +468,44 @@ $dateStart = $dateStart->setTime(...);
 ### Issue #11: 🔐 Endpoints backend sin control de acceso
 
 **Severidad:** 🟠 IMPORTANTE
+**Status:** 🔴 PENDIENTE - Persisten rutas sin `IsGranted`; además existe una ruta sensible fuera de prefijo `/backend`.
 
-**Contexto:** Rutas sin IsGranted en [src/Controller/Backend/SessionController.php](../src/Controller/Backend/SessionController.php), [src/Controller/Backend/UserController.php](../src/Controller/Backend/UserController.php) y [src/Controller/Backend/CouponController.php](../src/Controller/Backend/CouponController.php).
+**Contexto:** Rutas sin IsGranted en [src/Controller/Backend/SessionController.php](../src/Controller/Backend/SessionController.php), [src/Controller/Backend/UserController.php](../src/Controller/Backend/UserController.php), [src/Controller/Backend/CouponController.php](../src/Controller/Backend/CouponController.php) y [src/Controller/Backend/ReservationController.php](../src/Controller/Backend/ReservationController.php).
 
-**Rutas/Flujo:** /backend/session/get, /backend/session/{id}/places, /backend/reservation/{id}/attended, /backend/user/{id}/stats
+**Rutas/Flujo:** /backend/session/get, /backend/session/{id}/places, /backend/coupon/validate, /backend/user/{id}/stats, /{id}/attended
 
-**Problema:** Rutas como `backend/session/get`, `backend/session/{id}/places`,
-`backend/reservation/{id}/attended`, `backend/user/{id}/stats`,
-`backend/user/{id}/transactions`, `backend/user/{id}/reservations`,
-`backend/user/{id}/reservations/{reservation}` y `backend/coupon/validate`
-no tienen `IsGranted`.
+**Problema (verificado 13/03/2026):** Se distinguen dos grupos:
 
-**Riesgo:** Acceso no autorizado a datos o acciones internas.
+**Grupo A — Verdaderamente desprotegida (fuera del firewall `/backend`):**
+- `backend_reservation_attended` → URL efectiva `/{id}/attended` — no cubierta por `access_control ^/backend`, sin `IsGranted`, sin CSRF. Cualquier usuario anónimo puede hacer POST. **Riesgo CRÍTICO.**
 
-**Fix sugerido:**
-- Agregar `#[IsGranted('ALLOWED_ROUTE_ACCESS')]` o `ROLE_*` correspondiente.
-- Revisar cada ruta backend y documentar permisos.
+**Grupo B — Dentro del firewall (ROLE_STAFF por `access_control`), pero sin granularidad de rol:**
+- `backend_session_get` (`/backend/session/get`)
+- `backend_session_places` (`/backend/session/{id}/places`)
+- `backend_coupon_validate` (`/backend/coupon/validate`)
+- `backend_user_stats` (`/backend/user/{id}/stats`)
+- `backend_user_transactions` (`/backend/user/{id}/transactions`)
+- `backend_user_reservations` (`/backend/user/{id}/reservations`)
+- `backend_user_reservation_detail` (`/backend/user/{id}/reservations/{reservation}`)
+- `backend_session_day_new_branch_office` (`/backend/session-day/new-branch-office`) ← Issue #45
+
+Estas aceptan cualquier ROLE_STAFF (incluyendo ROLE_INSTRUCTOR) sin restricción de rol específico.
+
+**Riesgo:** Acceso no autorizado a datos sensibles de usuarios desde cuentas de instructor.
+
+**Fix sugerido (priorizado):**
+- **URGENTE — Grupo A:** Cambiar ruta a `/backend/reservation/{id}/attended` + agregar `#[IsGranted('ALLOWED_ROUTE_ACCESS')]` + CSRF.
+- **Importante — Grupo B:** Agregar `#[IsGranted('ALLOWED_ROUTE_ACCESS')]` en cada método.
 
 **Tiempo:** 2-3 horas  
-**Test:** Acceso con usuario sin permisos debe devolver 403.
+**Test:** `/{id}/attended` anónimo → 403/404. Grupo B con ROLE_INSTRUCTOR sin acceso permitido → 403.
 
 ---
 
 ### Issue #12: 🔓 Ruta debug expone phpinfo()
 
 **Severidad:** 🟠 IMPORTANTE
+**Status:** 🟡 PARCIAL - Queda tras firewall `/backend`, pero sigue activa en código productivo y sin restricción por entorno/rol admin.
 
 **Contexto:** Ruta de prueba en [src/Controller/Backend/DashboardController.php](../src/Controller/Backend/DashboardController.php).
 
@@ -506,9 +520,6 @@ no tienen `IsGranted`.
 
 **Tiempo:** 25 minutos  
 **Test:** Ruta inaccesible en prod.
-
-**Tiempo:** 2-3 horas  
-**Test:** Intentar 6 logins en < 15 min → debe fallar
 
 ---
 
@@ -667,9 +678,10 @@ var/log/dev.log  ← Ya existe (2.7 MB actual)
 
 ---
 
-### Issue #14: 🟡 Reuso de DateTime en SessionDayController
+### Issue #14: ✅ Reuso de DateTime en SessionDayController — RESUELTO
 
 **Severidad:** 🟡 MENOR
+**Status:** ✅ IMPLEMENTADO - Se usa base de fecha clonada y asignaciones con `clone` por sesión.
 
 **Contexto:** Uso de DateTime compartido en [src/Controller/Backend/SessionDayController.php](../src/Controller/Backend/SessionDayController.php).
 
@@ -768,6 +780,7 @@ var/log/dev.log  ← Ya existe (2.7 MB actual)
 ### Issue #19: 🟠 WaitingList sin control de autenticacion
 
 **Severidad:** 🟠 IMPORTANTE
+**Status:** 🔴 PENDIENTE - El endpoint sigue sin `#[IsGranted('ROLE_USER')]`.
 
 **Contexto:** Endpoint sin ROLE_USER en [src/Controller/ReservationController.php](../src/Controller/ReservationController.php).
 
@@ -886,15 +899,16 @@ var/log/dev.log  ← Ya existe (2.7 MB actual)
 
 ---
 
-### Issue #25: 🟠 WaitingList remove por GET sin CSRF
+### Issue #25: ✅ WaitingList remove por GET sin CSRF — RESUELTO
 
 **Severidad:** 🟠 IMPORTANTE
+**Status:** ✅ IMPLEMENTADO - Ruta migrada a `POST` y validación CSRF activa.
 
-**Contexto:** Ruta GET en [src/Controller/ProfileController.php](../src/Controller/ProfileController.php) y link en [templates/profile/waiting_list.html.twig](../templates/profile/waiting_list.html.twig).
+**Contexto:** Se corrigió en [src/Controller/ProfileController.php](../src/Controller/ProfileController.php) y [templates/profile/waiting_list.html.twig](../templates/profile/waiting_list.html.twig).
 
 **Rutas/Flujo:** /mi-cuenta/lista-espera (remove)
 
-**Problema:** `waiting_list_remove` usa GET y elimina registros sin CSRF.
+**Problema original:** `waiting_list_remove` usaba GET y eliminaba registros sin CSRF.
 
 **Riesgo:** CSRF/side-effects (prefetch/bots) borran lista de espera.
 
@@ -909,15 +923,16 @@ var/log/dev.log  ← Ya existe (2.7 MB actual)
 ### Issue #26: 🟠 Acciones POST sin CSRF
 
 **Severidad:** 🟠 IMPORTANTE
+**Status:** 🟡 PARCIAL - Varias rutas ya tienen CSRF, pero aún quedan endpoints críticos sin validación.
 
 **Contexto:** POST sin token en [src/Controller/ReservationController.php](../src/Controller/ReservationController.php), [src/Controller/ProfileController.php](../src/Controller/ProfileController.php), [src/Controller/Backend/TransactionController.php](../src/Controller/Backend/TransactionController.php), [src/Controller/Backend/ReservationController.php](../src/Controller/Backend/ReservationController.php) y [src/Controller/ResettingController.php](../src/Controller/ResettingController.php).
 
-**Rutas/Flujo:** /reservacion-clase/{id}, /lista-de-espera/{id}, /reservacion/{id}/cancelar, /backend/transaction/{id}/cancel, /backend/reservation/{id}/attended
+**Rutas/Flujo:** /reservacion-clase/{id}, /lista-de-espera/{id}, /reservacion/{id}/cancelar, /backend/transaction/{id}/cancel, /{id}/attended
 
-**Problema:** `reservation_confirm`, `reservation_waitinglist`, `reservation_cancel`,
-`reservation_change_session`, `package_checkout`,
-`backend_reservation_attended`, `backend_transaction_cancel`, `backend_transaction_edit_expiration`,
-`resetting_send_email` no validan CSRF.
+**Problema (estado actual):** Siguen sin validación CSRF al menos `reservation_confirm`, `reservation_waitinglist`, `package_checkout`, `backend_reservation_attended`, `backend_transaction_cancel`, `backend_transaction_edit_expiration` y `resetting_send_email`.
+Adicionalmente, `backend_reservation_attended` expone la ruta efectiva `/{id}/attended` (sin prefijo `/backend`).
+
+**Avance confirmado:** `reservation_cancel`, `reservation_change_session` y `waiting_list_remove` ya validan CSRF.
 
 **Riesgo:** Cancelaciones/ediciones disparadas desde sitios externos.
 
@@ -929,15 +944,16 @@ var/log/dev.log  ← Ya existe (2.7 MB actual)
 
 ---
 
-### Issue #27: 🟠 Acciones sensibles por GET
+### Issue #27: ✅ Acciones sensibles por GET — RESUELTO
 
 **Severidad:** 🟠 IMPORTANTE
+**Status:** ✅ IMPLEMENTADO - `backend_user_reset_password` cambió a `POST` con CSRF.
 
-**Contexto:** Reset por GET en [src/Controller/Backend/UserController.php](../src/Controller/Backend/UserController.php).
+**Contexto:** Corrección aplicada en [src/Controller/Backend/UserController.php](../src/Controller/Backend/UserController.php).
 
 **Rutas/Flujo:** /backend/user/{id}/reset-password
 
-**Problema:** `backend_user_reset_password` modifica datos y hace `flush()` via GET.
+**Problema original:** `backend_user_reset_password` modificaba datos y hacía `flush()` vía GET.
 
 **Riesgo:** CSRF/side-effects (prefetch/bots) pueden resetear tokens.
 
@@ -952,12 +968,15 @@ var/log/dev.log  ← Ya existe (2.7 MB actual)
 ### Issue #28: 🟡 Falta de tests automatizados
 
 **Severidad:** 🟡 MENOR
+**Status:** 🟡 PARCIAL - Ya existe suite automatizada base, pero falta ampliar cobertura de flujos críticos end-to-end.
 
-**Contexto:** Solo existe [tests/bootstrap.php](../tests/bootstrap.php).
+**Contexto:** Además de [tests/bootstrap.php](../tests/bootstrap.php), existen pruebas en `tests/Entity`, `tests/Repository`, `tests/Service`, `tests/Controller` y `tests/Util`.
 
 **Rutas/Flujo:** testing general (no aplica ruta)
 
-**Problema:** No hay pruebas en `tests/` (solo bootstrap).
+**Problema:** La cobertura aún no cubre de forma integral todos los flujos críticos (checkout/login/cancelación completa).
+
+**Validación actual:** `php bin/phpunit` ejecuta 28 tests y 67 assertions en main.
 
 **Riesgo:** Regresiones en reservas/pagos sin detección temprana.
 
@@ -1033,6 +1052,7 @@ var/log/dev.log  ← Ya existe (2.7 MB actual)
 ### Issue #32: 🟠 Configuracion sin CSRF
 
 **Severidad:** 🟠 IMPORTANTE
+**Status:** 🔴 PENDIENTE - Formularios manuales siguen sin token y el controller no valida CSRF.
 
 **Contexto:** Forms manuales en [templates/backend/configuration/index.html.twig](../templates/backend/configuration/index.html.twig) y update en [src/Controller/Backend/ConfigurationController.php](../src/Controller/Backend/ConfigurationController.php).
 
@@ -1053,6 +1073,7 @@ var/log/dev.log  ← Ya existe (2.7 MB actual)
 ### Issue #33: 🟡 Uploads sin validacion en configuracion
 
 **Severidad:** 🟡 MENOR
+**Status:** 🔴 PENDIENTE - `ConfigurationFileModel` continúa sin constraints de tipo/tamaño.
 
 **Contexto:** Modelo sin constraints en [src/Model/ConfigurationFileModel.php](../src/Model/ConfigurationFileModel.php).
 
@@ -1094,7 +1115,7 @@ var/log/dev.log  ← Ya existe (2.7 MB actual)
 
 **Severidad:** 🟡 MENOR
 
-**Status:** ✅ IMPLEMENTADO EN RAMA `fix/scrum-80-fecha-invalida-configuracion` (10/03/2026)
+**Status:** ✅ VERIFICADO EN MAIN (10/03/2026) - validación estricta activa y test automatizado pasando.
 
 **Contexto:** createFromFormat sin validacion estricta en [src/Controller/Backend/ConfigurationController.php](../src/Controller/Backend/ConfigurationController.php).
 
@@ -1126,12 +1147,13 @@ Adicionalmente, fechas overflow como `99/99/2026` no fallan por defecto en PHP: 
 ### Issue #36: 🟡 Fechas invalidas rompen filtros
 
 **Severidad:** 🟡 MENOR
+**Status:** 🟡 PARCIAL - `UserRepository` evita fallo por chequeo previo, pero `ReservationRepository` y `TransactionRepository` aún tienen riesgo.
 
 **Contexto:** Filtros con createFromFormat en [src/Repository/ReservationRepository.php](../src/Repository/ReservationRepository.php), [src/Repository/UserRepository.php](../src/Repository/UserRepository.php) y [src/Repository/TransactionRepository.php](../src/Repository/TransactionRepository.php).
 
 **Rutas/Flujo:** /backend/user, /backend/transaction, /backend/reservation
 
-**Problema:** Repositorios usan `createFromFormat()->format()` sin validar en filtros.
+**Problema:** Persisten usos de `createFromFormat()->format()` sin validar en algunos filtros, con riesgo de error cuando la fecha es inválida.
 
 **Riesgo:** Error 500 al filtrar por fechas invalidas.
 
@@ -1146,6 +1168,7 @@ Adicionalmente, fechas overflow como `99/99/2026` no fallan por defecto en PHP: 
 ### Issue #37: 🟡 Excepciones silenciadas
 
 **Severidad:** 🟡 MENOR
+**Status:** 🔴 PENDIENTE - Siguen presentes `catch` vacíos en correo de recuperación y contacto.
 
 **Contexto:** Catch vacio en [src/Controller/ResettingController.php](../src/Controller/ResettingController.php) y [src/Service/HandlerContactService.php](../src/Service/HandlerContactService.php).
 
@@ -1187,6 +1210,7 @@ Adicionalmente, fechas overflow como `99/99/2026` no fallan por defecto en PHP: 
 ### Issue #39: 🟠 Expiracion sin hora en transacciones
 
 **Severidad:** 🟠 IMPORTANTE
+**Status:** 🔴 PENDIENTE - `getExpired()` continúa comparando con fecha (`Y-m-d`) sin hora.
 
 **Contexto:** Comparacion de fecha sin hora en [src/Repository/TransactionRepository.php](../src/Repository/TransactionRepository.php).
 
@@ -1205,6 +1229,7 @@ Adicionalmente, fechas overflow como `99/99/2026` no fallan por defecto en PHP: 
 ### Issue #40: 🟠 Reservas en sesiones cerradas/canceladas
 
 **Severidad:** 🟠 IMPORTANTE
+**Status:** 🔴 PENDIENTE - `ReservationService::reservate()`/`change()` no validan explícitamente `STATUS_CLOSED`/`STATUS_CANCEL`.
 
 **Contexto:** Falta validacion de estado de session en [src/Service/Reservation/ReservationService.php](../src/Service/Reservation/ReservationService.php) y rutas en [src/Controller/ReservationController.php](../src/Controller/ReservationController.php) y [src/Controller/Backend/UserController.php](../src/Controller/Backend/UserController.php).
 
@@ -1226,6 +1251,7 @@ Adicionalmente, fechas overflow como `99/99/2026` no fallan por defecto en PHP: 
 ### Issue #41: 🟠 Cancelacion reabre sesiones o deja status incorrecto
 
 **Severidad:** 🟠 IMPORTANTE
+**Status:** 🔴 PENDIENTE - `cancel()` sigue forzando `STATUS_OPEN` y `change()` puede abrir sesión sin recálculo completo.
 
 **Contexto:** `ReservationService::cancel()` fuerza `Session::STATUS_OPEN` en [src/Service/Reservation/ReservationService.php](../src/Service/Reservation/ReservationService.php) y se usa desde [src/Controller/ProfileController.php](../src/Controller/ProfileController.php) y [src/Controller/Backend/UserController.php](../src/Controller/Backend/UserController.php).
 
@@ -1246,10 +1272,10 @@ En `change()`, si la sesion actual estaba FULL, se fuerza OPEN sin recalculo.
 
 ---
 
-### Issue #42: 🟡 Actualizacion de capacidad con errores silenciados
+### Issue #42: ✅ Actualizacion de capacidad con errores silenciados — RESUELTO
 
 **Severidad:** 🟡 IMPORTANTE
-**Status:** ✅ IMPLEMENTADO EN RAMA `fix/scrum-83-capacidad-errores-silenciados` (Jira: SCRUM-83, 11/03/2026) - Pendiente QA
+**Status:** ✅ RESUELTO - SCRUM-83 (cerrado en Jira 13/03/2026, confirmado en Resumen Ejecutivo DG)
 
 **Contexto:** `SessionRepository::updateCapacity()` atrapa excepciones sin logging en [src/Repository/SessionRepository.php](../src/Repository/SessionRepository.php) y se usa en [src/Controller/Backend/ExerciseRoomController.php](../src/Controller/Backend/ExerciseRoomController.php).
 
@@ -1278,6 +1304,7 @@ En `change()`, si la sesion actual estaba FULL, se fuerza OPEN sin recalculo.
 ### Issue #43: 🟡 Sesiones de hoy omitidas en agrupacion
 
 **Severidad:** 🟡 IMPORTANTE
+**Status:** 🔴 PENDIENTE - Se sigue usando `new \DateTime()` en el parámetro `current_date`.
 
 **Contexto:** `SessionRepository::findAllGroupByDateStart()` compara `dateStart` (DATE) con `new DateTime()` en [src/Repository/SessionRepository.php](../src/Repository/SessionRepository.php) y se usa en [src/Controller/Backend/SessionDayController.php](../src/Controller/Backend/SessionDayController.php).
 
@@ -1377,8 +1404,13 @@ En `change()`, si la sesion actual estaba FULL, se fuerza OPEN sin recalculo.
 | Doble asiento | Validación en backend | SCRUM-24 | Sí |
 | Performance reservaciones | Corrección N+1 en listados | SCRUM-28 | Sí |
 | Fecha inválida configuración | Validación estricta | SCRUM-80 | Sí |
+| Carga masiva de horarios | Corrección de parseo de fecha y errores 403/404 | SCRUM-20 | Sí |
+| Cambio de reservación | Flujo con clases futuras disponibles | SCRUM-23 | Sí |
+| Auditoría bidireccional | Trazabilidad de cambio origen/destino con `change_flow_id` | SCRUM-81 | Sí |
+| Foto de instructores (flujo) | Corrección completa backend y visualización | SCRUM-82 | Sí |
+| Capacidad errores silenciados | Logging controlado y feedback UI en edit de sala | SCRUM-83 | Sí |
 
-### Finalizados en Jira (Estado = Finalizada, corte 10/03/2026)
+### Finalizados en Jira (Estado = Finalizada, corte 13/03/2026)
 
 1. SCRUM-80 - Issue #35 - Validar fecha invalida en configuracion
 2. SCRUM-62 - 20.1 Reproducir error de planeamiento masivo y capturar traza tecnica
@@ -1399,6 +1431,14 @@ En `change()`, si la sesion actual estaba FULL, se fuerza OPEN sin recalculo.
 17. SCRUM-7 - Corregir manejo de objetos DateTime para inmutabilidad
 18. SCRUM-6 - revisar y analizar los casos de csrf
 19. SCRUM-5 - Implementar protección CSRF en formularios críticos
+20. SCRUM-84 - Feature: Mapa de asientos en modo ajedrez editable
+21. SCRUM-93 - Epic relacionada a mapa de asientos y despliegue funcional
+22. SCRUM-103 - Feature: horario flexible HH:mm en clases
+23. SCRUM-20 - Corrección de carga masiva de horarios (parseo de fecha, errores 403/404)
+24. SCRUM-23 - Cambio de reservación con clases futuras disponibles
+25. SCRUM-81 - Auditoría bidireccional en cambio de reservación
+26. SCRUM-82 - Corrección del flujo de foto de instructores (backend y visualización)
+27. SCRUM-83 - Corrección de errores silenciados en sincronización de capacidad
 
 ---
 
@@ -1513,16 +1553,18 @@ A continuación, los **8 nuevos temas de mejora** identificados en la reunión d
 
 ---
 
-### Issue #43: 📊 Ver quién canceló en la Info de la Clase (Backend)
-
+### Issue #43 (DG): ✅ Ver quién canceló en la Info de la Clase (Backend) — RESUELTO
+    
 **Prioridad:** 🟠 IMPORTANTE  
 **Timeline estimado:** 2-3 horas  
+**Status:** ✅ IMPLEMENTADO - Panel de auditoría activo por clase con usuario, fecha/hora y asiento afectado.
 **Historia de usuario:** Como admin del backend, quiero ver en la información de una clase **quién canceló** una reservación y **cuándo**, para tener control operativo.
 
-**Qué se necesita:**
-- En la vista de detalles de una clase (`/backend/session/{id}`), agregar tabla de **cancelaciones**
-- Mostrar: Nombre del cliente, fecha/hora de cancelación, número de lugar que liberó
-- Si es posible, botón para "ver detalles de esa cancelación" en el historial
+**Implementación validada:**
+- Tab **Auditoría** en perfil de clase (`backend_session_audit`) visible desde `/backend/session/{id}`.
+- Se muestran tipo de evento, ejecutor, fecha/hora y usuarios afectados.
+- Para cancelaciones y cambios se visualiza el lugar afectado (`place`, `from_place`, `to_place`) y enlaces de navegación.
+- Persistencia soportada por `session_audit` con campos de trazabilidad (`audit_type`, `change_flow_id`, `reservation_id`, etc.).
 
 **Beneficio:** Transparencia operativa + auditoría de cambios
 
@@ -1573,10 +1615,12 @@ Sistema normaliza y guarda como: "09:30"
 
 ---
 
-### Issue #50: ⚠️ Confirmación al Cambiar Clase (Si Tiene Reservas)
+### Issue #50: 🟡 Confirmación al Cambiar Clase (Si Tiene Reservas)
 
 **Prioridad:** 🟠 IMPORTANTE  
 **Timeline estimado:** 1.5 horas  
+**Status:** 🟡 PARCIAL — confirmación de conflicto de asientos implementada vía `backend_session_edit_confirm` (verificado 13/03/2026). Pendiente: confirmación genérica al cambiar instructor/horario/salón en sesiones con reservaciones.
+**Verificado:** `SessionController::editConfirm()` — CSRF activo (`session_edit_confirm`), motivo requerido (10-500 chars), cancela reservaciones afectadas vía `ReservationCancellationService::cancelMultipleAndAudit()`, registra en auditoría. Solo aplica cuando se deshabilitan asientos con reservas activas.
 **Contexto:** Cuando un admin quiere **editar/cambiar datos de una clase que YA tiene reservas**, debe haber **confirmación explícita**.
 
 **Qué se necesita:**
@@ -1793,10 +1837,11 @@ Si marca "predefinida":
 
 ---
 
-### Issue #53: 🔍 Búsqueda de Usuarios - Nombre Y Apellido (Sin Duplicados)
+### Issue #53: ✅ Búsqueda de Usuarios - Nombre Y Apellido (Sin Duplicados) — RESUELTO
 
 **Prioridad:** 🟠 IMPORTANTE  
 **Timeline estimado:** 1.5 horas  
+**Status:** ✅ IMPLEMENTADO - Búsqueda cruzada nombre/apellido con resultados sin duplicados y validada con pruebas.
 **Contexto:** En backend, la búsqueda de usuarios debe ser **igual para nombre Y apellido** pero **sin duplicados**.
 
 **Problema actual:** 
@@ -1804,10 +1849,11 @@ Si marca "predefinida":
 - Si busco "Pérez" → encuentra en campo `lastname`
 - Pero si busco "Juan Pérez" → busca en NOMBRE completo (nombre + lastname concatenado), puede no encontrar
 
-**Lo que se necesita:**
-- Campo de búsqueda único: busca en **NOMBRE** O **APELLIDO**
-- Resultado: Si hay coincidencia en nombre O apellido, aparece
-- **Sin duplicados:** Si un usuario tiene "Juan" en nombre y "Juan" en apellido, aparece 1 sola vez
+**Implementación validada:**
+- `UserRepository::findWithFilters()` usa búsqueda cruzada (`name` sobre `u.name` y `u.lastname`, y `lastname` sobre ambos campos).
+- Se aplica `distinct()` para evitar duplicados en listados.
+- Se normalizan entradas con `trim()` para búsquedas más robustas.
+- Cobertura en `tests/Repository/UserRepositoryTest.php` (filtros y normalización).
 
 **Ejemplo:**
 ```
@@ -1913,5 +1959,5 @@ Si encuentra issues:
 ---
 
 **Preparado por:** System Audit  
-**Próxima revisión:** 09 Marzo 2026
+**Próxima revisión:** 20 Marzo 2026
 

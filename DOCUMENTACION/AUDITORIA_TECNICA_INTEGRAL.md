@@ -59,7 +59,7 @@ class Kernel extends BaseKernel
 
 ### 🔧 Migraciones de Base de Datos
 
-**Estado:** 5/5 migraciones ejecutadas ✅
+**Estado:** 7/7 migraciones ejecutadas ✅ (actualizado 13/03/2026)
 
 | Versión | Fecha | Descripción |
 |---------|-------|-------------|
@@ -68,6 +68,8 @@ class Kernel extends BaseKernel
 | Version20240411074858 | Abr 2024 | Campos adicionales |
 | Version20240421165740 | Abr 2024 | Índices rendimiento |
 | Version20240920214042 | Sep 2024 | Última actualización |
+| Version20260309000000 | Mar 2026 | Tabla `session_audit` con trazabilidad bidireccional — SCRUM-81 |
+| Version20260312000100 | Mar 2026 | Columnas `seat_layout` JSON en `exercise_room` y `session` — SCRUM-84/93 |
 
 **Validación Doctrine:**
 ```
