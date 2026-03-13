@@ -65,6 +65,8 @@ class TransactionRepository extends ServiceEntityRepository
         $qb = $this->createQueryBuilder('t');
 
         $qb
+            ->addSelect('p')
+            ->leftJoin('t.package', 'p')
             ->where('t.user = :user')
             ->setParameter('user', $user)
             ->orderBy('t.createdAt', 'DESC')

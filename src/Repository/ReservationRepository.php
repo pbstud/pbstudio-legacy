@@ -69,6 +69,8 @@ class ReservationRepository extends ServiceEntityRepository
     {
         $qb = $this
             ->createQueryBuilder('r')
+            ->addSelect('u')
+            ->join('r.user', 'u')
             ->where('r.session = :session')
             ->andWhere('r.isAvailable = :isAvailable')
             ->setParameters([

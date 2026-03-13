@@ -31,7 +31,11 @@ class WaitingListRepository extends ServiceEntityRepository
         $qb = $this->createQueryBuilder('wl');
 
         $qb
+            ->addSelect('s', 'd', 'i', 'p')
             ->join('wl.session', 's')
+            ->join('s.discipline', 'd')
+            ->join('s.instructor', 'i')
+            ->join('i.profile', 'p')
             ->where('wl.user = :user')
             ->andWhere('wl.isAvailable = :isAvailable')
             ->andWhere('s.status = :sessionStatus')
