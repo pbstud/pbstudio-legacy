@@ -477,7 +477,8 @@ class ProfileController extends AbstractController
         $gridClass .= '-'.$branchOfficeSlug;
 
         $seatLayout = $session->getSeatLayout() ?? $session->getExerciseRoom()?->getSeatLayout();
-        $slotToSeat = SeatLayoutMapper::buildSlotToSeatMap($seatLayout);
+        $capacity = (int) ($session->getExerciseRoomCapacity() ?? 0);
+        $slotToSeat = SeatLayoutMapper::buildSlotToSeatMap($seatLayout, $capacity);
 
         return $this->render('profile/reservation_change_session.html.twig', [
             'discipline' => $session->getDiscipline(),

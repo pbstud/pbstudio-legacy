@@ -148,7 +148,8 @@ class ReservationController extends AbstractController
         $gridClass .= '-'.$branchOfficeSlug;
 
         $seatLayout = $session->getSeatLayout() ?? $session->getExerciseRoom()?->getSeatLayout();
-        $slotToSeat = SeatLayoutMapper::buildSlotToSeatMap($seatLayout);
+        $capacity = (int) ($session->getExerciseRoomCapacity() ?? 0);
+        $slotToSeat = SeatLayoutMapper::buildSlotToSeatMap($seatLayout, $capacity);
 
         return $this->render('reservation/session.html.twig', [
             'discipline' => $session->getDiscipline(),
