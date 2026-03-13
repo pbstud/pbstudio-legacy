@@ -365,7 +365,10 @@ class Session implements TimestampableInterface
 
     public function updateAvailableCapacity(): self
     {
-        $this->availableCapacity = $this->exerciseRoomCapacity - count($this->getPlacesNotAvailable());
+        $capacity = (int) ($this->exerciseRoomCapacity ?? 0);
+        $notAvailable = $this->getPlacesNotAvailable() ?? [];
+
+        $this->availableCapacity = $capacity - count($notAvailable);
 
         return $this;
     }

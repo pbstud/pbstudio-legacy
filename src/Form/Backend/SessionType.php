@@ -79,7 +79,7 @@ class SessionType extends AbstractType
             $builder->get('placesNotAvailable')
                 ->addModelTransformer(new CallbackTransformer(
                     static function ($arrayAsString) {
-                        return implode(',', $arrayAsString);
+                        return implode(',', is_array($arrayAsString) ? $arrayAsString : []);
                     },
                     static function ($stringAsArray) {
                         return !empty($stringAsArray) ? explode(',', $stringAsArray) : [];

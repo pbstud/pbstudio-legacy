@@ -57,7 +57,10 @@ class ExerciseRoom implements TimestampableInterface
 
     public function getAvailableCapacity(): int
     {
-        return $this->capacity - count($this->getPlacesNotAvailable());
+        $capacity = (int) ($this->capacity ?? 0);
+        $notAvailable = $this->getPlacesNotAvailable() ?? [];
+
+        return $capacity - count($notAvailable);
     }
 
     public function getId(): ?int
