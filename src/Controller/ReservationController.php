@@ -14,6 +14,7 @@ use App\Repository\SessionRepository;
 use App\Repository\StaffRepository;
 use App\Service\Reservation\ReservationException;
 use App\Service\Reservation\ReservationService;
+use App\Util\SeatLayoutMapper;
 use App\Service\WaitingList\WaitingListException;
 use App\Service\WaitingList\WaitingListService;
 use Carbon\Carbon;
@@ -147,12 +148,7 @@ class ReservationController extends AbstractController
         $gridClass .= '-'.$branchOfficeSlug;
 
         $seatLayout = $session->getSeatLayout() ?? $session->getExerciseRoom()?->getSeatLayout();
-
-        // Reverse map: slot (int, 1..36) => seat number (int)
-        $slotToSeat = [];
-        foreach ($seatLayout ?? [] as $seatNum => $slot) {
-            $slotToSeat[(int) $slot] = (int) $seatNum;
-        }
+        $slotToSeat = SeatLayoutMapper::buildSlotToSeatMap($seatLayout);
 
         return $this->render('reservation/session.html.twig', [
             'discipline' => $session->getDiscipline(),
