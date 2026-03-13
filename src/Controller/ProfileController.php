@@ -475,6 +475,14 @@ class ProfileController extends AbstractController
         $gridClass = str_replace(' ', '-', strtolower($discipline->getName()));
         $gridClass .= '-'.$branchOfficeSlug;
 
+        $seatLayout = $session->getSeatLayout() ?? $session->getExerciseRoom()?->getSeatLayout();
+
+        // Reverse map: slot (int, 1..36) => seat number (int)
+        $slotToSeat = [];
+        foreach ($seatLayout ?? [] as $seatNum => $slot) {
+            $slotToSeat[(int) $slot] = (int) $seatNum;
+        }
+
         return $this->render('profile/reservation_change_session.html.twig', [
             'discipline' => $session->getDiscipline(),
             'grid_class' => $gridClass,
@@ -482,6 +490,7 @@ class ProfileController extends AbstractController
             'session' => $session,
             'reservations' => $reservations,
             'userReservations' => $userReservations,
+            'slot_to_seat' => $slotToSeat,
         ]);
     }
 

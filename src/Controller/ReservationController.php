@@ -146,6 +146,14 @@ class ReservationController extends AbstractController
         $gridClass = str_replace(' ', '-', strtolower($discipline->getName()));
         $gridClass .= '-'.$branchOfficeSlug;
 
+        $seatLayout = $session->getSeatLayout() ?? $session->getExerciseRoom()?->getSeatLayout();
+
+        // Reverse map: slot (int, 1..36) => seat number (int)
+        $slotToSeat = [];
+        foreach ($seatLayout ?? [] as $seatNum => $slot) {
+            $slotToSeat[(int) $slot] = (int) $seatNum;
+        }
+
         return $this->render('reservation/session.html.twig', [
             'discipline' => $session->getDiscipline(),
             'grid_class' => $gridClass,
@@ -155,6 +163,7 @@ class ReservationController extends AbstractController
             'show_waitinglist' => $showWaitingList,
             'on_waitinglist' => $onWaitingList,
             'msg_no_classes_available' => $msgNoClassesAvailable,
+            'slot_to_seat' => $slotToSeat,
         ]);
     }
 

@@ -1,9 +1,9 @@
 # ISSUE #55: Mapa de Asientos en Modo Ajedrez Editable con Drag & Drop (MVP Opcion B)
 
 **Fecha de documentacion:** 11/03/2026  
-**Actualizado:** 12/03/2026 (tamaño tablero, diseño editor, puntos de entrada)  
+**Actualizado:** 12/03/2026 (implementación real backend Asientos)  
 **Prioridad:** Alta  
-**Estado:** Documentado - SCRUM-84 creado, pendiente implementacion  
+**Estado:** En implementación - Backend Asientos funcional; pendientes frontend de reservación y entrada A  
 **Jira:** SCRUM-84 (11/03/2026)
 
 ---
@@ -19,13 +19,32 @@ Objetivo del MVP:
 3. Mantener compatibilidad total con el modelo actual de reservacion por numero de asiento.
 4. Reducir riesgo de regresiones operativas en reservas, cambios y cancelaciones.
 
+### 1.1 Estado implementado al 12/03/2026
+
+Implementado en código (estado real):
+
+1. **Entrada B (clase)** implementada como pestaña `Asientos` dentro del perfil de sesión (`backend_session_seats`).
+2. **Editor drag & drop activo** con tablero **6 × 6** (36 slots) y panel lateral temporal.
+3. Tarjetas por estado visual (blanca/roja/gris), movibles durante diseño; clases cerradas/canceladas quedan en solo lectura.
+4. Guardado de clase persiste `Session.seatLayout` (JSON) + `Session.placesNotAvailable` + `availableCapacity`.
+5. Checkbox de guardado por defecto implementado: también actualiza `ExerciseRoom.seatLayout`, `ExerciseRoom.placesNotAvailable` y capacidad del salón.
+6. Herencia para clases nuevas implementada (creación individual y por día) desde `ExerciseRoom`.
+7. Si la vista carga desde default del salón, se muestra aviso; al guardar, la clase registra su layout propio.
+
+Pendiente:
+
+1. **Entrada A (editar salón)** con el mismo editor visual (hoy no existe pantalla dedicada de layout en salón).
+2. Render de layout visual en frontend de reservación (usuario final).
+
+Nota: las secciones 5 y 6 de este documento contienen parte del diseño histórico inicial; la implementación real actual usa `seat_layout` (mapa asiento->slot) en lugar de `seat_positions` por fila/columna.
+
 ---
 
 ## 2. Decision de arquitectura
 
 ### 2.1 Opcion elegida (ahora)
 
-**Tablero de Ajedrez con Drag & Drop de Asientos**
+#### Tablero de Ajedrez con Drag & Drop de Asientos
 
 1. El admin define capacidad y ve un grid determinisitco (filas/columnas).
 2. Ve lista de asientos disponibles (1, 2, 3, ..., N) como objetos draggables.
@@ -36,7 +55,7 @@ Objetivo del MVP:
 
 ### 2.2 Opcion diferida (futuro)
 
-**Opcion A - Canvas Total Libre (Fase 3)**
+#### Opcion A - Canvas Total Libre (Fase 3)
 
 1. Posicionar asientos en cualquier coordenada del canvas (no grid).
 2. Multiples layouts personalizados por salon con versionado.
@@ -48,51 +67,24 @@ Objetivo del MVP:
 
 ### 2.5.1 Tamaño del tablero
 
-- **Grid fijo: 10 × 10** (100 celdas) para todos los salones en el MVP.
-- Las celdas con número de asiento > `capacity` del salón se muestran sombreadas e inactivas ("fuera de rango"). No son reservables ni configurables.
-- Ejemplo: capacidad 20 → solo las primeras 20 celdas (llenando fila por fila) son activas; las 80 restantes están deshabilitadas visualmente.
-- Se revisará ajustar el tamaño por salón en Fase 2 si la capacidad máxima del negocio lo requiere.
+- **Grid fijo: 6 × 6** (36 slots visuales) para el editor actual.
+- El layout persiste como mapa `seat_layout` (`asiento -> slot`) con slots válidos en rango `1..36`.
+- Si la capacidad de la clase/salón es mayor a 36, los asientos excedentes pueden existir y quedar en el panel lateral temporal (sin slot visual en tablero).
+- El fallback secuencial coloca automáticamente `1..min(capacity, 36)`.
 
-### 2.5.2 Diseño del editor (UI clásica)
+### 2.5.2 Diseño del editor implementado
 
-El editor se abre como un **modal de Bootstrap** dentro del admin, sin abandonar la página actual. Diseño:
+El editor se abre como una **pestaña Asientos** dentro del perfil de la clase (no modal).
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│  Disposición de Asientos — Salón "Sala A"        [×] Cerrar │
-├─────────────────────────────────────────────────────────────┤
-│  Capacidad: 20   Disponibles: 17   No disponibles: 3        │
-├──────────────────────────────────┬──────────────────────────┤
-│                                  │  Asientos disponibles:   │
-│   TABLERO 10×10                  │  ┌──┐ ┌──┐ ┌──┐ ┌──┐   │
-│                                  │  │ 1│ │ 2│ │ 3│ │ 4│   │
-│  [ 1][ 2][██][██][ 5][ 6][ 7]   │  └──┘ └──┘ └──┘ └──┘   │
-│  [ 8][ 9][10][11][12][13][14]   │                          │
-│  [15][16][17][18][19][20][  ]   │  Asientos no coloc.:     │
-│  [  ][  ][  ][  ][  ][  ][  ]   │  ┌──┐ ┌──┐             │
-│  ... (celdas fuera de rango      │  │██│ │██│  (no disp.) │
-│       sombreadas en gris)        │  └──┘ └──┘             │
-│                                  │                          │
-│  [ ] celda vacía                 │  [ Auto-llenar ]         │
-│  [N] asiento N colocado          │  [ Limpiar todo ]        │
-│  [██] asiento deshabilitado      │                          │
-│  [  ] fuera de capacidad         │                          │
-├──────────────────────────────────┴──────────────────────────┤
-│  [Cancelar]                              [Guardar cambios]  │
-└─────────────────────────────────────────────────────────────┘
-```
+Interacción actual:
 
-**Interacción:**
-- Fase 1 MVP: **click en celda activa** para habilitar/deshabilitar asiento (toggle). Sin drag & drop en esta fase.
-- Celda activa disponible → click → queda marcada como **no disponible** (fondo rojo/oscuro).
-- Celda activa no disponible → click → queda **disponible** nuevamente.
-- Celdas fuera del rango de capacidad → no interactivas, fondo gris apagado.
-- El contador de disponibles/no disponibles se actualiza en tiempo real.
-- "Auto-llenar": marca todos los asientos 1..N como disponibles (limpia los no disponibles).
-- "Limpiar todo": marca todos como no disponibles.
-- Al guardar, se escribe en el `<input>` oculto del formulario padre con la lista de asientos no disponibles.
-
-**Nota Fase 2:** El panel lateral de arrastre (drag & drop) se añadirá en Fase 2 sobre esta misma base.
+1. Tablero 6×6 con drag & drop y panel lateral temporal.
+2. Se generan tarjetas al abrir: libres (blanco), ocupadas (rojo), deshabilitadas (gris).
+3. El admin organiza tarjetas entre tablero y panel durante el diseño.
+4. Se muestran contadores de libres/ocupadas/deshabilitadas.
+5. Acciones rápidas: llevar todas al tablero / llevar todas al panel.
+6. Si la clase está cerrada o cancelada: solo lectura (sin botones de edición/guardado).
+7. Si el layout proviene del default del salón, se muestra aviso; al guardar se fija layout propio en la clase.
 
 ### 2.5.3 Puntos de entrada del editor
 
@@ -102,22 +94,20 @@ Hay **dos contextos** desde donde se llama al editor. En ambos reemplaza el camp
 
 - **Archivo:** `templates/backend/exerciseroom/_form.html.twig`
 - **Contexto:** El admin configura el **diseño por defecto** del salón. Lo que se guarda aquí (`ExerciseRoom.placesNotAvailable`) se copia automáticamente a todas las sesiones nuevas que se creen en ese salón.
-- **Dónde se añade:** En lugar del campo `form.placesNotAvailable` (tagsinput actual), se muestra un botón **"Configurar disposición de asientos"** que abre el modal del editor.
-- **Al guardar en el modal:** Actualiza `ExerciseRoom.placesNotAvailable` → es el nuevo default del salón.
+- **Estado actual:** **Pendiente**. Aún no existe editor visual dedicado en la pantalla de salón.
 
 #### Entrada B — Editar Clase (`backend_session_edit`)
 
-- **Archivo:** `templates/backend/session/_form.html.twig` y `templates/backend/session/edit.html.twig`
-- **Contexto:** El admin ajusta la distribución de una clase específica, sin tocar el diseño por defecto del salón (excepto si activa la opción de guardarlo como default — ver Fase 2).
-- **Dónde se añade:** En la plantilla de edición de sesión, debajo de los campos de capacidad, un botón **"Editar disposición de asientos"** que abre el modal cargado con `Session.placesNotAvailable` actual.
-- **Al guardar en el modal:** Actualiza solo `Session.placesNotAvailable` de esa clase. No afecta el salón ni otras sesiones.
-- **Fase 2:** Al guardar aparecerá un checkbox "Establecer como distribución por defecto del salón" (ya documentado en sección 12).
+- **Archivo:** `templates/backend/session/profile.html.twig` + `templates/backend/session/seats.html.twig`
+- **Contexto:** El admin ajusta la distribución de una clase específica desde la pestaña **Asientos**.
+- **Estado actual:** **Implementado**.
+- **Guardado (solo clase):** persiste `Session.seatLayout` + `Session.placesNotAvailable`.
+- **Guardado (como default):** además actualiza `ExerciseRoom.seatLayout`, `ExerciseRoom.placesNotAvailable` y capacidad del salón para clases futuras.
 
 #### Entrada C — Nueva Clase (`backend_session_new`) — **Fase 2**
 
-- La nueva clase hereda `placesNotAvailable` del salón al momento de crearla (comportamiento actual).
-- En MVP no se muestra el editor al crear; el admin edita después si necesita ajustar.
-- En Fase 2 se puede añadir el editor también en la pantalla de creación.
+- **Comportamiento actual:** la nueva clase hereda `placesNotAvailable` y `seatLayout` del salón al crearse.
+- En la creación no se muestra el editor visual; el ajuste se hace después en la pestaña Asientos.
 
 ---
 
@@ -127,13 +117,15 @@ El sistema hoy ya opera con asientos numericos y capacidad calculada:
 
 1. `Reservation.placeNumber` es entero (`SMALLINT`) - identidad canonica del asiento.
 2. `Session.placesNotAvailable` guarda lugares no disponibles como array.
-3. `Session.exerciseRoomCapacity` y `Session.availableCapacity` sostienen el conteo operativo.
+3. `Session.seatLayout` guarda el layout visual (`JSON`, mapa `asiento -> slot`).
+4. `ExerciseRoom.seatLayout` guarda la plantilla por defecto del salón (`JSON`).
+5. `Session.exerciseRoomCapacity` y `Session.availableCapacity` sostienen el conteo operativo.
 
 Implicacion:
 
 - El MVP usa numero de asiento (1-N) como identidad principal.
-- Pos grid (row, col) es DERIVADA de placeNumber mediante formula.
-- Admin coloca asientos; el sistema calcula y persiste los placeNumbers resultantes.
+- El layout visual se guarda por slot de tablero (1..36), no por coordenada libre.
+- La validación de reservación sigue basada en `placeNumber` y `placesNotAvailable`.
 
 ---
 
@@ -141,22 +133,13 @@ Implicacion:
 
 ### 4.1 Backend admin (creacion/edicion de clase)
 
-1. Selector de capacidad total (rango 1-50).
-2. Grid visual tipo tablero de ajedrez (filas x columnas, determinisitco, inmutable).
-3. Panel lateral: Lista de asientos disponibles como OBJETOS arrastrable (1, 2, 3, ..., N).
-4. **Drag & Drop**: Admin arrastra asiento numerado a una celda del grid.
-5. Al soltar asiento en celda:
-   - Sistema calcula (row, col) de la celda
-   - Convierte a placeNumber mediante formula: placeNumber = (row * cols) + col + 1
-   - Registra que asiento X esta en placeNumber Y
-   - Asiento se posiciona visualmente en la celda del grid
-   - Asiento desaparece de la lista "disponibles"
-6. **Asientos NO colocados** en grid quedan como NO DISPONIBLES (se agregan a placesNotAvailable).
-7. Acciones rapidas:
-   - "Auto-llenar": Sistema coloca automaticamente todos asientos 1-N en orden row-by-row
-   - "Limpiar": Remueve todos los asientos del grid, los retorna a lista disponibles
-   - "Restaurar default": Recalcula basado en capacidad y recoloca segun formula
-8. **Persistencia**: Guarda mapeo completo seat_positions {1: {row:0, col:0}, 2: {row:0, col:1}, ...}
+1. Editor en pestaña Asientos de la clase (perfil de sesión).
+2. Tablero visual fijo 6×6 + panel lateral temporal.
+3. Se generan tarjetas 1..N según capacidad; visualmente se distinguen libres/ocupadas/deshabilitadas.
+4. **Drag & Drop** para organizar tarjetas entre tablero y panel.
+5. Guardado siempre persiste `Session.seatLayout` (mapa `asiento -> slot`), `Session.placesNotAvailable` y `Session.availableCapacity`.
+6. Opción "guardar como default" persiste además `ExerciseRoom.seatLayout`, `ExerciseRoom.placesNotAvailable` y `ExerciseRoom.capacity`.
+7. Si la clase está cerrada/cancelada, la vista es solo lectura.
 
 ### 4.2 Frontend usuario (reservacion)
 
@@ -188,26 +171,22 @@ Se mantiene la persistencia operativa actual mas mapeo de posiciones:
 
 1. `placeNumber` como identificador CANONICO del asiento (1-N, nunca cambia).
 2. `placesNotAvailable` para asientos NO colocados en grid (llenado al guardar).
-3. **NUEVO**: `seat_positions` JSON para registrar donde esta cada asiento en el grid.
+3. **NUEVO**: `seat_layout` JSON para registrar la ubicación visual (`asiento -> slot`).
 
 Ejemplo de persistencia Session:
+
 ```json
 {
   "capacity": 20,
-  "grid_config": {
-    "rows": 4,
-    "cols": 5,
-    "mode": "chessboard_v1"
-  },
-  "seat_positions": {
-    "1": {"row": 0, "col": 0},
-    "2": {"row": 0, "col": 1},
-    "3": {"row": 0, "col": 2},
-    "4": {"row": 0, "col": 3},
-    "5": {"row": 0, "col": 4},
-    "6": {"row": 1, "col": 0},
-    "10": {"row": 1, "col": 4},
-    "15": {"row": 2, "col": 4}
+  "seat_layout": {
+    "1": 1,
+    "2": 2,
+    "3": 3,
+    "4": 6,
+    "5": 10,
+    "6": 12,
+    "10": 21,
+    "15": 32
   },
   "places_not_available": [11, 12, 13, 14, 16, 17, 18, 19, 20]
 }
@@ -215,34 +194,35 @@ Ejemplo de persistencia Session:
 
 ### 5.2 Mapeo bidireccional grid <-> asiento
 
-Formula deterministica para validar/calcular posiciones:
+Modelo actual implementado:
 
-- `placeNumber = (row * cols) + col + 1` (calcular numero desde posicion)
-- `row = floor((placeNumber - 1) / cols)` (calcular fila desde numero)
-- `col = (placeNumber - 1) % cols` (calcular columna desde numero)
-- **Uso**: Validar que drag & drop esten dentro de rango [1..capacity]
-- **Validacion**: Si admin suelta asiento fuera de rango, rechazar y retornar a lista
+- Se usa `slot` de tablero en rango `1..36`.
+- `seat_layout[seatNumber] = slotNumber`.
+- Validación backend:
+  - asiento dentro de `1..capacity`
+  - slot dentro de `1..36`
+  - sin colisiones de slot
+- Si no existe layout propio de clase, la vista usa fallback del salón; si tampoco existe, fallback secuencial.
 
 ### 5.3 Dimension del grid y distribucion de asientos
 
-1. Admin define capacidad; sistema calcula grid recomendado (aproximadamente rectangular).
-   - Ejemplos: capacidad 20 → 4x5 o 5x4, capacidad 15 → 3x5 o 5x3
-2. O admin puede forzar filas/columnas explicitamente si capacidad es atipica.
-3. Validacion: `rows * cols >= capacity` (celdas excedentes quedan vacias, no reservables).
-4. Al usar "Auto-llenar": se carga la ultima versionado de la distribucion.
-5. **Calculo de capacidad disponible**: availableCapacity = (total colocados) - (ocupadas por reservas)
+1. El tablero visual es fijo en `6x6` (36 slots).
+2. La capacidad operativa de clase/salón puede ser mayor, pero solo 36 asientos pueden tener slot visual simultáneo en tablero.
+3. Asientos sin slot permanecen en el panel lateral temporal durante el diseño.
+4. **Calculo de capacidad disponible** sigue basado en `placesNotAvailable` (compatibilidad con reservación actual).
 
 ### 5.4 Compatibilidad con reservacion actual
 
 Al guardar configuracion del grid:
-- Extraer lista de asientos NO en seat_positions → agregar a `placesNotAvailable`
-- Ejemplo: si capacidad=20 pero solo colocaste asientos 1-15 en grid, entonces placesNotAvailable=[16,17,18,19,20]
+
+- Se mantiene y persiste `placesNotAvailable` como fuente para bloquear reserva de asientos.
+- `seat_layout` solo define la posición visual del asiento, no reemplaza `placeNumber`.
 - Esto mantiene compatibilidad con validacion existente: `placeNumber NOT IN Session.placesNotAvailable`
 - ReservationService ya rechaza reservaciones en placesNotAvailable, sin cambios requeridos
 
 ---
 
-## 6. Contratos funcionales (propuesta)
+## 6. Contratos funcionales (propuesta historica, no implementada tal cual)
 
 ### 6.1 Payload de configuracion admin (guardar layout)
 
@@ -387,10 +367,10 @@ Para evolucionar sin romper MVP:
 ### Fase 2 (Hardening)
 
 1. Plantilla por salon (default reusable, copiar entre clases).
-   - **Nota (12/03/2026):** Al editar la distribución de asientos de una sesión específica, el admin tendrá dos opciones:
-     - **Solo para esta clase**: Guarda la distribución solo en esa sesión. El diseño por defecto del salón (`ExerciseRoom.placesNotAvailable`) NO se modifica. Las demás clases no se ven afectadas.
-     - **Establecer como distribución por defecto del salón**: Además de guardar en la sesión, actualiza `ExerciseRoom.placesNotAvailable` con el nuevo diseño. Las clases futuras que se creen en ese salón heredarán esta distribución. Las clases ya existentes **no** se modifican.
-   - Esta opción se implementará como un checkbox/toggle en el formulario de edición de la distribución de asientos, **no** en el formulario general de la sesión.
+   - **Estado actual (implementado en pestaña Asientos de clase):**
+     - **Solo para esta clase**: Guarda `Session.seatLayout` + `Session.placesNotAvailable` en la sesión actual.
+     - **Guardar como default del salón**: Además de guardar en la sesión, actualiza `ExerciseRoom.seatLayout`, `ExerciseRoom.placesNotAvailable` y capacidad del salón.
+   - Las clases nuevas heredan el nuevo default. Las clases existentes no se actualizan en masa por esta acción.
 2. Mejoras UX (auto-fill, limpiar, restaurar presets).
 3. Telemetria/logs de cambios de configuracion.
 4. Performance: Caching de GET configuracion, pagination si multiples clases.
@@ -406,6 +386,7 @@ Para evolucionar sin romper MVP:
 ## 13. Decision final
 
 Se aprueba iniciar con **Opcion B mejorada (tablero ajedrez con drag & drop de asientos)** por:
+
 - Interfaz intuitiva y visual (UX superior a click simple)
 - Menor riesgo que editable total libre
 - Tiempo de entrega 3-5 horas (MVP)
