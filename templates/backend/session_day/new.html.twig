@@ -26,7 +26,7 @@
                                 <table class="table table-striped">
                                     <thead>
                                         <tr>
-                                            <th>Hora</th>
+                                            <th>Hora (HH:mm)</th>
                                             {% for exerciseRoom in exerciseRooms %}
                                                 <th>{{ exerciseRoom }} / Información</th>
                                             {% endfor %}
@@ -35,7 +35,9 @@
                                     <tbody>
                                         {% for schedule in schedules %}
                                             <tr>
-                                                <td>{{ schedule }}</td>
+                                                <td>
+                                                    <input type="time" class="form-control" name="session[scheduleTimes][{{ schedule }}]" value="{{ data['scheduleTimes'][schedule]|default(schedule) }}" step="60" required>
+                                                </td>
                                                 {% for exerciseRoom in exerciseRooms %}
                                                     <td>
                                                         <select class="form-control" name="session[schedules][{{ schedule }}][{{ exerciseRoom.id }}]"

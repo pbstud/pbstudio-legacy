@@ -193,7 +193,9 @@ class SessionController extends AbstractController
     public function new(Request $request, EntityManagerInterface $em): Response
     {
         $session = new Session();
-        $form = $this->createForm(SessionType::class, $session);
+        $form = $this->createForm(SessionType::class, $session, [
+            'use_flexible_time_start' => true,
+        ]);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
@@ -236,7 +238,9 @@ class SessionController extends AbstractController
         $originalPlaces = $session->getPlacesNotAvailable() ?? [];
 
         $cancelForm = $this->createCancelForm($session);
-        $editForm = $this->createForm(SessionType::class, $session);
+        $editForm = $this->createForm(SessionType::class, $session, [
+            'use_flexible_time_start' => true,
+        ]);
         $editForm->handleRequest($request);
 
         if ($editForm->isSubmitted() && $editForm->isValid()) {
