@@ -1,18 +1,19 @@
 # 📋 PLAN DE ACCIÓN - PBStudio
 
 **Fecha actualización:** 13 Marzo 2026  
-**Status:** 55 issues identificados (46 secuenciales + 8 nuevos de reunión DG con numeración operativa #43, #48-#50 y #52-#55 + 1 nuevo de auditoría bidireccional)  
+**Status:** 56 issues identificados (46 secuenciales + 8 nuevos de reunión DG con numeración operativa #43, #48-#50 y #52-#55 + 1 nuevo de auditoría bidireccional + 1 nuevo de prevalidación de salida a producción #56)  
 **Issues resueltos (plan técnico):** 21 ✅ (incluye #1-#4, N-1, N-3, N-5, N-7, N-8, #8, #14, #25, #27, #29, #35, #38, #42, #43 (DG), #49, #53 y #55)  
 **Tickets finalizados en Jira:** 38 ✅ (último corte compartido `Jira (3).csv`)  
-**Issues pendientes (plan técnico):** 35 (incluye pendientes y parciales, agrupados por categoría)  
+**Issues pendientes (plan técnico):** 36 (incluye pendientes y parciales, agrupados por categoría)  
 **Timeline:** Fix inmediato → Producción en 5-6 días
 
-## Actualizacion despliegue (12/03/2026)
+## Actualizacion despliegue (12-13/03/2026)
 
-- Validacion tecnica local en `prod` completada: `about`, `schema:validate`, `cache:warmup`, `lint:container`, `debug:router`, `list app`.
+- Validacion tecnica local en `prod` completada: `about`, `cache:warmup`, `lint:container`, `debug:router`, `list app`.
+- Prevalidacion de salida (13/03/2026): `doctrine:schema:validate --env=prod` reporta **ERROR** de sincronizacion (Issue #56).
 - Salud de calidad confirmada: `phpunit` OK (28 tests, 67 assertions, corrida 13/03/2026) y lint PHP `src/` OK (143/143).
 - Hardening aplicado en repo: `login_throttling` activo en firewalls `main/backend` y `RESETTING_RETRY_TTL=7200` en `.env`.
-- Pendiente para GO final en servidor destino: definir `APP_SECRET` unico en `.env.prod.local`, replicar extensiones `gd/exif/intl`, ejecutar runbook de despliegue en `GUIA_DESPLIEGUE_NUEVO_SERVIDOR.md` (seccion 11) y validar crons.
+- Pendiente para GO final en servidor destino: definir `APP_SECRET`, `DATABASE_URL` y `MAILER_DSN` explicitos en `.env.prod.local`, replicar extensiones `gd/exif/intl`, ejecutar runbook de despliegue en `GUIA_DESPLIEGUE_NUEVO_SERVIDOR.md` (seccion 11) y validar crons.
 
 ## Actualizacion Jira (13/03/2026)
 
@@ -25,7 +26,6 @@
 
 ---
 
-## 🚨 ISSUES CRÍTICOS (Arreglar HOY)
 ## Auditoria Tecnica (13/03/2026)
 
 **Objetivo:** Re-auditoría completa código vs. documentación tras los últimos sprints. Verificación línea a línea contra fuente actual.
@@ -201,6 +201,31 @@ MAILER_DSN=null://default
 ```bash
 php bin/console config:debug mailer
 ```
+
+---
+
+### Issue #56: 🔴 Doctrine Schema fuera de sync en prevalidacion prod
+
+**Severidad:** 🔴 CRITICA  
+**Status:** 🔴 PENDIENTE - Bloqueante de salida a produccion (13/03/2026).
+
+**Contexto:** En prevalidacion de salida, `doctrine:schema:validate --env=prod` reporta esquema no sincronizado.
+
+**Verificacion ejecutada:**
+- `php bin/console doctrine:migrations:status --env=prod`: 7/7 migraciones ejecutadas.
+- `php bin/console doctrine:schema:validate --env=prod`: ERROR de sync.
+- `php bin/console doctrine:schema:update --dump-sql --env=prod`: propone `DROP seat_layout` en `session` y `exercise_room`.
+- `dbal:run-sql` confirma que las columnas `seat_layout` existen en BD.
+
+**Riesgo:** Drift de metadata/esquema en entorno prod; cualquier despliegue con cambios ORM puede generar inconsistencia o SQL no esperado.
+
+**Fix sugerido:**
+- Confirmar mapeo final de columnas JSON (`seat_layout`) en entidades/migraciones.
+- Limpiar cache prod y revalidar metadata.
+- Ejecutar validacion en servidor destino antes de GO (`schema:validate`, `migrations:status`).
+
+**Tiempo:** 30-60 minutos  
+**Test:** `php bin/console doctrine:schema:validate --env=prod` debe quedar en OK.
 
 ---
 
@@ -1325,6 +1350,7 @@ En `change()`, si la sesion actual estaba FULL, se fuerza OPEN sin recalculo.
 ### Issue #44: 🟡 SessionDay solo considera STATUS_OPEN
 
 **Severidad:** 🟡 IMPORTANTE
+**Status:** 🔴 PENDIENTE - Falta incluir `STATUS_FULL` en listado/edicion de session-day.
 
 **Contexto:** `SessionDayController::index()` usa `findAllGroupByDateStart()` y `editDay()` filtra `status=OPEN` en [src/Controller/Backend/SessionDayController.php](../src/Controller/Backend/SessionDayController.php).
 
@@ -1346,6 +1372,7 @@ En `change()`, si la sesion actual estaba FULL, se fuerza OPEN sin recalculo.
 ### Issue #45: 🟠 Ruta backend session-day sin control de acceso
 
 **Severidad:** 🟠 IMPORTANTE
+**Status:** 🔴 PENDIENTE - `newBranchOffice()` sigue sin `IsGranted`.
 
 **Contexto:** `SessionDayController::newBranchOffice()` no tiene `IsGranted` en [src/Controller/Backend/SessionDayController.php](../src/Controller/Backend/SessionDayController.php).
 
@@ -1366,6 +1393,7 @@ En `change()`, si la sesion actual estaba FULL, se fuerza OPEN sin recalculo.
 ### Issue #46: 🟡 Cupon no incrementa uso en transaccion backend
 
 **Severidad:** 🟡 IMPORTANTE
+**Status:** 🔴 PENDIENTE - Flujo backend dispara `TransactionEvent` base y no activa historial de cupon.
 
 **Contexto:** `backend_transaction_new` usa `CouponService::apply()` y dispara `TransactionEvent` (no `TransactionSuccessEvent`) en [src/Controller/Backend/TransactionController.php](../src/Controller/Backend/TransactionController.php). `CouponService::addHistory()` solo corre en [src/EventListener/TransactionSuccessListener.php](../src/EventListener/TransactionSuccessListener.php).
 
@@ -1388,7 +1416,6 @@ En `change()`, si la sesion actual estaba FULL, se fuerza OPEN sin recalculo.
 | Componente | Fix | Jira | Verificado |
 |-----------|-----|------|-----------|
 | MAILER_DSN | null://default | N/A | Sí |
-| Doctrine Schema | Synced | N/A | Sí |
 | SQL Injection | QueryBuilder | N/A | Sí |
 | CSRF Tokens | Habilitado | SCRUM-5 / SCRUM-6 | Sí |
 | Password Hash | Bcrypt | N/A | Sí |

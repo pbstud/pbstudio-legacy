@@ -118,7 +118,7 @@ Resultado: siguiente gran entrega lista para producirse con seguimiento claro.
 
 ## 4. Estado consolidado al cierre
 
-1. 55 temas identificados y priorizados.
+1. 56 temas identificados y priorizados.
 2. 38 tickets finalizados en Jira segun ultimo export compartido.
 3. 51 tickets en estado "Tareas por hacer".
 4. 5 tickets en estado "En curso".
@@ -138,7 +138,27 @@ En resumen: primero se construyo orden y visibilidad total; despues se corrigier
 
 ## 6. Siguiente paso recomendado
 
-1. Validar QA final de SCRUM-83.
-2. Enfocar ejecucion operativa en bloque de despliegue y hardening (SCRUM-94/95/99 y subtareas activas).
-3. Cerrar pendientes de comunicacion (notificaciones y lista de espera).
+## 6. Estado de salida a produccion (prevalidacion 13/03/2026)
+
+Resultado actual: **NO GO temporal** hasta cerrar bloqueantes tecnicos de seguridad y consistencia.
+
+Bloqueantes verificados:
+
+1. `doctrine:schema:validate --env=prod` reporta esquema fuera de sincronizacion (Issue #56 en plan tecnico).
+2. Ruta sensible fuera de firewall backend: `/{id}/attended` (Issue #11).
+3. Ruta debug con `phpinfo()` activa en `/backend/test` (Issue #12).
+4. Endpoint de lista de espera sin control explicito por atributo de acceso (Issue #19).
+5. Logica de cancelacion que puede reabrir sesiones sin recalculo completo (Issue #41).
+6. Flujo backend de transaccion no dispara evento de exito para historial de cupon (Issue #46).
+
+Puntos no bloqueantes pero obligatorios antes del GO:
+
+1. Definir `APP_SECRET`, `DATABASE_URL` y `MAILER_DSN` en `.env.prod.local` del servidor destino.
+2. Ejecutar runbook tecnico de despliegue completo y repetir smoke checks en entorno objetivo.
+
+## 7. Siguiente paso recomendado
+
+1. Cerrar bloqueantes #56, #11, #12, #19, #41 y #46.
+2. Ejecutar preflight de salida en servidor destino (`about`, `schema:validate`, `cache:warmup`, `lint:container`, `debug:router`, `phpunit`).
+3. Si todo queda en verde, autorizar ventana de despliegue con GO formal.
 4. Mantener reporte semanal a DG con formato por etapas.

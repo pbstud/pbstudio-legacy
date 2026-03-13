@@ -1,7 +1,7 @@
 # 📋 PROGRESO DEL PROYECTO - PB STUDIO
 
 **Última actualización:** 13/03/2026  
-**Estado General:** 🟢 ACTIVO - Seguimiento consolidado y actualizado por documentación  
+**Estado General:** 🟡 NO GO TEMPORAL A PRODUCCIÓN - Seguimiento consolidado con bloqueantes técnicos identificados en prevalidación 13/03/2026  
 **Equipo:** Desarrollo + Technical Documentation  
 
 ---
@@ -30,6 +30,7 @@ Auditoría técnica completa: cada controlador, servicio, repositorio y migraci�
    - `src/Entity/SessionAudit.php` — entidad de auditoría bidireccional.
 
 5. **Pendientes críticos confirmados en código (sin cambio):**
+   - Issue #56: `doctrine:schema:validate --env=prod` reporta esquema fuera de sync (drift en `seat_layout`).
    - Issue #9: `WaitingListService::validate()` muta `dateStart` sin `clone`.
    - Issue #11A: `backend_reservation_attended` → `/{id}/attended` fuera de firewall, sin CSRF ni IsGranted.
    - Issue #12: `phpinfo()` activo en `/backend/test` sin restricción de entorno.
