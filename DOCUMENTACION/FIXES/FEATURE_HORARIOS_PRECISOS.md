@@ -488,8 +488,37 @@ No hay errores críticos en `var/log/dev.log`. Solo deprecation warnings de libr
 
 ---
 
+## Actualizacion complementaria (13/03/2026)
+
+Se aplico una extension del alcance de horarios para backend administrativo.
+
+### Objetivo
+
+Permitir captura flexible de hora/minuto en formatos HH:mm para operaciones de clase donde antes se dependia de opciones fijas.
+
+### Alcance implementado
+
+1. Crear clase: `timeStart` ahora permite hora flexible.
+2. Editar clase: se unifica al mismo formato flexible de crear clase.
+3. Carga masiva de clases: cada fila de horario permite hora editable HH:mm.
+4. Backend de carga masiva valida formato HH:mm y procesa `session[scheduleTimes]`.
+
+### Evidencia tecnica
+
+1. Commit feature: `4d0acbda`
+2. Merge a `main`: `030299ca`
+3. Publicado en remoto: `origin/main` actualizado.
+4. Trazabilidad Jira: `SCRUM-103`.
+
+### Validacion
+
+1. PHPUnit ejecutado correctamente: 28/28 tests.
+2. Sin errores de editor reportados en los archivos tocados del flujo.
+
+---
+
 **FIN DEL DOCUMENTO**
 
-*Última actualización: 04/03/2026*  
-*Estado: ✅ COMPLETADO Y VALIDADO*  
+*Última actualización: 13/03/2026*  
+*Estado: ✅ COMPLETADO Y VALIDADO (incluye extension de horario flexible backend)*  
 *Prioridad: 🟠 IMPORTANTE - Fix implementado, testeado y en producción*

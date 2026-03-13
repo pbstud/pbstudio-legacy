@@ -1,10 +1,10 @@
 # 📋 PLAN DE ACCIÓN - PBStudio
 
-**Fecha actualización:** 11 Marzo 2026  
+**Fecha actualización:** 13 Marzo 2026  
 **Status:** 55 issues identificados (46 secuenciales + 8 nuevos de reunión DG con numeración operativa #43, #48-#50 y #52-#55 + 1 nuevo de auditoría bidireccional)  
-**Issues resueltos (plan técnico):** 11 ✅ (N-1, N-3, N-5, #8, #29, #38 marcados en esta revisión)  
-**Tickets finalizados en Jira:** 19 ✅ (incluye épicas y subtareas)  
-**Issues pendientes (plan técnico):** 44 (agrupados por categoría, sin duplicados)  
+**Issues resueltos (plan técnico):** 12 ✅ (N-1, N-3, N-5, N-7, #8, #29, #38 marcados en esta revisión)  
+**Tickets finalizados en Jira:** 38 ✅ (último corte compartido `Jira (3).csv`)  
+**Issues pendientes (plan técnico):** 43 (agrupados por categoría, sin duplicados)  
 **Timeline:** Fix inmediato → Producción en 5-6 días
 
 ## Actualizacion despliegue (12/03/2026)
@@ -13,6 +13,15 @@
 - Salud de calidad confirmada: `phpunit` OK (22 tests, 52 assertions) y lint PHP `src/` OK (143/143).
 - Hardening aplicado en repo: `login_throttling` activo en firewalls `main/backend` y `RESETTING_RETRY_TTL=7200` en `.env`.
 - Pendiente para GO final en servidor destino: definir `APP_SECRET` unico en `.env.prod.local`, replicar extensiones `gd/exif/intl`, ejecutar runbook de despliegue en `GUIA_DESPLIEGUE_NUEVO_SERVIDOR.md` (seccion 11) y validar crons.
+
+## Actualizacion Jira (13/03/2026)
+
+- Corte compartido (`Jira (3).csv`): 94 tickets totales.
+- Estado actual: 38 finalizadas, 51 en tareas por hacer, 5 en curso.
+- Cierres confirmados en este corte:
+  - SCRUM-84 (Feature) - Finalizada.
+  - SCRUM-93 (Epic) - Finalizada.
+  - SCRUM-103 (Feature horario flexible HH:mm) - Finalizada.
 
 ---
 
@@ -304,9 +313,10 @@ php bin/console config:debug mailer
 
 ---
 
-### Issue N-7: 🟠 Crear horario por hora, no por ingreso
+### Issue N-7: ✅ Crear horario por hora, no por ingreso — RESUELTO
 
 **Severidad:** 🟠 IMPORTANTE
+**Status:** ✅ RESUELTO - SCRUM-103 (horario flexible HH:mm en crear, editar y carga masiva)
 
 **Contexto:** Creacion de sesiones por dia en [src/Controller/Backend/SessionDayController.php](../src/Controller/Backend/SessionDayController.php).
 
@@ -323,6 +333,11 @@ php bin/console config:debug mailer
 
 **Tiempo Estimado:** 2-4 horas  
 **Test:** Crear horarios en horas distintas y validar.
+
+**Resultado aplicado:**
+- Formulario backend de sesión actualizado a entrada flexible HH:mm en crear/editar.
+- Carga masiva (new/edit day) con hora editable por fila y validación backend de formato.
+- Integrado a `main` y publicado en `origin/main`.
 
 ---
 
@@ -1534,10 +1549,11 @@ A continuación, los **8 nuevos temas de mejora** identificados en la reunión d
 
 ---
 
-### Issue #49: ⏰ Horario Abierto en Creación de Clases (Formateable)
+### Issue #49: ✅ Horario Abierto en Creación de Clases (Formateable) — RESUELTO
 
 **Prioridad:** 🟠 IMPORTANTE  
 **Timeline estimado:** 1.5-2 horas  
+**Status:** ✅ RESUELTO - SCRUM-103 (Finalizada, 13/03/2026)  
 **Problema:** Al crear una clase en backend, el horario debe permitir qualquier entrada pero se **formatea automáticamente** a HH:MM (hora y minuto).
 
 **Qué se necesita:**
@@ -1585,7 +1601,7 @@ Sistema normaliza y guarda como: "09:30"
 
 **Prioridad:** 🟠 IMPORTANTE  
 **Timeline estimado:** 3-5 horas (MVP Opción B)  
-**Status:** 📋 DOCUMENTADO - 🎫 SCRUM-84 (Jira, 11/03/2026) - PENDIENTE IMPLEMENTACIÓN  
+**Status:** ✅ IMPLEMENTADO Y CERRADO - SCRUM-84 (Feature) + SCRUM-93 (Epic), corte Jira 13/03/2026  
 **Contexto:** Se adopta Opción B como MVP: panel tipo tabla de ajedrez editable por celdas (activar/desactivar lugares), manteniendo compatibilidad con el modelo actual de asientos por número.
 
 **Decisión de diseño (11/03/2026):**

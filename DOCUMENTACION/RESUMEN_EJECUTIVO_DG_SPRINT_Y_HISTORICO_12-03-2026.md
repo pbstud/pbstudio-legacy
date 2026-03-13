@@ -1,6 +1,6 @@
 # Resumen Ejecutivo para Direccion General
 
-Fecha: 12/03/2026  
+Fecha: 13/03/2026 (actualizado con corte Jira 13/03/2026)  
 Proyecto: PBStudio  
 
 ---
@@ -50,6 +50,9 @@ Por que fue clave:
 22. SCRUM-81 - Auditoria bidireccional en cambio de reservacion.
 23. SCRUM-82 - Correccion del flujo de foto de instructores.
 24. SCRUM-83 - Correccion de errores silenciados en capacidad de clases.
+25. SCRUM-84 - Issue #55 Mapa de asientos (feature cerrada).
+26. SCRUM-93 - Epica de agrupacion de mapa de asientos (cerrada).
+27. SCRUM-103 - Horario flexible HH:mm en crear/editar/carga masiva (cerrado).
 
 ## 2.2 Casos corregidos o modificados esta semana
 
@@ -58,9 +61,13 @@ Por que fue clave:
 3. SCRUM-82 - Se cerro la correccion de foto de instructores (backend y visualizacion).
 4. SCRUM-83 - Se cerro el riesgo de errores silenciados en sincronizacion de capacidad.
 5. Issue #55 (documentacion funcional) - Se redefinio a experiencia de drag & drop para mapa de asientos.
+6. SCRUM-84 y SCRUM-93 - Se completo y cerro el bloque funcional/epica del mapa de asientos.
+7. SCRUM-103 - Se cerro horario flexible HH:mm en crear, editar y carga masiva.
 
 
-## 2.3 Casos estructurados para ejecucion (organizacion, no cierre aun)
+## 2.3 Casos estructurados para ejecucion (historico de planeacion)
+
+Nota de corte 13/03/2026: SCRUM-84 y SCRUM-93 ya quedaron finalizados en Jira.
 
 1. SCRUM-84 - Ticket principal del nuevo modulo de asientos.
 2. SCRUM-85 - Diseno de componente backend del grid.
@@ -112,9 +119,9 @@ Resultado: siguiente gran entrega lista para producirse con seguimiento claro.
 ## 4. Estado consolidado al cierre
 
 1. 55 temas identificados y priorizados.
-2. 24 tickets finalizados en Jira segun export actualizado.
-3. 57 tickets en estado "Tareas por hacer".
-4. 3 tickets en estado "En curso".
+2. 38 tickets finalizados en Jira segun ultimo export compartido.
+3. 51 tickets en estado "Tareas por hacer".
+4. 5 tickets en estado "En curso".
 5. Casos de esta semana ya reflejados con cierre y/o preparacion ejecutable.
 
 ---
@@ -132,6 +139,6 @@ En resumen: primero se construyo orden y visibilidad total; despues se corrigier
 ## 6. Siguiente paso recomendado
 
 1. Validar QA final de SCRUM-83.
-2. Iniciar ejecucion de SCRUM-84 con su desglose SCRUM-85 a SCRUM-92.
+2. Enfocar ejecucion operativa en bloque de despliegue y hardening (SCRUM-94/95/99 y subtareas activas).
 3. Cerrar pendientes de comunicacion (notificaciones y lista de espera).
 4. Mantener reporte semanal a DG con formato por etapas.

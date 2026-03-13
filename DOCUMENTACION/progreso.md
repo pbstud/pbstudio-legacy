@@ -1,12 +1,25 @@
 # 📋 PROGRESO DEL PROYECTO - PB STUDIO
 
-**Última actualización:** 11/03/2026  
+**Última actualización:** 13/03/2026  
 **Estado General:** 🟢 ACTIVO - Seguimiento consolidado y actualizado por documentación  
 **Equipo:** Desarrollo + Technical Documentation  
 
 ---
 
-## 🔎 PARTE 1 - ESTADO MAESTRO CONSOLIDADO (11/03/2026)
+## 🆕 ACTUALIZACION RAPIDA (13/03/2026)
+
+1. Se implemento horario flexible HH:mm en backend de clases para crear y editar.
+2. Se ajusto carga masiva (nuevo y editar dia) para capturar hora por fila y validar formato HH:mm en backend.
+3. Los cambios quedaron integrados en `main` y publicados en `origin/main`.
+   - Commit feature: `4d0acbda`
+   - Merge commit en main: `030299ca`
+4. Se registro trazabilidad en Jira con el ticket `SCRUM-103`.
+5. Se agrego ficha documental del ticket en la carpeta de Jira.
+6. Se actualizo el corte Jira compartido (`Jira (3).csv`): 94 tickets totales, 38 finalizadas, 51 en tareas por hacer y 5 en curso.
+
+---
+
+## 🔎 PARTE 1 - ESTADO MAESTRO CONSOLIDADO (13/03/2026)
 
 ### Objetivo de esta actualización
 
@@ -200,6 +213,18 @@ Estado consolidado (según documentos en `FIXES` y evidencia de historial en `ma
 4. **SCRUM-24** - CERRADO
    - Tema: doble asiento por concurrencia y validación funcional.
    - Evidencia: estado *Finalizada/Listo* en export de Jira actualizado y cierre reflejado en seguimiento técnico.
+
+5. **SCRUM-84** - CERRADO
+   - Tema: implementación funcional del módulo de mapa de asientos (Issue #55).
+   - Evidencia: estado *Finalizada* en último export Jira y cierre técnico integrado en `main`.
+
+6. **SCRUM-93** - CERRADO
+   - Tema: épica de agrupación del módulo de mapa de asientos.
+   - Evidencia: estado *Finalizada* en último export Jira.
+
+7. **SCRUM-103** - CERRADO
+   - Tema: horario flexible HH:mm en crear/editar/carga masiva de clases.
+   - Evidencia: estado *Finalizada* en último export Jira + merge en `main` (`030299ca`).
 
 #### Nota de control de numeración
 

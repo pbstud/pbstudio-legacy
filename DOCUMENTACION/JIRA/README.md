@@ -9,9 +9,10 @@ Archivos activos en esta carpeta:
 1. README.md
 2. JIRA_GUIA_UNICA_JSON_API.md
 3. TAREAS_SUBTAREAS_EPICA_PERFORMANCE.md
-4. create_tasks_subtasks.ps1
-5. fix_and_improve.ps1
-6. link_to_epic.ps1
+4. SCRUM_ISSUE_HORARIO_FLEXIBLE_CLASES_13-03-2026.md
+5. create_tasks_subtasks.ps1
+6. fix_and_improve.ps1
+7. link_to_epic.ps1
 
 Carpeta de historico:
 
@@ -32,12 +33,13 @@ Se movio a archivo historico todo lo demas:
 2. Logs y resultados de corrida.
 3. Snapshots intermedios y archivos auxiliares temporales.
 
-## Estado operativo Jira (10/03/2026)
+## Estado operativo Jira (13/03/2026)
 
 1. SCRUM-33 con historias SCRUM-34 a SCRUM-41 y subtareas optimizadas.
 2. Issues de hardening revisados y con descripciones reforzadas.
 3. SCRUM-20 movido a la epica correcta (SCRUM-32).
 4. Primera subtask de arranque creada para SCRUM-20 (SCRUM-62).
+5. Ticket SCRUM-103 creado para trazabilidad de horario flexible HH:mm en crear/editar/carga masiva de clases.
 
 ## Uso rapido
 
@@ -69,5 +71,5 @@ En consolas con errores de PSReadLine por buffer, preferir ejecucion por archivo
 2. Cualquier script temporal nuevo debe moverse a ARCHIVO_YYYYMMDD al finalizar.
 3. Si un script temporal se vuelve reutilizable, promoverlo a la raiz y documentarlo aqui.
 
-Ultima actualizacion: 10/03/2026
+Ultima actualizacion: 13/03/2026
 Responsable: Equipo de desarrollo PB Studio

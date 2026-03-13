@@ -15,9 +15,15 @@
                     <div class="col-md-3 col-sm-3 col-xs-12 profile_left">
                         <div class="profile_img">
                             <div id="crop-avatar">
-                                {% if instructor.profile.photo %}
-                                    <img src="{{ vich_uploader_asset(instructor.profile) }}" alt="{{ instructor }}" class="img-thumbnail" style="width: 200px; height: 200px; object-fit: cover;" />
-                                {% endif %}
+                                {% set defaultInstructorPhoto = asset('images/home/instructor1.jpg') %}
+                                {% set hasPhoto = instructor.profile is not null and instructor.profile.photo %}
+                                <img
+                                    src="{{ hasPhoto ? vich_uploader_asset(instructor.profile) : defaultInstructorPhoto }}"
+                                    alt="{{ instructor }}"
+                                    class="img-thumbnail"
+                                    style="width: 200px; height: 200px; object-fit: cover;"
+                                    onerror="this.onerror=null;this.src='{{ defaultInstructorPhoto }}';"
+                                />
                             </div>
                         </div>
                         <h3>{{ instructor }}</h3>
