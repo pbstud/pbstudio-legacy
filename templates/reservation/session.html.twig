@@ -19,22 +19,72 @@
 
         <div class="clearfix class_pop {{ session.type|PackageSessionType|lower }}">
             <div class="grid-1-6 right reserve-{{ grid_class }}">
-                <div id="place_container">
-                    {% for place in 1..session.exerciseRoomCapacity %}
-                        {% set place_not_available = place in session.placesNotAvailable %}
-                        {% set user_reserved_place = place in userReservations %}
-                        {% set is_reserved = reservations[place] is defined %}
-
-                        {% set html_element = is_reserved or place_not_available ? 'span' : 'a' %}
-                        {% set class_active = user_reserved_place  ? 'active' : '' %}
-                        {% set class_engaged = is_reserved and not user_reserved_place ? 'engaged' : '' %}
-                        {% set class_not_available = place_not_available ? 'not-available' : '' %}
-
-                        <{{ html_element }} class="place {{ class_active }} {{ class_engaged }} {{ class_not_available }}" data-place="{{ place }}">
-                            <p>{{ place }}</p>
-                        </{{ html_element }}>
-                    {% endfor %}
-                </div>
+                {% if slot_to_seat is not empty %}
+                    {# Render 6x6 grid respecting the saved seat layout (slot_to_seat: slot -> seat number) #}
+                    <style>
+                        /*
+                         * Override .pop_box .class_pop .grid-1-6:first-child div { max-width:180px }
+                         * The ID selector wins on specificity (1-0-0 vs 0-4-0).
+                         */
+                        #place_container.seat-map-grid {
+                            display: grid;
+                            grid-template-columns: repeat(6, 40px);
+                            gap: 4px;
+                            max-width: none;      /* remove 180px cap */
+                            width: max-content;   /* shrink-wrap to actual grid size */
+                            margin: 0 auto;
+                        }
+                        /*
+                         * Override .place:nth-child(8n/9n/10n) { display:inline-block }
+                         * which breaks CSS grid item flow.
+                         */
+                        #place_container.seat-map-grid .place,
+                        #place_container.seat-map-grid .seat-slot-empty {
+                            display: block !important;
+                            margin-top: 0 !important;
+                            margin-right: 0 !important;
+                        }
+                        #place_container.seat-map-grid .seat-slot-empty {
+                            width: 40px;
+                            height: 40px;
+                        }
+                    </style>
+                    <div id="place_container" class="seat-map-grid">
+                        {% for slot in 1..36 %}
+                            {% if slot_to_seat[slot] is defined %}
+                                {% set place = slot_to_seat[slot] %}
+                                {% set place_not_available = place in (session.placesNotAvailable ?? []) %}
+                                {% set user_reserved_place = place in userReservations %}
+                                {% set is_reserved = reservations[place] is defined %}
+                                {% set html_element = is_reserved or place_not_available ? 'span' : 'a' %}
+                                {% set class_active = user_reserved_place ? 'active' : '' %}
+                                {% set class_engaged = is_reserved and not user_reserved_place ? 'engaged' : '' %}
+                                {% set class_not_available = place_not_available ? 'not-available' : '' %}
+                                <{{ html_element }} class="place {{ class_active }} {{ class_engaged }} {{ class_not_available }}" data-place="{{ place }}">
+                                    <p>{{ place }}</p>
+                                </{{ html_element }}>
+                            {% else %}
+                                <span class="seat-slot-empty"></span>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    {# Fallback: no layout saved, show sequential list #}
+                    <div id="place_container">
+                        {% for place in 1..session.exerciseRoomCapacity %}
+                            {% set place_not_available = place in (session.placesNotAvailable ?? []) %}
+                            {% set user_reserved_place = place in userReservations %}
+                            {% set is_reserved = reservations[place] is defined %}
+                            {% set html_element = is_reserved or place_not_available ? 'span' : 'a' %}
+                            {% set class_active = user_reserved_place ? 'active' : '' %}
+                            {% set class_engaged = is_reserved and not user_reserved_place ? 'engaged' : '' %}
+                            {% set class_not_available = place_not_available ? 'not-available' : '' %}
+                            <{{ html_element }} class="place {{ class_active }} {{ class_engaged }} {{ class_not_available }}" data-place="{{ place }}">
+                                <p>{{ place }}</p>
+                            </{{ html_element }}>
+                        {% endfor %}
+                    </div>
+                {% endif %}
             </div>
 
             <div class="grid-1-6 right reserve-{{ grid_class }}">

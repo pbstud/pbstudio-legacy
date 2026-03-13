@@ -22,6 +22,7 @@ use App\Service\Reservation\ReservationException;
 use App\Service\Reservation\ReservationService;
 use App\Service\SessionTimeCancel\TimeToCancel;
 use App\Util\PackageSessionType;
+use App\Util\SeatLayoutMapper;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Bridge\Doctrine\Attribute\MapEntity;
@@ -475,6 +476,10 @@ class ProfileController extends AbstractController
         $gridClass = str_replace(' ', '-', strtolower($discipline->getName()));
         $gridClass .= '-'.$branchOfficeSlug;
 
+        $seatLayout = $session->getSeatLayout() ?? $session->getExerciseRoom()?->getSeatLayout();
+        $capacity = (int) ($session->getExerciseRoomCapacity() ?? 0);
+        $slotToSeat = SeatLayoutMapper::buildSlotToSeatMap($seatLayout, $capacity);
+
         return $this->render('profile/reservation_change_session.html.twig', [
             'discipline' => $session->getDiscipline(),
             'grid_class' => $gridClass,
@@ -482,6 +487,7 @@ class ProfileController extends AbstractController
             'session' => $session,
             'reservations' => $reservations,
             'userReservations' => $userReservations,
+            'slot_to_seat' => $slotToSeat,
         ]);
     }
 

@@ -122,6 +122,7 @@ class SessionDayController extends AbstractController
                                 ->setExerciseRoom($exerciseRoom)
                                 ->setExerciseRoomCapacity($exerciseRoom->getCapacity())
                                 ->setPlacesNotAvailable($exerciseRoom->getPlacesNotAvailable())
+                                ->setSeatLayout($exerciseRoom->getSeatLayout())
                                 ->setAvailableCapacity($exerciseRoom->getAvailableCapacity())
                                 ->setType($exerciseRoom->getType())
                                 ->setDiscipline($exerciseRoom->getDiscipline())
@@ -331,6 +332,7 @@ class SessionDayController extends AbstractController
                             ->setBranchOffice($branchOffice)
                             ->setExerciseRoomCapacity((int) $capacity)
                             ->setPlacesNotAvailable($exerciseRoom->getPlacesNotAvailable())
+                            ->setSeatLayout($exerciseRoom->getSeatLayout())
                             ->updateAvailableCapacity()
                         ;
 

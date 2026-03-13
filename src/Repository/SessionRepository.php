@@ -9,6 +9,7 @@ use App\Entity\ExerciseRoom;
 use App\Entity\Session;
 use Carbon\CarbonPeriod;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Query\Expr\Join;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
@@ -190,25 +191,29 @@ class SessionRepository extends ServiceEntityRepository
     public function updateCapacity(ExerciseRoom $exerciseRoom): int
     {
         $now = new \DateTime();
-        $total = $exerciseRoom->getCapacity() - count($exerciseRoom->getPlacesNotAvailable());
+        $notAvailable = $exerciseRoom->getPlacesNotAvailable() ?? [];
+        $today = (clone $now)->setTime(0, 0);
 
-        $qb = $this->getEntityManager()->createQueryBuilder();
-        $qb
-            ->update(Session::class, 's')
-            ->set('s.exerciseRoomCapacity', ':capacity')
-            ->set('s.placesNotAvailable', ':notAvailable')
-            ->set('s.availableCapacity', ':availableCapacity')
+        $futureSessions = $this->createQueryBuilder('s')
             ->where('s.exerciseRoom = :exerciseRoom')
-            ->andWhere('CONCAT(s.dateStart, \' \', s.timeStart) >= :now')
-
-            ->setParameter('capacity', $exerciseRoom->getCapacity())
-            ->setParameter('notAvailable', implode(',', $exerciseRoom->getPlacesNotAvailable()))
-            ->setParameter('availableCapacity', $total)
-            ->setParameter('exerciseRoom', $exerciseRoom->getId())
-            ->setParameter('now', $now)
+            ->andWhere('(s.dateStart > :today OR (s.dateStart = :today AND s.timeStart >= :currentTime))')
+            ->setParameter('exerciseRoom', $exerciseRoom)
+            ->setParameter('today', $today, Types::DATE_MUTABLE)
+            ->setParameter('currentTime', $now, Types::TIME_MUTABLE)
+            ->getQuery()
+            ->getResult()
         ;
 
-        return (int) $qb->getQuery()->execute();
+        foreach ($futureSessions as $session) {
+            $session
+                ->setExerciseRoomCapacity($exerciseRoom->getCapacity())
+                ->setPlacesNotAvailable($notAvailable ?: null)
+                ->setSeatLayout($exerciseRoom->getSeatLayout())
+                ->setAvailableCapacity($exerciseRoom->getCapacity() - count($notAvailable))
+            ;
+        }
+
+        return count($futureSessions);
     }
 
     /**
