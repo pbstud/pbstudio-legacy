@@ -84,10 +84,17 @@ class SessionDayController extends AbstractController
 
             try {
                 $sessions = $request->request->all('session');
-                $schedules = $sessions['schedules'];
-                $information = $sessions['information'];
+                $schedules = is_array($sessions['schedules'] ?? null) ? $sessions['schedules'] : [];
+                $scheduleTimes = is_array($sessions['scheduleTimes'] ?? null) ? $sessions['scheduleTimes'] : [];
+                $information = is_array($sessions['information'] ?? null) ? $sessions['information'] : [];
 
-                $newDate = \DateTime::createFromFormat('d/m/Y', $sessions['dateStart']);
+                $newDate = \DateTime::createFromFormat('d/m/Y', (string) ($sessions['dateStart'] ?? ''));
+                if (!$newDate) {
+                    $this->addFlash('danger', 'Fecha invalida.');
+
+                    throw new \InvalidArgumentException('Fecha invalida.');
+                }
+                $baseDate = clone $newDate;
 
                 $this->logger->debug('[SessionDay] Fecha parseada en newDay', [
                     'raw_input' => $sessions['dateStart'] ?? null,
@@ -101,15 +108,19 @@ class SessionDayController extends AbstractController
                     throw new \InvalidArgumentException();
                 }
 
-                foreach ($schedules as $time => $schedule) {
-                    $hour = $time;
-                    [$timeHour, $timeMinute] = explode(':', $time);
-                    $newDate = $newDate->setTime((int) $timeHour, (int) $timeMinute);
+                foreach ($schedules as $timeKey => $schedule) {
+                    $time = !empty($scheduleTimes[$timeKey]) ? (string) $scheduleTimes[$timeKey] : (string) $timeKey;
+                    if (!preg_match('/^(?:[01]\\d|2[0-3]):[0-5]\\d$/', $time)) {
+                        throw new \InvalidArgumentException(sprintf('Horario invalido: %s', $time));
+                    }
+
+                    [$timeHour, $timeMinute] = array_map('intval', explode(':', $time));
+                    $dateTimeForSchedule = (clone $baseDate)->setTime($timeHour, $timeMinute);
 
                     $this->logger->debug('[SessionDay] Procesando horario', ['time' => $time]);
 
                     foreach ($schedule as $exerciseRoom => $instructor) {
-                        $info = !empty($information[$hour][$exerciseRoom]) ? $information[$hour][$exerciseRoom] : null;
+                        $info = !empty($information[$timeKey][$exerciseRoom]) ? $information[$timeKey][$exerciseRoom] : null;
 
                         $exerciseRoom = $exerciseRoomRepository->findOneById($exerciseRoom);
                         $instructor = $instructorRepository->findOneById($instructor);
@@ -117,8 +128,8 @@ class SessionDayController extends AbstractController
                         if ($instructor) {
                             $session = new Session();
                             $session
-                                ->setDateStart($newDate)
-                                ->setTimeStart($newDate)
+                                ->setDateStart(clone $dateTimeForSchedule)
+                                ->setTimeStart(clone $dateTimeForSchedule)
                                 ->setExerciseRoom($exerciseRoom)
                                 ->setExerciseRoomCapacity($exerciseRoom->getCapacity())
                                 ->setPlacesNotAvailable($exerciseRoom->getPlacesNotAvailable())
@@ -132,7 +143,7 @@ class SessionDayController extends AbstractController
                             ;
 
                             $this->logger->debug('[SessionDay] Creando sesión', [
-                                'fecha'       => $newDate->format('Y-m-d H:i:s'),
+                                'fecha'       => $dateTimeForSchedule->format('Y-m-d H:i:s'),
                                 'sala'        => $exerciseRoom?->getId(),
                                 'instructor'  => $instructor?->getId(),
                             ]);
@@ -146,7 +157,7 @@ class SessionDayController extends AbstractController
                 $this->addFlash('success', 'Las clases han sido creadas.');
 
                 return $this->redirectToRoute('backend_session_day_edit', [
-                    'editDate' => $newDate->format('d-m-Y'),
+                    'editDate' => $baseDate->format('d-m-Y'),
                     'branchOfficeId' => $branchOfficeId,
                 ]);
             } catch (\Exception $e) {
@@ -243,7 +254,7 @@ class SessionDayController extends AbstractController
 
         /** @var Session $session */
         foreach ($sessions as $session) {
-            $key = $session->getId().$session->getInstructor()->getId().$session->getInformation().$session->getExerciseRoomCapacity().$this->getParameter('secret');
+            $key = $session->getId().$session->getInstructor()->getId().$session->getInformation().$session->getExerciseRoomCapacity().$session->getTimeStart()->format('H:i').$this->getParameter('secret');
 
             $data['schedules'][$session->getTimeStart()->format('H:i')][$session->getExerciseRoom()->getId()] = [
                 'session' => $session->getId(),
@@ -262,13 +273,20 @@ class SessionDayController extends AbstractController
             ]);
 
             $sessions = $request->request->all('session');
-            $schedules = $sessions['schedules'];
-            $information = $sessions['information'];
-            $capacities = $sessions['capacity'];
+            $schedules = is_array($sessions['schedules'] ?? null) ? $sessions['schedules'] : [];
+            $scheduleTimes = is_array($sessions['scheduleTimes'] ?? null) ? $sessions['scheduleTimes'] : [];
+            $information = is_array($sessions['information'] ?? null) ? $sessions['information'] : [];
+            $capacities = is_array($sessions['capacity'] ?? null) ? $sessions['capacity'] : [];
+            $baseEditDate = clone $editDate;
 
-            foreach ($schedules as $schedule => $exerciseRooms) {
-                [$timeHour, $timeMinute] = explode(':', $schedule);
-                $editDate = $editDate->setTime((int) $timeHour, (int) $timeMinute);
+            foreach ($schedules as $scheduleKey => $exerciseRooms) {
+                $time = !empty($scheduleTimes[$scheduleKey]) ? (string) $scheduleTimes[$scheduleKey] : (string) $scheduleKey;
+                if (!preg_match('/^(?:[01]\\d|2[0-3]):[0-5]\\d$/', $time)) {
+                    throw new \InvalidArgumentException(sprintf('Horario invalido: %s', $time));
+                }
+
+                [$timeHour, $timeMinute] = array_map('intval', explode(':', $time));
+                $dateTimeForSchedule = (clone $baseEditDate)->setTime($timeHour, $timeMinute);
 
                 foreach ($exerciseRooms as $exerciseRoom => $session) {
                     $instructor = (int) $session['instructor'];
@@ -276,11 +294,11 @@ class SessionDayController extends AbstractController
                         continue;
                     }
 
-                    $info = !empty($information[$schedule][$exerciseRoom]) ? $information[$schedule][$exerciseRoom] : null;
-                    $capacity = !empty($capacities[$schedule][$exerciseRoom]) ? $capacities[$schedule][$exerciseRoom] : null;
+                    $info = !empty($information[$scheduleKey][$exerciseRoom]) ? $information[$scheduleKey][$exerciseRoom] : null;
+                    $capacity = !empty($capacities[$scheduleKey][$exerciseRoom]) ? $capacities[$scheduleKey][$exerciseRoom] : null;
 
                     if (isset($session['hash'])) {
-                        $key = $session['session'].$session['instructor'].$info.$capacity.$this->getParameter('secret');
+                        $key = $session['session'].$session['instructor'].$info.$capacity.$time.$this->getParameter('secret');
                         $hash = hash('md5', $key);
 
                         $this->logger->debug('[SessionDay] Validando hash de sesión existente', [
@@ -298,6 +316,8 @@ class SessionDayController extends AbstractController
                                 ->setInstructor($instructor)
                                 ->setInformation($info)
                                 ->setExerciseRoomCapacity((int) $capacity)
+                                ->setDateStart(clone $dateTimeForSchedule)
+                                ->setTimeStart(clone $dateTimeForSchedule)
                                 ->updateAvailableCapacity()
                             ;
 
@@ -322,8 +342,8 @@ class SessionDayController extends AbstractController
 
                         $session = new Session();
                         $session
-                            ->setDateStart($editDate)
-                            ->setTimeStart($editDate)
+                            ->setDateStart(clone $dateTimeForSchedule)
+                            ->setTimeStart(clone $dateTimeForSchedule)
                             ->setExerciseRoom($exerciseRoom)
                             ->setType($exerciseRoom->getType())
                             ->setDiscipline($exerciseRoom->getDiscipline())
@@ -352,7 +372,13 @@ class SessionDayController extends AbstractController
 
         $exerciseRooms = $exerciseRoomRepository->getActiveByBranchOffice($branchOffice);
 
-        $schedules = $scheduleUtil->getSchedules();
+        $schedules = iterator_to_array($scheduleUtil->getSchedules());
+        foreach (array_keys($data['schedules'] ?? []) as $existingSchedule) {
+            if (!isset($schedules[$existingSchedule])) {
+                $schedules[$existingSchedule] = $existingSchedule;
+            }
+        }
+        ksort($schedules);
 
         return $this->render('backend/session_day/edit.html.twig', [
             'data' => $data,

@@ -18,6 +18,7 @@ use Symfony\Component\Form\CallbackTransformer;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
+use Symfony\Component\Form\Extension\Core\Type\TimeType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\FormEvent;
 use Symfony\Component\Form\FormEvents;
@@ -42,6 +43,7 @@ class SessionType extends AbstractType
     {
         /** @var Session $session */
         $session = $builder->getData();
+        $useFlexibleTimeStart = (bool) ($options['use_flexible_time_start'] ?? false);
 
         $builder
             ->add('dateStart', DateType::class, [
@@ -50,10 +52,6 @@ class SessionType extends AbstractType
                 'widget' => 'single_text',
                 'html5' => false,
             ])
-            ->add('timeStart', ChoiceType::class, [
-                'label' => 'label.time_start',
-                'choices' => $this->schedule->getSchedules(),
-            ])
             ->add('information', null, [
                 'label' => 'label.information',
             ])
@@ -61,6 +59,34 @@ class SessionType extends AbstractType
                 'label' => 'label.branch_office',
             ])
         ;
+
+        if ($useFlexibleTimeStart) {
+            $builder->add('timeStart', TimeType::class, [
+                'label' => 'label.time_start',
+                'widget' => 'single_text',
+                'with_seconds' => false,
+                'input' => 'datetime',
+                'attr' => [
+                    'step' => 60,
+                ],
+            ]);
+        } else {
+            $builder->add('timeStart', ChoiceType::class, [
+                'label' => 'label.time_start',
+                'choices' => $this->schedule->getSchedules(),
+            ]);
+
+            $builder->get('timeStart')
+                ->addModelTransformer(new CallbackTransformer(
+                    static function ($timeStart) {
+                        return $timeStart ? $timeStart->format('H:i') : $timeStart;
+                    },
+                    static function ($timeStart) {
+                        return $timeStart ? \DateTime::createFromFormat('H:i', $timeStart) : null;
+                    }
+                ))
+            ;
+        }
 
         if ($session->getId()) {
             $builder
@@ -87,17 +113,6 @@ class SessionType extends AbstractType
                 ))
             ;
         }
-
-        $builder->get('timeStart')
-            ->addModelTransformer(new CallbackTransformer(
-                static function ($timeStart) {
-                    return $timeStart ? $timeStart->format('H:i') : $timeStart;
-                },
-                static function ($timeStart) {
-                    return $timeStart ? \DateTime::createFromFormat('H:i', $timeStart) : null;
-                }
-            ))
-        ;
 
         $branchOfficeModifier = static function (FormInterface $form, int $branchOfficeId = null) {
             $options = [
@@ -195,6 +210,9 @@ class SessionType extends AbstractType
     {
         $resolver->setDefaults([
             'data_class' => Session::class,
+            'use_flexible_time_start' => false,
         ]);
+
+        $resolver->setAllowedTypes('use_flexible_time_start', 'bool');
     }
 }
